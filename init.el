@@ -53,5 +53,4 @@
 (require 'rc-go)
 (require 'rc-elisp)
 (require 'rc-markdown)
-(require 'rc-typst)
 (require 'rc-org)

@@ -1,22 +1,27 @@
 ;;; -*- lexical-binding: t; -*-
 
+;; Display relative lines
+(setq-default display-line-numbers-type 'relative)
+
+;; Increase the delay for Emacs to update its display
 (setq which-func-update-delay 1.0)
 
-(setq visible-bell nil)
-(setq ring-bell-function #'ignore)
+;; Disable distracting notifications
+(setq visible-bell nil
+      ring-bell-function #'ignore)
 
-(setq-default display-line-numbers-type 'relative)
+;; Don't "cut" words when wrapping lines
 (setq-default word-wrap t)
 
-(setq split-width-threshold 170
-      split-height-threshold nil)
-
+;; Accept single-character answers
 (setq read-answer-short t)
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
+  ;; Answer prompts with a single letter
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
 (when (bound-and-true-p blink-cursor-mode)
+  ;; Disable cursor blinking
   (blink-cursor-mode -1))
 
 (setq-default truncate-lines t)
