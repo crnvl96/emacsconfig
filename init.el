@@ -35,9 +35,9 @@
                           ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
                           ("melpa-stable" . "https://stable.melpa.org/packages/"))
       package-archive-priorities '( ("melpa"        . 90)
-                                   ("gnu"          . 70)
-                                   ("nongnu"       . 60)
-                                   ("melpa-stable" . 50)))
+                                    ("gnu"          . 70)
+                                    ("nongnu"       . 60)
+                                    ("melpa-stable" . 50)))
 
 ;;; UI and Appearance
 
@@ -249,9 +249,9 @@
 ;;; Which-Key - labels and hints for emacs keymaps
 
 (which-key-add-key-based-replacements
- "C-x p" "Project"
- "C-c c" "Crux"
- "C-c f" "Find")
+  "C-x p" "Project"
+  "C-c c" "Crux"
+  "C-c f" "Find")
 
 (add-hook 'after-init-hook #'which-key-mode)
 
@@ -267,7 +267,7 @@
   :ensure t
   :config
   (setq avy-keys (number-sequence ?a ?y))
-  :bind (("M-i" . avy-goto-char-2)
+  :bind (("M-i" . avy-goto-char)
          ("M-e" . avy-goto-word-0)))
 
 ;;; Expand-region - A more convenient way to select text
@@ -275,6 +275,22 @@
 (use-package expand-region
   :ensure t
   :bind (("C-=" . er/expand-region)))
+
+;;; Multiple cursors
+
+(unless (package-installed-p 'multiple-cursors)
+  (package-install 'multiple-cursors))
+
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+
+;;; Better kill ring and mark
+
+(unless (package-installed-p 'easy-kill)
+  (package-install 'easy-kill))
+
+(global-set-key [remap kill-ring-save] 'easy-kill)
+(global-set-key [remap mark-sexp] 'easy-mark)
 
 ;;; Completion and Search
 
