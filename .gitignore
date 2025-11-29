@@ -1,2 +1,3 @@
-var/
-custom.el
+*
+!init.el
+!rc/
