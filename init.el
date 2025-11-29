@@ -1,26 +1,6 @@
- ;;; init.el --- Init -*- lexical-binding: t; -*-
+;;; init.el --- Init -*- lexical-binding: t; -*-
 
-;;; UI elements - declutter interface
-
-(setq inhibit-splash-screen t ; Disable splash screen
-      use-file-dialog nil     ; Disable file dialog
-      use-dialog-box nil)     ; Disable dialog box
-
-(menu-bar-mode -1)   ; No menu bar
-(tool-bar-mode -1)   ; No tool bar
-(scroll-bar-mode -1) ; No scroll bar
-(tooltip-mode -1)    ; No tooltips
-(prefer-coding-system 'utf-8)
-
-;;; Theme
-
-(mapc #'disable-theme custom-enabled-themes)
-(load-theme 'modus-vivendi t)
-
-;;; Fonts
-
-(set-face-attribute 'default nil :height 200 :weight 'normal :family "Iosevka")
-(set-face-attribute 'variable-pitch nil :height 200 :weight 'normal :family "Iosevka Aile")
+;;; Early Initialization
 
 ;;; Garbage collection management - performance optimization
 
@@ -55,16 +35,35 @@
                           ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
                           ("melpa-stable" . "https://stable.melpa.org/packages/"))
       package-archive-priorities '( ("melpa"        . 90)
-                                    ("gnu"          . 70)
-                                    ("nongnu"       . 60)
-                                    ("melpa-stable" . 50)))
+                                   ("gnu"          . 70)
+                                   ("nongnu"       . 60)
+                                   ("melpa-stable" . 50)))
 
-;;; Buffer organization
+;;; UI and Appearance
 
-(add-to-list 'display-buffer-alist
-             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-               (display-buffer-no-window)
-               (allow-no-window . t)))
+;;; UI elements - declutter interface
+
+(setq inhibit-splash-screen t ; Disable splash screen
+      use-file-dialog nil     ; Disable file dialog
+      use-dialog-box nil)     ; Disable dialog box
+
+(menu-bar-mode -1)   ; No menu bar
+(tool-bar-mode -1)   ; No tool bar
+(scroll-bar-mode -1) ; No scroll bar
+(tooltip-mode -1)    ; No tooltips
+(prefer-coding-system 'utf-8)
+
+;;; Theme
+
+(mapc #'disable-theme custom-enabled-themes)
+(load-theme 'modus-vivendi t)
+
+;;; Fonts
+
+(set-face-attribute 'default nil :height 200 :weight 'normal :family "Iosevka")
+(set-face-attribute 'variable-pitch nil :height 200 :weight 'normal :family "Iosevka Aile")
+
+;;; General Settings and Hooks
 
 ;;; General
 
@@ -133,7 +132,7 @@
 ;; Enable saveplace
 (add-hook 'after-init-hook #'save-place-mode)
 
-;; Savehist mode
+;;; Savehist mode
 
 ;; Increase the limit of entries
 (setq history-length 300)
@@ -147,6 +146,15 @@
         search-ring regexp-search-ring)) ; searches
 ;; Enable savehist
 (add-hook 'after-init-hook #'savehist-mode)
+
+;;; File and Buffer Management
+
+;;; Buffer organization
+
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
 
 ;;; Dired
 
@@ -193,6 +201,8 @@
 ;; Enable autorevert
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 
+;;; Version Control
+
 ;;; Ediff
 
 ;; Setup windows in a single frame
@@ -208,6 +218,8 @@
 (setq vc-make-backup-files nil)
 ;; Algorithm for diffs
 (setq vc-git-diff-switches '("--histogram"))
+
+;;; Keybindings and Navigation
 
 ;;; Custom keymaps
 
@@ -237,69 +249,11 @@
 ;;; Which-Key - labels and hints for emacs keymaps
 
 (which-key-add-key-based-replacements
-  "C-x p" "Project"
-  "C-c c" "Crux"
-  "C-c f" "Find")
+ "C-x p" "Project"
+ "C-c c" "Crux"
+ "C-c f" "Find")
 
 (add-hook 'after-init-hook #'which-key-mode)
-
-;;; Delight - declutter the modeline
-
-(use-package delight
-  :ensure t
-  :demand t
-  :config
-  (delight 'whitespace-mode nil "whitespace")
-  (delight 'which-key-mode nil "which-key")
-  (delight 'devil-mode nil "devil")
-  (delight 'visual-line-mode nil "simple")
-  (delight 'eldoc-mode nil "eldoc"))
-
-;;; Thrashed - manage files on the thrash dir
-
-(use-package trashed
-  :ensure t
-  :commands (trashed)
-  :config
-  (setq trashed-action-confirmer 'y-or-n-p)
-  (setq trashed-use-header-line t)
-  (setq trashed-sort-key '("Date deleted" . t))
-  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
-
-;;; Treesit
-
-(setq treesit-language-source-alist
-      '(  ; use `sort-lines' to sort
-        (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-        (c . ("https://github.com/tree-sitter/tree-sitter-c"))
-        (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.23.0"))
-        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-        (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
-        (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-        (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-        (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
-        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-        (typst . ("https://github.com/uben0/tree-sitter-typst"))
-        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
-        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
-        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
-        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
-        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
-        ))
-
-(defun my/treesit-install-all-languages ()
-  "Install all languages specified by `treesit-language-source-alist'."
-  (interactive)
-  (let ((languages (mapcar 'car treesit-language-source-alist)))
-    (dolist (lang languages)
-	  (treesit-install-language-grammar lang)
-	  (message "`%s' parser was installed." lang)
-	  (sit-for 0.75))))
-
-(add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
 ;;; Ace-window - Easy window management
 
@@ -322,118 +276,7 @@
   :ensure t
   :bind (("C-=" . er/expand-region)))
 
-;;; Editorconfig support
-
-(use-package editorconfig
-  :ensure t
-  :hook (after-init . editorconfig-mode))
-
-;;; Mise support
-
-(use-package mise
-  :ensure t
-  :hook (after-init . global-mise-mode))
-
-;;; Make the shell path also available in Emacs
-
-(use-package exec-path-from-shell
-  :ensure t
-  :demand t
-  :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
-
-;;; Auto kill unused buffers
-
-(use-package buffer-terminator
-  :ensure t
-  :delight
-  :hook (after-init . buffer-terminator-mode)
-  :config (setq buffer-terminator-verbose nil
-                buffer-terminator-inactivity-timeout (* 20 60)
-                buffer-terminator-interval (* 20 60)))
-
-;;; Auto save files
-
-(use-package super-save
-  :ensure t
-  :delight
-  :hook (after-init . super-save-mode)
-  :init (setq auto-save-default nil)
-  :config (setq super-save-auto-save-when-idle t
-                super-save-delete-trailing-whitespace t
-                super-save-all-buffers t)
-  (add-to-list 'super-save-triggers 'ace-window)
-  (add-to-list 'super-save-hook-triggers 'find-file-hook))
-
-;;; Auto manage undo
-
-(use-package undo-fu
-  :demand t
-  :ensure t
-  :commands (undo-fu-only-undo
-             undo-fu-only-redo
-             undo-fu-only-redo-all
-             undo-fu-disable-checkpoint)
-  :config
-  (global-unset-key (kbd "C-z"))
-  (global-set-key (kbd "C-z") 'undo-fu-only-undo)
-  (global-set-key (kbd "C-S-z") 'undo-fu-only-redo))
-
-(use-package undo-fu-session
-  :ensure t
-  :hook (after-init . undo-fu-session-global-mode)
-  :commands (undo-fu-session-global-mode))
-
-;;; A better help menu
-
-(use-package helpful
-  :ensure t
-  :commands (helpful-callable
-             helpful-variable
-             helpful-key
-             helpful-command
-             helpful-at-point
-             helpful-function)
-  :config
-  (setq helpful-max-buffers 3)
-  :bind
-  ([remap describe-command] . helpful-command)
-  ([remap describe-function] . helpful-callable)
-  ([remap describe-key] . helpful-key)
-  ([remap describe-symbol] . helpful-symbol)
-  ([remap describe-variable] . helpful-variable))
-
-;;; A plethora of utilities
-
-(use-package crux
-  :ensure t
-  :demand t
-  :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
-         ([remap kill-whole-line] . crux-kill-whole-line)
-         ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
-         ([remap upcase-region] . crux-upcase-region)
-         ([remap downcase-region] . crux-downcase-region)
-         ("C-c c j" . crux-top-join-line)
-         ("C-c c n" . crux-cleanup-buffer-or-region)
-         ("C-c c t" . crux-visit-term-buffer)
-         ("C-c c d" . crux-duplicate-current-line-or-region)
-         ("C-k" . crux-smart-kill-line)
-         ("S-<return>" . crux-smart-open-line)
-         ("C-S-<return>" . crux-smart-open-line-above)
-         ("C-c c o" . crux-open-with)
-         ("C-c c u" . crux-view-url)
-         ("C-c c k" . crux-kill-other-buffers))
-  :config
-  (crux-with-region-or-line comment-or-uncomment-region)
-  (crux-with-region-or-sexp-or-line kill-region)
-  (crux-with-region-or-point-to-eol kill-ring-save))
-
-;;; Epub reader
-
-(use-package nov
-  :ensure t
-  :mode (("\\.epub\\'" . nov-mode)))
+;;; Completion and Search
 
 ;;; Marginalia
 
@@ -544,10 +387,42 @@
   :config
   (rg-enable-menu))
 
-;;; Magit
+;;; Development Tools
 
-(use-package magit
-  :ensure t)
+;;; Treesit
+
+(setq treesit-language-source-alist
+      '(  ; use `sort-lines' to sort
+        (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+        (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+        (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.23.0"))
+        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+        (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
+        (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+        (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+        (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
+        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
+        (typst . ("https://github.com/uben0/tree-sitter-typst"))
+        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
+        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
+        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
+        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
+        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
+        ))
+
+(defun my/treesit-install-all-languages ()
+  "Install all languages specified by `treesit-language-source-alist'."
+  (interactive)
+  (let ((languages (mapcar 'car treesit-language-source-alist)))
+    (dolist (lang languages)
+	  (treesit-install-language-grammar lang)
+	  (message "`%s' parser was installed." lang)
+	  (sit-for 0.75))))
+
+(add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
+(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
 ;;; Apheleia - Code formatter
 
@@ -594,6 +469,8 @@
   (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
 
+;;; Language Modes
+
 ;;; Python mode
 
 (use-package pyvenv
@@ -616,7 +493,7 @@
   :ensure nil
   :delight (emacs-lisp-mode "Elisp" :major))
 
-;;; Marddown mode
+;;; Markdown mode
 
 (use-package markdown-mode
   :ensure t
@@ -645,3 +522,146 @@
                 org-todo-keywords '((sequence "TODO(t)" "WAIT(w!)" "|" "CANCEL(c!)" "DONE(d!)")))
   :bind
   ("C-c a" . org-agenda))
+
+;;; Utilities
+
+;;; Delight - declutter the modeline
+
+(use-package delight
+  :ensure t
+  :demand t
+  :config
+  (delight 'whitespace-mode nil "whitespace")
+  (delight 'which-key-mode nil "which-key")
+  (delight 'devil-mode nil "devil")
+  (delight 'visual-line-mode nil "simple")
+  (delight 'eldoc-mode nil "eldoc"))
+
+;;; Thrashed - manage files on the thrash dir
+
+(use-package trashed
+  :ensure t
+  :commands (trashed)
+  :config
+  (setq trashed-action-confirmer 'y-or-n-p)
+  (setq trashed-use-header-line t)
+  (setq trashed-sort-key '("Date deleted" . t))
+  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
+
+;;; Make the shell path also available in Emacs
+
+(use-package exec-path-from-shell
+  :ensure t
+  :demand t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+
+;;; Auto kill unused buffers
+
+(use-package buffer-terminator
+  :ensure t
+  :delight
+  :hook (after-init . buffer-terminator-mode)
+  :config (setq buffer-terminator-verbose nil
+                buffer-terminator-inactivity-timeout (* 20 60)
+                buffer-terminator-interval (* 20 60)))
+
+;;; Auto save files
+
+(use-package super-save
+  :ensure t
+  :delight
+  :hook (after-init . super-save-mode)
+  :init (setq auto-save-default nil)
+  :config (setq super-save-auto-save-when-idle t
+                super-save-delete-trailing-whitespace t
+                super-save-all-buffers t)
+  (add-to-list 'super-save-triggers 'ace-window)
+  (add-to-list 'super-save-hook-triggers 'find-file-hook))
+
+;;; Auto manage undo
+
+(use-package undo-fu
+  :demand t
+  :ensure t
+  :commands (undo-fu-only-undo
+             undo-fu-only-redo
+             undo-fu-only-redo-all
+             undo-fu-disable-checkpoint)
+  :config
+  (global-unset-key (kbd "C-z"))
+  (global-set-key (kbd "C-z") 'undo-fu-only-undo)
+  (global-set-key (kbd "C-S-z") 'undo-fu-only-redo))
+
+(use-package undo-fu-session
+  :ensure t
+  :hook (after-init . undo-fu-session-global-mode)
+  :commands (undo-fu-session-global-mode))
+
+;;; A better help menu
+
+(use-package helpful
+  :ensure t
+  :commands (helpful-callable
+             helpful-variable
+             helpful-key
+             helpful-command
+             helpful-at-point
+             helpful-function)
+  :config
+  (setq helpful-max-buffers 3)
+  :bind
+  ([remap describe-command] . helpful-command)
+  ([remap describe-function] . helpful-callable)
+  ([remap describe-key] . helpful-key)
+  ([remap describe-symbol] . helpful-symbol)
+  ([remap describe-variable] . helpful-variable))
+
+;;; A plethora of utilities
+
+(use-package crux
+  :ensure t
+  :demand t
+  :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
+         ([remap kill-whole-line] . crux-kill-whole-line)
+         ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
+         ([remap upcase-region] . crux-upcase-region)
+         ([remap downcase-region] . crux-downcase-region)
+         ("C-c c j" . crux-top-join-line)
+         ("C-c c n" . crux-cleanup-buffer-or-region)
+         ("C-c c t" . crux-visit-term-buffer)
+         ("C-c c d" . crux-duplicate-current-line-or-region)
+         ("C-k" . crux-smart-kill-line)
+         ("S-<return>" . crux-smart-open-line)
+         ("C-S-<return>" . crux-smart-open-line-above)
+         ("C-c c o" . crux-open-with)
+         ("C-c c u" . crux-view-url)
+         ("C-c c k" . crux-kill-other-buffers))
+  :config
+  (crux-with-region-or-line comment-or-uncomment-region)
+  (crux-with-region-or-sexp-or-line kill-region)
+  (crux-with-region-or-point-to-eol kill-ring-save))
+
+;;; Epub reader
+
+(use-package nov
+  :ensure t
+  :mode (("\\.epub\\'" . nov-mode)))
+
+;;; Editorconfig support
+
+(use-package editorconfig
+  :ensure t
+  :hook (after-init . editorconfig-mode))
+
+;;; Mise support
+
+(use-package mise
+  :ensure t
+  :hook (after-init . global-mise-mode))
+
+;;; Magit
+
+(use-package magit
+  :ensure t)
