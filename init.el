@@ -278,19 +278,17 @@
 
 ;;; Multiple cursors
 
-(unless (package-installed-p 'multiple-cursors)
-  (package-install 'multiple-cursors))
-
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(use-package multiple-cursors
+  :ensure t
+  :bind (("C->" . mc/mark-next-like-this)
+         ("C-<" . mc/mark-previous-like-this)))
 
 ;;; Better kill ring and mark
 
-(unless (package-installed-p 'easy-kill)
-  (package-install 'easy-kill))
-
-(global-set-key [remap kill-ring-save] 'easy-kill)
-(global-set-key [remap mark-sexp] 'easy-mark)
+(use-package easy-kill
+  :ensure t
+  :bind (([remap kill-ring-save] . easy-kill)
+         ([remap mark-sexp] . easy-mark)))
 
 ;;; Completion and Search
 
