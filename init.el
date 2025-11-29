@@ -2,7 +2,7 @@
 
 (add-to-list 'load-path (expand-file-name "~/.emacs.d/rc/"))
 
-;; Core settings
+;;; Core settings
 (require 'rc-delight)
 (require 'rc-opts)
 (require 'rc-fonts)
@@ -10,17 +10,17 @@
 (require 'rc-which-key)
 (require 'rc-theme)
 
-;; File management
+;;; File management
 (require 'rc-dired)
 (require 'rc-trashed)
 (require 'rc-treesit)
 
-;; Navigation
+;;; Navigation
 (require 'rc-ace-window)
 (require 'rc-avy)
 (require 'rc-expand-region)
 
-;; Editing
+;;; Editing
 (require 'rc-editorconfig)
 (require 'rc-mise)
 (require 'rc-exec-path-from-shell)
@@ -30,24 +30,24 @@
 (require 'rc-helpful)
 (require 'rc-crux)
 
-;; Reading
+;;; Reading
 (require 'rc-nov)
 
-;; Completion
+;;; Completion
 (require 'rc-completion)
 (require 'rc-consult)
 (require 'rc-rg)
 
-;; Version control
+;;; Version control
 (require 'rc-magit)
 
-;; Code formatting
+;;; Code formatting
 (require 'rc-apheleia)
 
-;; LSP
+;;; LSP
 (require 'rc-eglot)
 
-;; Languages
+;;; Languages
 (require 'rc-python)
 (require 'rc-json)
 (require 'rc-go)
