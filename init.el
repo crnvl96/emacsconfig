@@ -84,8 +84,9 @@
 (setq visible-bell nil             ; No visible bell
       ring-bell-function #'ignore) ; No ring bell
 
-(setq split-height-threshold nil)
-(setq split-width-threshold 1)
+;; Always prefer vertical splits
+(setq split-height-threshold nil
+      split-width-threshold 1)
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
