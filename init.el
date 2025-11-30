@@ -84,6 +84,9 @@
 (setq visible-bell nil             ; No visible bell
       ring-bell-function #'ignore) ; No ring bell
 
+(setq split-height-threshold nil)
+(setq split-width-threshold 1)
+
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p)) ; Allow single letter responses
@@ -290,6 +293,26 @@
   :bind (([remap kill-ring-save] . easy-kill)
          ([remap mark-sexp] . easy-mark)))
 
+;;; Kirigami - better folding
+
+(use-package outline-indent
+  :ensure t
+  :commands outline-indent-minor-mode
+  :init
+  (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
+    (add-hook hook #'outline-indent-minor-mode))
+  :config
+  (setq outline-indent-ellipsis " ▼"))
+
+(use-package kirigami
+  :ensure t
+  :bind (("C-c k o" . kirigami-open-fold)       ; Open fold at point
+         ("C-c k r" . kirigami-open-fold-rec)   ; Open fold recursively
+         ("C-c k C" . kirigami-close-folds)     ; Close all folds
+         ("C-c k c" . kirigami-close-fold)      ; Close fold at point
+         ("C-c k O" . kirigami-open-folds)      ; Open all folds
+         ("C-c k k" . kirigami-toggle-fold)))   ; Toggle fold at point
+
 ;;; Completion and Search
 
 ;;; Marginalia
@@ -410,6 +433,7 @@
         (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
         (c . ("https://github.com/tree-sitter/tree-sitter-c"))
         (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.23.0"))
+        (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
         (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
         (json . ("https://github.com/tree-sitter/tree-sitter-json"))
@@ -436,6 +460,7 @@
 (add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+(add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
 ;;; Apheleia - Code formatter
@@ -499,6 +524,11 @@
 ;;; Go mode
 
 (use-package go-mode
+  :ensure t)
+
+;;; Lua mode
+
+(use-package lua-mode
   :ensure t)
 
 ;;; Elisp mode
