@@ -527,6 +527,20 @@
 (use-package go-mode
   :ensure t)
 
+;;; Typst mode
+
+(use-package
+  typst-ts-mode
+  :vc ( :url "https://codeberg.org/meow_king/typst-ts-mode.git"
+        :rev :newest)
+  :mode (("\\.typ\\'" . typst-ts-mode))
+  :config
+  (setq typst-ts-watch-options "--open")
+  (setq typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory))
+  (setq typst-ts-mode-enable-raw-blocks-highlight t)
+  :bind ( :map typst-ts-mode-map
+          ("C-c C-c" . typst-ts-tmenu)))
+
 ;;; Lua mode
 
 (use-package lua-mode
