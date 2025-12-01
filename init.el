@@ -1,7 +1,5 @@
 ;;; init.el --- Init -*- lexical-binding: t; -*-
 
-;;; Early Initialization
-
 ;;; Garbage collection management - performance optimization
 
 ;; Increase garbage collection thresholds during startup for better performance.
@@ -27,9 +25,9 @@
   (unless (seq-empty-p package-archive-contents)
     (package-refresh-contents))
   (package-install 'use-package))
-
-;; This is done to ensure that use-package is available for use throughout the config
 (require 'use-package)
+
+;; Set package sources and priorities
 (setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
                           ("gnu"          . "https://elpa.gnu.org/packages/")
                           ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
@@ -39,9 +37,7 @@
                                     ("nongnu"       . 60)
                                     ("melpa-stable" . 50)))
 
-;;; UI and Appearance
-
-;;; UI elements - declutter interface
+;;; Appearance
 
 (setq inhibit-splash-screen t ; Disable splash screen
       use-file-dialog nil     ; Disable file dialog
@@ -53,17 +49,11 @@
 (tooltip-mode -1)    ; No tooltips
 (prefer-coding-system 'utf-8)
 
-;;; Theme
-
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 
-;;; Fonts
-
-(set-face-attribute 'default nil :height 200 :weight 'normal :family "Iosevka")
-(set-face-attribute 'variable-pitch nil :height 200 :weight 'normal :family "Iosevka Aile")
-
-;;; General Settings and Hooks
+(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
+(set-face-attribute 'variable-pitch nil :height 240 :weight 'normal :family "Iosevka Aile")
 
 ;;; General
 
@@ -75,7 +65,6 @@
 
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
-;; Eval this only if we aren't on MacOS
 (unless (and (eq window-system 'mac)
              (bound-and-true-p mac-carbon-version-string))
   (setq pixel-scroll-precision-use-momentum nil)
@@ -104,27 +93,18 @@
 
 ;;; Hooks
 
-;; Enhance the compilation buffer with ansi colors
 (add-hook 'compilation-filter-hook
           (lambda ()
             (ansi-color-apply-on-region compilation-filter-start (point-max))))
 
-;; Display current time on modeline
 (add-hook 'after-init-hook #'display-time-mode)
-;; Highlight the current line
 (add-hook 'after-init-hook #'global-hl-line-mode)
-;; When Delete Selection mode is enabled, typed text replaces the selection
-;; if the selection is active.  Otherwise, typed text is just inserted at
-;; point regardless of any selection.
 (add-hook 'after-init-hook #'delete-selection-mode)
-;; Record the changes on window configuration
 (add-hook 'after-init-hook #'winner-mode)
 
 ;;; Whitespace mode
 
-;; Define the kinds of whitespaces that we want highlighted
 (setq whitespace-style '(face trailing empty))
-;; Enable whitespace mode
 (add-hook 'after-init-hook #'global-whitespace-mode)
 
 ;;; Saveplace mode
