@@ -2,16 +2,9 @@
 
 ;;; Garbage collection management - performance optimization
 
-;; Increase garbage collection thresholds during startup for better performance.
-;; This prevents Emacs from running garbage collection during initialization,
-;; which can significantly slow down startup time. We set the threshold to a
-;; very high value and increase the percentage to reduce GC frequency.
-;; After initialization, we reset to more reasonable values.
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 
-;; Reset garbage collection thresholds after initialization to prevent excessive
-;; memory usage during normal operation.
 (add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 64 1024 1024)  ; 64 MB
@@ -27,7 +20,6 @@
   (package-install 'use-package))
 (require 'use-package)
 
-;; Set package sources and priorities
 (setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
                           ("gnu"          . "https://elpa.gnu.org/packages/")
                           ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
@@ -39,14 +31,14 @@
 
 ;;; Appearance
 
-(setq inhibit-splash-screen t ; Disable splash screen
-      use-file-dialog nil     ; Disable file dialog
-      use-dialog-box nil)     ; Disable dialog box
+(setq inhibit-splash-screen t
+      use-file-dialog nil
+      use-dialog-box nil)
 
-(menu-bar-mode -1)   ; No menu bar
-(tool-bar-mode -1)   ; No tool bar
-(scroll-bar-mode -1) ; No scroll bar
-(tooltip-mode -1)    ; No tooltips
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(tooltip-mode -1)
 (prefer-coding-system 'utf-8)
 
 (mapc #'disable-theme custom-enabled-themes)
@@ -57,11 +49,16 @@
 
 ;;; General
 
-(setq-default display-line-numbers-type 'relative ; Relative lines
-              word-wrap t                         ; Wrap lines at word boundaries
-              indent-tabs-mode nil                ; Don't indent with tabs
-              truncate-lines t                    ; Don't display continuation lines
-              tab-width 4)                        ; How much spaces a tab count for
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
+(setq-default display-line-numbers-type 'relative
+              word-wrap t
+              indent-tabs-mode nil
+              truncate-lines t
+              tab-width 4)
 
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
@@ -70,26 +67,25 @@
   (setq pixel-scroll-precision-use-momentum nil)
   (pixel-scroll-precision-mode 1))
 
-(setq visible-bell nil             ; No visible bell
-      ring-bell-function #'ignore) ; No ring bell
+(setq visible-bell nil
+      ring-bell-function #'ignore)
 
-;; Always prefer vertical splits
 (setq split-height-threshold nil
       split-width-threshold 1)
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
-  (advice-add 'yes-or-no-p :override #'y-or-n-p)) ; Allow single letter responses
+  (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
 (when (bound-and-true-p blink-cursor-mode)
-  (blink-cursor-mode -1)) ; No blinking
+  (blink-cursor-mode -1))
 
-(setq custom-file "~/.emacs.d/custom.el") ; Define custom file path
-(setq native-comp-async-query-on-exit t)  ; Ask before killing async compilations
-(setq package-install-upgrade-built-in t) ; Allow upgrading builtin packages
-(setq compile-command nil)                ; Dont auto populate the compile command prompt
-(setq kill-do-not-save-duplicates t)      ; Avoid duplications on kill-ring
-(setq completion-ignore-case t)           ; Case insensitive completion
+(setq custom-file "~/.emacs.d/custom.el")
+(setq native-comp-async-query-on-exit t)
+(setq package-install-upgrade-built-in t)
+(setq compile-command nil)
+(setq kill-do-not-save-duplicates t)
+(setq completion-ignore-case t)
 
 ;;; Hooks
 
@@ -109,36 +105,20 @@
 
 ;;; Saveplace mode
 
-;; Define target location under custom directory
 (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
-;; Increase the limit of entries
 (setq save-place-limit 600)
-;; Enable saveplace
 (add-hook 'after-init-hook #'save-place-mode)
 
 ;;; Savehist mode
 
-;; Increase the limit of entries
 (setq history-length 300)
-;; Also save the minibuffer history
 (setq savehist-save-minibuffer-history t)
-;; Also save additional variables
 (setq savehist-additional-variables
-      '(kill-ring                        ; clipboard
-        register-alist                   ; macros
-        mark-ring global-mark-ring       ; marks
-        search-ring regexp-search-ring)) ; searches
-;; Enable savehist
+      '(kill-ring
+        register-alist
+        mark-ring global-mark-ring
+        search-ring regexp-search-ring))
 (add-hook 'after-init-hook #'savehist-mode)
-
-;;; File and Buffer Management
-
-;;; Buffer organization
-
-(add-to-list 'display-buffer-alist
-             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-               (display-buffer-no-window)
-               (allow-no-window . t)))
 
 ;;; Dired
 
@@ -159,51 +139,30 @@
 
 ;;; Recentf mode
 
-;; Increase the limit of saved entries
 (setq recentf-max-saved-items 300)
-;; Increase the number of items in the menu
 (setq recentf-max-menu-items 15)
-;; Enable recentf
 (add-hook 'after-init-hook #'recentf-mode)
 
 ;;; Autorevert mode
 
-;; decrease the trigger interval
 (setq auto-revert-interval 2)
-;; The value is a list of regular expressions.
-;; If the file name matches one of these regular expressions,
-;; then revert-buffer reverts the file without querying
-;; if the file has changed on disk and you have not edited the buffer.
 (setq revert-without-query (list "."))
-;; When non-nil, user input temporarily interrupts Auto-Revert Mode.
 (setq auto-revert-stop-on-user-input nil)
 (setq auto-revert-verbose t)
-;; When nil, Global Auto-Revert Mode operates only on file-visiting buffers.
 (setq global-auto-revert-non-file-buffers t)
-;; List of major modes Global Auto-Revert Mode should not check.
 (setq global-auto-revert-ignore-modes '(Buffer-menu-mode))
-;; Enable autorevert
 (add-hook 'after-init-hook #'global-auto-revert-mode)
-
-;;; Version Control
 
 ;;; Ediff
 
-;; Setup windows in a single frame
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
-;; The function used to split the main window between buffer-A and buffer-B.
 (setq ediff-split-window-function 'split-window-horizontally)
 
 ;;; VC (Version Control)
 
-;; If non-nil, use the flag --follow when producing single file logs.
 (setq vc-git-print-log-follow t)
-;; Don't backup version controlled files
 (setq vc-make-backup-files nil)
-;; Algorithm for diffs
 (setq vc-git-diff-switches '("--histogram"))
-
-;;; Keybindings and Navigation
 
 ;;; Custom keymaps
 
@@ -293,8 +252,6 @@
          ("C-c k c" . kirigami-close-fold)      ; Close fold at point
          ("C-c k O" . kirigami-open-folds)      ; Open all folds
          ("C-c k k" . kirigami-toggle-fold)))   ; Toggle fold at point
-
-;;; Completion and Search
 
 ;;; Marginalia
 
@@ -405,8 +362,6 @@
   :config
   (rg-enable-menu))
 
-;;; Development Tools
-
 ;;; Treesit
 
 (setq treesit-language-source-alist
@@ -489,8 +444,6 @@
   (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
 
-;;; Language Modes
-
 ;;; Python mode
 
 (use-package pyvenv
@@ -562,8 +515,6 @@
   :bind
   ("C-c a" . org-agenda))
 
-;;; Utilities
-
 ;;; Delight - declutter the modeline
 
 (use-package delight
@@ -587,7 +538,7 @@
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
-;;; Make the shell path also available in Emacs
+;;; Exec path from shell
 
 (use-package exec-path-from-shell
   :ensure t
@@ -596,7 +547,7 @@
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
-;;; Auto kill unused buffers
+;;; Buffer terminator
 
 (use-package buffer-terminator
   :ensure t
@@ -606,7 +557,7 @@
                 buffer-terminator-inactivity-timeout (* 20 60)
                 buffer-terminator-interval (* 20 60)))
 
-;;; Auto save files
+;;; Super save
 
 (use-package super-save
   :ensure t
@@ -619,7 +570,7 @@
   (add-to-list 'super-save-triggers 'ace-window)
   (add-to-list 'super-save-hook-triggers 'find-file-hook))
 
-;;; Auto manage undo
+;;; Undo fu
 
 (use-package undo-fu
   :demand t
@@ -638,7 +589,7 @@
   :hook (after-init . undo-fu-session-global-mode)
   :commands (undo-fu-session-global-mode))
 
-;;; A better help menu
+;;; Helpful
 
 (use-package helpful
   :ensure t
@@ -657,7 +608,7 @@
   ([remap describe-symbol] . helpful-symbol)
   ([remap describe-variable] . helpful-variable))
 
-;;; A plethora of utilities
+;;; Crux
 
 (use-package crux
   :ensure t
@@ -682,19 +633,19 @@
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save))
 
-;;; Epub reader
+;;; Nov
 
 (use-package nov
   :ensure t
   :mode (("\\.epub\\'" . nov-mode)))
 
-;;; Editorconfig support
+;;; Editorconfig
 
 (use-package editorconfig
   :ensure t
   :hook (after-init . editorconfig-mode))
 
-;;; Mise support
+;;; Mise
 
 (use-package mise
   :ensure t
