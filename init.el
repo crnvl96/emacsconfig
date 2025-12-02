@@ -44,8 +44,7 @@
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 
-(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
-(set-face-attribute 'variable-pitch nil :height 240 :weight 'normal :family "Iosevka Aile")
+(set-face-attribute 'default nil :height 220 :weight 'normal :family "Berkeley Mono")
 
 ;;; General
 
