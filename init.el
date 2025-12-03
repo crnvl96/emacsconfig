@@ -197,6 +197,9 @@
 (use-package zoom
   :ensure t
   :commands (zoom)
+  :hook (after-init . zoom-mode)
+  :config
+  (setq zoom-size '(0.618 . 0.618))
   :bind (("C-c w o" . zoom)
          ("C-c w u" . winner-undo)))
 
