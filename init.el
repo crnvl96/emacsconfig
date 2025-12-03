@@ -196,6 +196,9 @@
 
 (use-package ace-window
   :ensure t
+  :config
+  (setq aw-dispatch-always t)
+  (setq aw-keys '(?f ?j ?d ?k ?s ?l ?a))
   :bind ("M-o" . ace-window))
 
 ;;; Avy - Easy buffer navigation
