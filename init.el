@@ -197,7 +197,8 @@
 (use-package zoom
   :ensure t
   :commands (zoom)
-  :bind (("C-c w o" . zoom)))
+  :bind (("C-c w o" . zoom)
+         ("C-c w u" . winner-undo)))
 
 ;;; Ace-window - Easy window management
 
