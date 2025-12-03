@@ -42,7 +42,7 @@
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 
-(set-face-attribute 'default nil :height 220 :weight 'normal :family "Berkeley Mono")
+(set-face-attribute 'default nil :height 280 :weight 'normal :family "Iosevka")
 
 ;;; General
 
