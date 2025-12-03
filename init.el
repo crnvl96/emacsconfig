@@ -375,8 +375,9 @@
 (setq treesit-language-source-alist
       '(  ; use `sort-lines' to sort
         (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+        (d2 . ("https://github.com/ravsii/tree-sitter-d2"))
         (c . ("https://github.com/tree-sitter/tree-sitter-c"))
-        (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.23.0"))
+        (html . ("https://github.com/tree-sitter/tree-sitter-html"))
         (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
         (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
@@ -405,6 +406,7 @@
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
 (add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
+(add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
 ;;; Apheleia - Code formatter
@@ -462,6 +464,11 @@
 (use-package json-mode
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
+
+;;; D2 mode
+
+(use-package d2-mode
+  :ensure t)
 
 ;;; Go mode
 
