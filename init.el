@@ -192,6 +192,13 @@
 
 (add-hook 'after-init-hook #'which-key-mode)
 
+;;; Zoom
+
+(use-package zoom
+  :ensure t
+  :commands (zoom)
+  :bind (("C-c w o" . zoom)))
+
 ;;; Ace-window - Easy window management
 
 (use-package ace-window
