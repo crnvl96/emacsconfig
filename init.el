@@ -131,9 +131,6 @@
       dired-create-destination-dirs 'ask
       dired-clean-confirm-killing-deleted-buffers nil)
 
-(add-hook 'dired-mode-hook #'dired-hide-details-mode)
-(add-hook 'dired-mode-hook  #'hl-line-mode)
-
 ;;; Recentf mode
 
 (setq recentf-max-saved-items 300)
