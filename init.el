@@ -520,15 +520,31 @@
   :commands (org-mode org-version)
   :mode (("\\.org\\'" . org-mode))
   :hook (org-mode . org-indent-mode)
-  :config (setq org-M-RET-may-split-line '((default . nil))
-                org-insert-heading-respect-content t
-                org-log-done 'time
-                org-log-into-drawer t
-                org-directory "~/Developer/personal/notes/agenda/"
-                org-agenda-files (list org-directory)
-                org-todo-keywords '((sequence "TODO(t)" "WAIT(w!)" "|" "CANCEL(c!)" "DONE(d!)")))
+  :config
+  (setq org-M-RET-may-split-line '((default . nil))
+        org-insert-heading-respect-content t
+        org-log-done 'time
+        org-log-into-drawer t
+        org-directory "~/Developer/personal/notes/agenda/"
+        org-agenda-files (list org-directory)
+        org-todo-keywords '((sequence "TODO(t)" "WAIT(w!)" "|" "CANCEL(c!)" "DONE(d!)"))
+        org-confirm-babel-evaluate nil)
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '( (emacs-lisp . t)
+      (python . t)
+      (shell . t)
+      (js . t)
+      (d2 . t)
+      (sql . t)))
   :bind
   ("C-c a" . org-agenda))
+
+(use-package ob-d2
+  :ensure t
+  :vc ( :url "https://github.com/dmacvicar/ob-d2"
+        :rev :newest))
 
 ;;; Delight - declutter the modeline
 
