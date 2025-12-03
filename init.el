@@ -1,10 +1,9 @@
 ;;; init.el --- Init -*- lexical-binding: t; -*-
 
-;;; Garbage collection management - performance optimization
+;;; Garbage collection
 
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
-
 (add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 64 1024 1024)  ; 64 MB
@@ -19,7 +18,6 @@
     (package-refresh-contents))
   (package-install 'use-package))
 (require 'use-package)
-
 (setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
                           ("gnu"          . "https://elpa.gnu.org/packages/")
                           ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
