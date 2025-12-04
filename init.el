@@ -10,35 +10,7 @@
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
-;;; Use-package
-
-(package-initialize)
-(unless (package-installed-p 'use-package)
-  (unless (seq-empty-p package-archive-contents)
-    (package-refresh-contents))
-  (package-install 'use-package))
-(require 'use-package)
-(setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
-                          ("gnu"          . "https://elpa.gnu.org/packages/")
-                          ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-                          ("melpa-stable" . "https://stable.melpa.org/packages/"))
-      package-archive-priorities '( ("melpa"        . 90)
-                                    ("gnu"          . 70)
-                                    ("nongnu"       . 60)
-                                    ("melpa-stable" . 50)))
-
 ;;; Appearance
-
-(setq inhibit-splash-screen t
-      use-file-dialog nil
-      use-dialog-box nil)
-
-;; Declutter the UI
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(tooltip-mode -1)
-(prefer-coding-system 'utf-8)
 
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
@@ -368,6 +340,7 @@
 
 (use-package rg
   :ensure t
+  :defer t
   :config
   (rg-enable-menu))
 
@@ -400,9 +373,9 @@
   (interactive)
   (let ((languages (mapcar 'car treesit-language-source-alist)))
     (dolist (lang languages)
-	  (treesit-install-language-grammar lang)
-	  (message "`%s' parser was installed." lang)
-	  (sit-for 0.75))))
+      (treesit-install-language-grammar lang)
+      (message "`%s' parser was installed." lang)
+      (sit-for 0.75))))
 
 (add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
@@ -460,7 +433,8 @@
 ;;; Python mode
 
 (use-package pyvenv
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; JSON mode
 
@@ -471,12 +445,14 @@
 ;;; D2 mode
 
 (use-package d2-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; Go mode
 
 (use-package go-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; Typst mode
 
@@ -495,7 +471,8 @@
 ;;; Lua mode
 
 (use-package lua-mode
-  :ensure t)
+  :ensure t
+  :defer t)
 
 ;;; Elisp mode
 
@@ -546,6 +523,7 @@
 
 (use-package ob-d2
   :ensure t
+  :defer t
   :vc ( :url "https://github.com/dmacvicar/ob-d2"
         :rev :newest))
 
@@ -688,4 +666,5 @@
 ;;; Magit
 
 (use-package magit
-  :ensure t)
+  :ensure t
+  :defer t)
