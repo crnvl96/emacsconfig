@@ -42,7 +42,7 @@
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 
-(set-face-attribute 'default nil :height 280 :weight 'normal :family "Iosevka")
+(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
 ;;; General
 
@@ -380,6 +380,7 @@
         (html . ("https://github.com/tree-sitter/tree-sitter-html"))
         (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+        (go . ("https://github.com/tree-sitter/tree-sitter-go"))
         (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
         (json . ("https://github.com/tree-sitter/tree-sitter-json"))
         (python . ("https://github.com/tree-sitter/tree-sitter-python"))
@@ -405,6 +406,7 @@
 (add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+(add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
 (add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
 (add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
