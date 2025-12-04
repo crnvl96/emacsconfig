@@ -1,5 +1,11 @@
 ;;; init.el --- Init -*- lexical-binding: t; -*-
 
+;;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
+
+(setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
+(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+
 ;;; Garbage collection
 
 (setq gc-cons-threshold most-positive-fixnum
@@ -77,7 +83,6 @@
 (when (bound-and-true-p blink-cursor-mode)
   (blink-cursor-mode -1))
 
-(setq custom-file "~/.emacs.d/custom.el")
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
 (setq compile-command nil)
