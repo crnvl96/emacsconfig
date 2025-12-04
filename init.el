@@ -1,12 +1,11 @@
-;; [[file:README.org::*Reducing Clutter][No heading:1]]
+;;; init.el --- Init -*- lexical-binding: t; -*-
+
 ;;; Reducing clutter in ~/.emacs.d by redirecting files to ~/.emacs.d/var/
 
 (setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Garbage Collection][No heading:1]]
 ;;; Garbage collection
 
 (setq gc-cons-threshold most-positive-fixnum
@@ -16,9 +15,7 @@
             (setq gc-cons-threshold (* 64 1024 1024)  ; 64 MB
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Package Management][No heading:1]]
 ;;; Use-package
 
 (package-initialize)
@@ -27,17 +24,15 @@
     (package-refresh-contents))
   (package-install 'use-package))
 (require 'use-package)
-(setq package-archives '(("melpa"        . "https://melpa.org/packages/")
-                         ("gnu"          . "https://elpa.gnu.org/packages/")
-                         ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/"))
-      package-archive-priorities '(("melpa"        . 90)
-                                   ("gnu"          . 70)
-                                   ("nongnu"       . 60)
-                                   ("melpa-stable" . 50)))
-;; No heading:1 ends here
+(setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
+                          ("gnu"          . "https://elpa.gnu.org/packages/")
+                          ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+                          ("melpa-stable" . "https://stable.melpa.org/packages/"))
+      package-archive-priorities '( ("melpa"        . 90)
+                                    ("gnu"          . 70)
+                                    ("nongnu"       . 60)
+                                    ("melpa-stable" . 50)))
 
-;; [[file:README.org::*Appearance][No heading:1]]
 ;;; Appearance
 
 (setq inhibit-splash-screen t
@@ -54,9 +49,7 @@
 (load-theme 'modus-vivendi t)
 
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
-;; No heading:1 ends here
 
-;; [[file:README.org::*General Settings][No heading:1]]
 ;;; General
 
 (add-to-list 'display-buffer-alist
@@ -95,9 +88,7 @@
 (setq compile-command nil)
 (setq kill-do-not-save-duplicates t)
 (setq completion-ignore-case t)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Hooks][No heading:1]]
 ;;; Hooks
 
 (add-hook 'compilation-filter-hook
@@ -108,24 +99,18 @@
 (add-hook 'after-init-hook #'global-hl-line-mode)
 (add-hook 'after-init-hook #'delete-selection-mode)
 (add-hook 'after-init-hook #'winner-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Whitespace Mode][No heading:1]]
 ;;; Whitespace mode
 
 (setq whitespace-style '(face trailing empty))
 (add-hook 'after-init-hook #'global-whitespace-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Saveplace Mode][No heading:1]]
 ;;; Saveplace mode
 
 (setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
 (setq save-place-limit 600)
 (add-hook 'after-init-hook #'save-place-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Savehist Mode][No heading:1]]
 ;;; Savehist mode
 
 (setq history-length 300)
@@ -136,9 +121,7 @@
         mark-ring global-mark-ring
         search-ring regexp-search-ring))
 (add-hook 'after-init-hook #'savehist-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Dired][No heading:1]]
 ;;; Dired
 
 (setq dired-recursive-copies 'always
@@ -152,17 +135,13 @@
       dired-vc-rename-file t
       dired-create-destination-dirs 'ask
       dired-clean-confirm-killing-deleted-buffers nil)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Recentf Mode][No heading:1]]
 ;;; Recentf mode
 
 (setq recentf-max-saved-items 300)
 (setq recentf-max-menu-items 15)
 (add-hook 'after-init-hook #'recentf-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Autorevert Mode][No heading:1]]
 ;;; Autorevert mode
 
 (setq auto-revert-interval 2)
@@ -172,24 +151,18 @@
 (setq global-auto-revert-non-file-buffers t)
 (setq global-auto-revert-ignore-modes '(Buffer-menu-mode))
 (add-hook 'after-init-hook #'global-auto-revert-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Ediff][No heading:1]]
 ;;; Ediff
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq ediff-split-window-function 'split-window-horizontally)
-;; No heading:1 ends here
 
-;; [[file:README.org::*VC (Version Control)][No heading:1]]
 ;;; VC (Version Control)
 
 (setq vc-git-print-log-follow t)
 (setq vc-make-backup-files nil)
 (setq vc-git-diff-switches '("--histogram"))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Custom Keymaps][No heading:1]]
 ;;; Custom keymaps
 
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
@@ -197,16 +170,16 @@
 (global-set-key (kbd "M-p") 'backward-paragraph)
 
 (global-set-key (kbd "C-x 2")
-               (lambda ()
-                 (interactive)
-                 (split-window-vertically)
-                 (other-window 1)))
+                (lambda ()
+                  (interactive)
+                  (split-window-vertically)
+                  (other-window 1)))
 
 (global-set-key (kbd "C-x 3")
-               (lambda ()
-                 (interactive)
-                 (split-window-horizontally)
-                 (other-window 1)))
+                (lambda ()
+                  (interactive)
+                  (split-window-horizontally)
+                  (other-window 1)))
 
 (define-key minibuffer-local-map (kbd "C-f")
             (lambda ()
@@ -214,20 +187,16 @@
               (let ((file-name (with-current-buffer (window-buffer (minibuffer-selected-window))
                                  (file-name-nondirectory (buffer-file-name)))))
                 (insert file-name))))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Which-Key][No heading:1]]
 ;;; Which-Key - labels and hints for emacs keymaps
 
 (which-key-add-key-based-replacements
- "C-x p" "Project"
- "C-c c" "Crux"
- "C-c f" "Find")
+  "C-x p" "Project"
+  "C-c c" "Crux"
+  "C-c f" "Find")
 
 (add-hook 'after-init-hook #'which-key-mode)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Zoom][No heading:1]]
 ;;; Zoom
 
 (use-package zoom
@@ -238,9 +207,7 @@
   (setq zoom-size '(0.618 . 0.618))
   :bind (("C-c w o" . zoom)
          ("C-c w u" . winner-undo)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Ace-window][No heading:1]]
 ;;; Ace-window - Easy window management
 
 (use-package ace-window
@@ -249,9 +216,7 @@
   (setq aw-dispatch-always t)
   (setq aw-keys '(?h ?j ?k ?l))
   :bind ("M-o" . ace-window))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Avy][No heading:1]]
 ;;; Avy - Easy buffer navigation
 
 (use-package avy
@@ -260,35 +225,27 @@
   (setq avy-keys (number-sequence ?a ?y))
   :bind (("M-i" . avy-goto-char)
          ("M-e" . avy-goto-word-0)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Expand-region][No heading:1]]
 ;;; Expand-region - A more convenient way to select text
 
 (use-package expand-region
   :ensure t
   :bind (("C-=" . er/expand-region)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Multiple cursors][No heading:1]]
 ;;; Multiple cursors
 
 (use-package multiple-cursors
   :ensure t
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Easy-kill][No heading:1]]
 ;;; Better kill ring and mark
 
 (use-package easy-kill
   :ensure t
   :bind (([remap kill-ring-save] . easy-kill)
          ([remap mark-sexp] . easy-mark)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Outline-indent][No heading:1]]
 ;;; Kirigami - better folding
 
 (use-package outline-indent
@@ -308,31 +265,25 @@
          ("C-c k c" . kirigami-close-fold)      ; Close fold at point
          ("C-c k O" . kirigami-open-folds)      ; Open all folds
          ("C-c k k" . kirigami-toggle-fold)))   ; Toggle fold at point
-;; No heading:1 ends here
 
-;; [[file:README.org::*Marginalia][No heading:1]]
 ;;; Marginalia
 
 (use-package marginalia
   :ensure t
   :hook (after-init . marginalia-mode))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Vertico][No heading:1]]
 ;;; Vertico
 
 (use-package vertico
   :ensure t
   :hook (after-init . vertico-mode)
-  :bind (:map vertico-map
-              ("<backspace>" . vertico-directory-delete-char)
-              ("C-j" . vertico-next)
-              ("C-k" . vertico-previous)
-              ("C-w" . vertico-directory-delete-word)
-              ("RET" . vertico-directory-enter)))
-;; No heading:1 ends here
+  :bind ( :map vertico-map
+          ("<backspace>" . vertico-directory-delete-char)
+          ("C-j" . vertico-next)
+          ("C-k" . vertico-previous)
+          ("C-w" . vertico-directory-delete-word )
+          ("RET" . vertico-directory-enter)))
 
-;; [[file:README.org::*Orderless][No heading:1]]
 ;;; Orderless
 
 (use-package orderless
@@ -341,9 +292,7 @@
                 completion-category-defaults nil
                 completion-category-overrides '((eglot (styles orderless))
                                                 (eglot-capf (styles orderless)))))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Corfu][No heading:1]]
 ;;; Corfu
 
 (use-package corfu
@@ -367,17 +316,15 @@
   :config
   (setq corfu-cycle t)
   (setq corfu-preselect 'prompt)
-  (keymap-set corfu-map "RET" `(menu-item "" nil :filter
-                                         ,(lambda (&optional _)
-                                            (and (derived-mode-p 'eshell-mode 'comint-mode)))))
-  :bind (:map corfu-map
-              ("TAB" . corfu-next)
-              ([tab] . corfu-next)
-              ("S-TAB" . corfu-previous)
-              ([backtab] . corfu-previous)))
-;; No heading:1 ends here
+  (keymap-set corfu-map "RET" `( menu-item "" nil :filter
+                                 ,(lambda (&optional _)
+                                    (and (derived-mode-p 'eshell-mode 'comint-mode)))))
+  :bind ( :map corfu-map
+          ("TAB" . corfu-next)
+          ([tab] . corfu-next)
+          ("S-TAB" . corfu-previous)
+          ([backtab] . corfu-previous)))
 
-;; [[file:README.org::*Cape][No heading:1]]
 ;;; Cape
 
 (use-package cape
@@ -388,9 +335,7 @@
   (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Consult][No heading:1]]
 ;;; Consult
 
 (use-package consult
@@ -422,18 +367,14 @@
          ("C-c f l" . consult-line)
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*RG.el][No heading:1]]
 ;;; RG.el
 
 (use-package rg
   :ensure t
   :config
   (rg-enable-menu))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Treesit][No heading:1]]
 ;;; Treesit
 
 (setq treesit-language-source-alist
@@ -463,9 +404,9 @@
   (interactive)
   (let ((languages (mapcar 'car treesit-language-source-alist)))
     (dolist (lang languages)
-      (treesit-install-language-grammar lang)
-      (message "`%s' parser was installed." lang)
-      (sit-for 0.75))))
+	  (treesit-install-language-grammar lang)
+	  (message "`%s' parser was installed." lang)
+	  (sit-for 0.75))))
 
 (add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
@@ -474,9 +415,7 @@
 (add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
 (add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Apheleia][No heading:1]]
 ;;; Apheleia - Code formatter
 
 (use-package apheleia
@@ -486,9 +425,7 @@
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
   (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Eglot][No heading:1]]
 ;;; Eglot - LSP config
 
 (use-package eglot
@@ -523,69 +460,53 @@
                        #'eglot-completion-at-point))))
   (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Python][No heading:1]]
 ;;; Python mode
 
 (use-package pyvenv
   :ensure t)
-;; No heading:1 ends here
 
-;; [[file:README.org::*JSON][No heading:1]]
 ;;; JSON mode
 
 (use-package json-mode
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*D2][No heading:1]]
 ;;; D2 mode
 
 (use-package d2-mode
   :ensure t)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Go][No heading:1]]
 ;;; Go mode
 
 (use-package go-mode
   :ensure t)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Typst][No heading:1]]
 ;;; Typst mode
 
 (use-package
   typst-ts-mode
-  :vc (:url "https://codeberg.org/meow_king/typst-ts-mode.git"
-            :rev :newest)
+  :vc ( :url "https://codeberg.org/meow_king/typst-ts-mode.git"
+        :rev :newest)
   :mode (("\\.typ\\'" . typst-ts-mode))
   :config
   (setq typst-ts-watch-options "--open")
   (setq typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory))
   (setq typst-ts-mode-enable-raw-blocks-highlight t)
-  :bind (:map typst-ts-mode-map
-              ("C-c C-c" . typst-ts-tmenu)))
-;; No heading:1 ends here
+  :bind ( :map typst-ts-mode-map
+          ("C-c C-c" . typst-ts-tmenu)))
 
-;; [[file:README.org::*Lua][No heading:1]]
 ;;; Lua mode
 
 (use-package lua-mode
   :ensure t)
-;; No heading:1 ends here
 
-;; [[file:README.org::*Elisp][No heading:1]]
 ;;; Elisp mode
 
 (use-package elisp-mode
   :ensure nil
   :delight (emacs-lisp-mode "Elisp" :major))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Markdown][No heading:1]]
 ;;; Markdown mode
 
 (use-package markdown-mode
@@ -597,9 +518,7 @@
   :mode (("\\.markdown\\'" . markdown-mode)
          ("\\.md\\'" . markdown-mode)
          ("README\\.md\\'" . gfm-mode)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Org][No heading:1]]
 ;;; Org mode
 
 (use-package org
@@ -628,16 +547,12 @@
       (sql . t)))
   :bind
   ("C-c a" . org-agenda))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Ob-d2][No heading:1]]
 (use-package ob-d2
   :ensure t
-  :vc (:url "https://github.com/dmacvicar/ob-d2"
-            :rev :newest))
-;; No heading:1 ends here
+  :vc ( :url "https://github.com/dmacvicar/ob-d2"
+        :rev :newest))
 
-;; [[file:README.org::*Delight][No heading:1]]
 ;;; Delight - declutter the modeline
 
 (use-package delight
@@ -649,9 +564,7 @@
   (delight 'devil-mode nil "devil")
   (delight 'visual-line-mode nil "simple")
   (delight 'eldoc-mode nil "eldoc"))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Trashed][No heading:1]]
 ;;; Thrashed - manage files on the thrash dir
 
 (use-package trashed
@@ -662,9 +575,7 @@
   (setq trashed-use-header-line t)
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Exec-path-from-shell][No heading:1]]
 ;;; Exec path from shell
 
 (use-package exec-path-from-shell
@@ -673,9 +584,7 @@
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Buffer-terminator][No heading:1]]
 ;;; Buffer terminator
 
 (use-package buffer-terminator
@@ -685,9 +594,7 @@
   :config (setq buffer-terminator-verbose nil
                 buffer-terminator-inactivity-timeout (* 20 60)
                 buffer-terminator-interval (* 20 60)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Super-save][No heading:1]]
 ;;; Super save
 
 (use-package super-save
@@ -700,9 +607,7 @@
                 super-save-all-buffers t)
   (add-to-list 'super-save-triggers 'ace-window)
   (add-to-list 'super-save-hook-triggers 'find-file-hook))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Undo-fu][No heading:1]]
 ;;; Undo fu
 
 (use-package undo-fu
@@ -721,9 +626,7 @@
   :ensure t
   :hook (after-init . undo-fu-session-global-mode)
   :commands (undo-fu-session-global-mode))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Helpful][No heading:1]]
 ;;; Helpful
 
 (use-package helpful
@@ -731,6 +634,7 @@
   :commands (helpful-callable
              helpful-variable
              helpful-key
+             helpful-command
              helpful-at-point
              helpful-function)
   :config
@@ -741,9 +645,7 @@
   ([remap describe-key] . helpful-key)
   ([remap describe-symbol] . helpful-symbol)
   ([remap describe-variable] . helpful-variable))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Crux][No heading:1]]
 ;;; Crux
 
 (use-package crux
@@ -768,35 +670,26 @@
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Nov][No heading:1]]
 ;;; Nov
 
 (use-package nov
   :ensure t
   :mode (("\\.epub\\'" . nov-mode)))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Editorconfig][No heading:1]]
 ;;; Editorconfig
 
 (use-package editorconfig
   :ensure t
   :hook (after-init . editorconfig-mode))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Mise][No heading:1]]
 ;;; Mise
 
 (use-package mise
   :ensure t
   :hook (after-init . global-mise-mode))
-;; No heading:1 ends here
 
-;; [[file:README.org::*Magit][No heading:1]]
 ;;; Magit
 
 (use-package magit
   :ensure t)
-;; No heading:1 ends here
