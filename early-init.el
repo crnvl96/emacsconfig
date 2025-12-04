@@ -3,16 +3,6 @@
 ;; Prefer the newer versions of files
 (setq load-prefer-newer t)
 
-;; ;;; Native compilation and Byte compilation
-;; (if (and (featurep 'native-compile)
-;;          (fboundp 'native-comp-available-p)
-;;          (native-comp-available-p))
-;;       ;; Activate `native-compile'
-;;       (setq package-native-compile t))
-
-;; Deactivate the `native-compile' feature if it is not available
-;; (setq features (delq 'native-compile features))
-
 ;;; Miscellaneous
 
 (setq inhibit-splash-screen t
@@ -42,10 +32,10 @@
   (package-install 'use-package))
 (require 'use-package)
 (setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
-                         ("gnu"          . "https://elpa.gnu.org/packages/")
-                         ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/"))
+                          ("gnu"          . "https://elpa.gnu.org/packages/")
+                          ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+                          ("melpa-stable" . "https://stable.melpa.org/packages/"))
       package-archive-priorities '( ("melpa"        . 90)
-                                   ("gnu"          . 70)
-                                   ("nongnu"       . 60)
-                                   ("melpa-stable" . 50)))
+                                    ("gnu"          . 70)
+                                    ("nongnu"       . 60)
+                                    ("melpa-stable" . 50)))
