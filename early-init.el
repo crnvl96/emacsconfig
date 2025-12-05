@@ -1,29 +1,7 @@
 ;;; early-init.el --- Early Init -*- lexical-binding: t; -*-
 
-;; Prefer the newer versions of files
-(setq load-prefer-newer t)
-
-;;; Miscellaneous
-
-(setq inhibit-splash-screen t
-      use-file-dialog nil
-      use-dialog-box nil)
-
-;; Declutter the UI
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(scroll-bar-mode -1)
-(tooltip-mode -1)
-
-(set-language-environment "UTF-8")
-
-;; Set-language-environment sets default-input-method, which is unwanted.
-(setq default-input-method nil)
-;; Increase how much is read from processes in a single chunk
-(setq read-process-output-max (* 2 1024 1024))  ; 1024kb
-(setq process-adaptive-read-buffering nil)
-
-;;; Package initialization
 
 (package-initialize)
 (unless (package-installed-p 'use-package)

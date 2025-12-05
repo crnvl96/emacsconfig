@@ -1,7 +1,5 @@
 ;;; init.el --- Init -*- lexical-binding: t; -*-
 
-;;; Garbage collection
-
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 (add-hook 'after-init-hook
@@ -10,162 +8,59 @@
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
-;;; Appearance
-
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
-
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
-;;; General
-
-(add-to-list 'display-buffer-alist
-             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-               (display-buffer-no-window)
-               (allow-no-window . t)))
-
-(setq-default display-line-numbers-type 'relative
-              word-wrap t
-              indent-tabs-mode nil
-              truncate-lines t
-              tab-width 4)
-
-(add-hook 'after-init-hook #'global-display-line-numbers-mode)
-
-(unless (and (eq window-system 'mac)
-             (bound-and-true-p mac-carbon-version-string))
-  (setq pixel-scroll-precision-use-momentum nil)
-  (pixel-scroll-precision-mode 1))
-
-(setq visible-bell nil
-      ring-bell-function #'ignore)
-
-(setq split-height-threshold nil
-      split-width-threshold 1)
+(setq-default display-line-numbers-type 'relative)
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
-(when (bound-and-true-p blink-cursor-mode)
-  (blink-cursor-mode -1))
-
-(setq custom-file "~/.emacs.d/custom.el")
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
-(setq compile-command nil)
-(setq kill-do-not-save-duplicates t)
 (setq completion-ignore-case t)
-
-;;; Hooks
+(setq whitespace-style '(face trailing empty))
 
 (add-hook 'compilation-filter-hook
           (lambda ()
             (ansi-color-apply-on-region compilation-filter-start (point-max))))
-
+(add-hook 'after-init-hook #'global-display-line-numbers-mode)
 (add-hook 'after-init-hook #'display-time-mode)
-(add-hook 'after-init-hook #'global-hl-line-mode)
 (add-hook 'after-init-hook #'delete-selection-mode)
 (add-hook 'after-init-hook #'winner-mode)
-
-;;; Whitespace mode
-
-(setq whitespace-style '(face trailing empty))
 (add-hook 'after-init-hook #'global-whitespace-mode)
-
-;;; Saveplace mode
-
-(setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
-(setq save-place-limit 600)
 (add-hook 'after-init-hook #'save-place-mode)
-
-;;; Savehist mode
-
-(setq history-length 300)
-(setq savehist-save-minibuffer-history t)
-(setq savehist-additional-variables
-      '(kill-ring
-        register-alist
-        mark-ring global-mark-ring
-        search-ring regexp-search-ring))
 (add-hook 'after-init-hook #'savehist-mode)
-
-;;; Dired
-
-(setq dired-recursive-copies 'always
-      dired-recursive-deletes 'always
-      delete-by-moving-to-trash t
-      dired-dwim-target t
-      dired-free-space nil
-      dired-dwim-target t
-      dired-deletion-confirmer 'y-or-n-p
-      dired-filter-verbose nil
-      dired-vc-rename-file t
-      dired-create-destination-dirs 'ask
-      dired-clean-confirm-killing-deleted-buffers nil)
-
-;;; Recentf mode
-
-(setq recentf-max-saved-items 300)
-(setq recentf-max-menu-items 15)
 (add-hook 'after-init-hook #'recentf-mode)
-
-;;; Autorevert mode
-
-(setq auto-revert-interval 2)
-(setq revert-without-query (list "."))
-(setq auto-revert-stop-on-user-input nil)
-(setq auto-revert-verbose t)
-(setq global-auto-revert-non-file-buffers t)
-(setq global-auto-revert-ignore-modes '(Buffer-menu-mode))
 (add-hook 'after-init-hook #'global-auto-revert-mode)
-
-;;; Ediff
-
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
-(setq ediff-split-window-function 'split-window-horizontally)
-
-;;; VC (Version Control)
-
-(setq vc-git-print-log-follow t)
-(setq vc-make-backup-files nil)
-(setq vc-git-diff-switches '("--histogram"))
-
-;;; Custom keymaps
 
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
 (global-set-key (kbd "M-n") 'forward-paragraph)
 (global-set-key (kbd "M-p") 'backward-paragraph)
-
 (global-set-key (kbd "C-x 2")
                 (lambda ()
                   (interactive)
                   (split-window-vertically)
                   (other-window 1)))
-
 (global-set-key (kbd "C-x 3")
                 (lambda ()
                   (interactive)
                   (split-window-horizontally)
                   (other-window 1)))
-
-(define-key minibuffer-local-map (kbd "C-f")
+(define-key minibuffer-local-map (kbd "C-/")
             (lambda ()
               (interactive)
               (let ((file-name (with-current-buffer (window-buffer (minibuffer-selected-window))
                                  (file-name-nondirectory (buffer-file-name)))))
                 (insert file-name))))
 
-;;; Which-Key - labels and hints for emacs keymaps
-
 (which-key-add-key-based-replacements
   "C-x p" "Project"
   "C-c c" "Crux"
   "C-c f" "Find")
-
 (add-hook 'after-init-hook #'which-key-mode)
-
-;;; Zoom
 
 (use-package zoom
   :ensure t
@@ -176,16 +71,12 @@
   :bind (("C-c w o" . zoom)
          ("C-c w u" . winner-undo)))
 
-;;; Ace-window - Easy window management
-
 (use-package ace-window
   :ensure t
   :config
   (setq aw-dispatch-always t)
   (setq aw-keys '(?h ?j ?k ?l))
   :bind ("M-o" . ace-window))
-
-;;; Avy - Easy buffer navigation
 
 (use-package avy
   :ensure t
@@ -194,53 +85,23 @@
   :bind (("M-i" . avy-goto-char)
          ("M-e" . avy-goto-word-0)))
 
-;;; Expand-region - A more convenient way to select text
-
 (use-package expand-region
   :ensure t
   :bind (("C-=" . er/expand-region)))
-
-;;; Multiple cursors
 
 (use-package multiple-cursors
   :ensure t
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
 
-;;; Better kill ring and mark
-
 (use-package easy-kill
   :ensure t
   :bind (([remap kill-ring-save] . easy-kill)
          ([remap mark-sexp] . easy-mark)))
 
-;;; Kirigami - better folding
-
-(use-package outline-indent
-  :ensure t
-  :commands outline-indent-minor-mode
-  :init
-  (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
-    (add-hook hook #'outline-indent-minor-mode))
-  :config
-  (setq outline-indent-ellipsis " ▼"))
-
-(use-package kirigami
-  :ensure t
-  :bind (("C-c k o" . kirigami-open-fold)       ; Open fold at point
-         ("C-c k r" . kirigami-open-fold-rec)   ; Open fold recursively
-         ("C-c k C" . kirigami-close-folds)     ; Close all folds
-         ("C-c k c" . kirigami-close-fold)      ; Close fold at point
-         ("C-c k O" . kirigami-open-folds)      ; Open all folds
-         ("C-c k k" . kirigami-toggle-fold)))   ; Toggle fold at point
-
-;;; Marginalia
-
 (use-package marginalia
   :ensure t
   :hook (after-init . marginalia-mode))
-
-;;; Vertico
 
 (use-package vertico
   :ensure t
@@ -252,8 +113,6 @@
           ("C-w" . vertico-directory-delete-word )
           ("RET" . vertico-directory-enter)))
 
-;;; Orderless
-
 (use-package orderless
   :ensure t
   :config (setq completion-styles '(orderless partial-completion basic)
@@ -261,26 +120,17 @@
                 completion-category-overrides '((eglot (styles orderless))
                                                 (eglot-capf (styles orderless)))))
 
-;;; Corfu
-
 (use-package corfu
   :ensure t
   :hook
   (after-init . global-corfu-mode)
   (after-init . corfu-history-mode)
   (after-init . corfu-popupinfo-mode)
-  (minibuffer-setup . my/corfu-enable-always-in-minibuffer)
   :init
-  (defun my/corfu-enable-always-in-minibuffer ()
-    "Enable Corfu in the minibuffer if Vertico/Mct are not active."
-    (unless (or (bound-and-true-p mct--active)
-                (bound-and-true-p vertico--input))
-      (setq-local corfu-auto nil)
-      (corfu-mode 1)))
   (setq read-extended-command-predicate #'command-completion-default-include-p
         text-mode-ispell-word-completion nil
-        tab-always-indent 'complete)
-  (setq tab-first-completion 'word-or-paren-or-punct)
+        tab-always-indent 'complete
+        tab-first-completion 'word-or-paren-or-punct)
   :config
   (setq corfu-cycle t)
   (setq corfu-preselect 'prompt)
@@ -293,8 +143,6 @@
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous)))
 
-;;; Cape
-
 (use-package cape
   :ensure t
   :init
@@ -304,20 +152,12 @@
   (add-to-list 'completion-at-point-functions #'cape-keyword)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev))
 
-;;; Consult
-
 (use-package consult
   :ensure t
-  :init
-  (defun consult--orderless-regexp-compiler (input type &rest _config)
-    (setq input (cdr (orderless-compile input)))
-    (cons (mapcar (lambda (r) (consult--convert-regexp r type)) input)
-          (lambda (str) (orderless--highlight input t str))))
   :config (setq consult-async-min-input 2
                 consult-narrow-key "<"
                 xref-show-xrefs-function #'consult-xref
-                xref-show-definitions-function #'consult-xref
-                consult--regexp-compiler #'consult--orderless-regexp-compiler)
+                xref-show-definitions-function #'consult-xref)
   (consult-customize
    consult-buffer  consult-yank-pop consult-fd consult-outline
    consult-imenu consult-info consult-flymake consult-history
