@@ -28,6 +28,7 @@
 (setq package-install-upgrade-built-in t)
 (setq completion-ignore-case t)
 (setq whitespace-style '(face trailing empty))
+(setq make-backup-files nil)
 
 (add-hook 'compilation-filter-hook
           (lambda ()
