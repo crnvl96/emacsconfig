@@ -18,6 +18,7 @@
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
 (setq completion-ignore-case t)
@@ -115,10 +116,9 @@
 
 (use-package orderless
   :ensure t
-  :config (setq completion-styles '(orderless partial-completion basic)
-                completion-category-defaults nil
-                completion-category-overrides '((eglot (styles orderless))
-                                                (eglot-capf (styles orderless)))))
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles partial-completion)))))
 
 (use-package corfu
   :ensure t
@@ -126,38 +126,31 @@
   (after-init . global-corfu-mode)
   (after-init . corfu-history-mode)
   (after-init . corfu-popupinfo-mode)
-  :init
-  (setq read-extended-command-predicate #'command-completion-default-include-p
-        text-mode-ispell-word-completion nil
-        tab-always-indent 'complete
-        tab-first-completion 'word-or-paren-or-punct)
   :config
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  (setq tab-always-indent 'complete)
+  ;; Emacs 30 and newer: Disable Ispell completion function.
+  ;; Try `cape-dict' as an alternative.
+  (setq text-mode-ispell-word-completion nil)
+  ;; Hide commands in M-x which do not apply to the current mode.  Corfu
+  ;; commands are hidden, since they are not used via M-x. This setting is
+  ;; useful beyond Corfu.
+  (setq read-extended-command-predicate #'command-completion-default-include-p)
   (setq corfu-cycle t)
   (setq corfu-preselect 'prompt)
-  (keymap-set corfu-map "RET" `( menu-item "" nil :filter
-                                 ,(lambda (&optional _)
-                                    (and (derived-mode-p 'eshell-mode 'comint-mode)))))
   :bind ( :map corfu-map
+	  ("RET" . nil)
+	  ([ret] . nil)
           ("TAB" . corfu-next)
           ([tab] . corfu-next)
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous)))
 
-(use-package cape
-  :ensure t
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
-
 (use-package consult
   :ensure t
   :config (setq consult-async-min-input 2
-                consult-narrow-key "<"
-                xref-show-xrefs-function #'consult-xref
-                xref-show-definitions-function #'consult-xref)
+                consult-narrow-key "<")
   (consult-customize
    consult-buffer  consult-yank-pop consult-fd consult-outline
    consult-imenu consult-info consult-flymake consult-history
@@ -176,15 +169,11 @@
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
 
-;;; RG.el
-
 (use-package rg
   :ensure t
   :defer t
   :config
   (rg-enable-menu))
-
-;;; Treesit
 
 (setq treesit-language-source-alist
       '(  ; use `sort-lines' to sort
@@ -225,8 +214,6 @@
 (add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
-;;; Apheleia - Code formatter
-
 (use-package apheleia
   :ensure t
   :delight
@@ -234,8 +221,6 @@
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
   (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt)))
-
-;;; Eglot - LSP config
 
 (use-package eglot
   :ensure nil
@@ -262,39 +247,23 @@
                                       :diagnosticMode "openFilesOnly")
                    :gopls ( :gofumpt t
                             :staticcheck t
-                            :completeUnimported t)))
-  (defun my/eglot-capf ()
-    (setq-local completion-at-point-functions
-                (list (cape-capf-super
-                       #'eglot-completion-at-point))))
-  (add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
-
-;;; Python mode
+                            :completeUnimported t))))
 
 (use-package pyvenv
   :ensure t
   :defer t)
 
-;;; JSON mode
-
 (use-package json-mode
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
-
-;;; D2 mode
 
 (use-package d2-mode
   :ensure t
   :defer t)
 
-;;; Go mode
-
 (use-package go-mode
   :ensure t
   :defer t)
-
-;;; Typst mode
 
 (use-package
   typst-ts-mode
@@ -308,19 +277,13 @@
   :bind ( :map typst-ts-mode-map
           ("C-c C-c" . typst-ts-tmenu)))
 
-;;; Lua mode
-
 (use-package lua-mode
   :ensure t
   :defer t)
 
-;;; Elisp mode
-
 (use-package elisp-mode
   :ensure nil
   :delight (emacs-lisp-mode "Elisp" :major))
-
-;;; Markdown mode
 
 (use-package markdown-mode
   :ensure t
@@ -331,8 +294,6 @@
   :mode (("\\.markdown\\'" . markdown-mode)
          ("\\.md\\'" . markdown-mode)
          ("README\\.md\\'" . gfm-mode)))
-
-;;; Org mode
 
 (use-package org
   :ensure nil
@@ -349,7 +310,6 @@
         org-agenda-files (list org-directory)
         org-todo-keywords '((sequence "TODO(t)" "WAIT(w!)" "|" "CANCEL(c!)" "DONE(d!)"))
         org-confirm-babel-evaluate nil)
-
   (org-babel-do-load-languages
    'org-babel-load-languages
    '( (emacs-lisp . t)
@@ -367,8 +327,6 @@
   :vc ( :url "https://github.com/dmacvicar/ob-d2"
         :rev :newest))
 
-;;; Delight - declutter the modeline
-
 (use-package delight
   :ensure t
   :demand t
@@ -379,8 +337,6 @@
   (delight 'visual-line-mode nil "simple")
   (delight 'eldoc-mode nil "eldoc"))
 
-;;; Thrashed - manage files on the thrash dir
-
 (use-package trashed
   :ensure t
   :commands (trashed)
@@ -390,16 +346,12 @@
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
-;;; Exec path from shell
-
 (use-package exec-path-from-shell
   :ensure t
   :demand t
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
-
-;;; Buffer terminator
 
 (use-package buffer-terminator
   :ensure t
@@ -408,8 +360,6 @@
   :config (setq buffer-terminator-verbose nil
                 buffer-terminator-inactivity-timeout (* 20 60)
                 buffer-terminator-interval (* 20 60)))
-
-;;; Super save
 
 (use-package super-save
   :ensure t
@@ -421,8 +371,6 @@
                 super-save-all-buffers t)
   (add-to-list 'super-save-triggers 'ace-window)
   (add-to-list 'super-save-hook-triggers 'find-file-hook))
-
-;;; Undo fu
 
 (use-package undo-fu
   :demand t
@@ -441,8 +389,6 @@
   :hook (after-init . undo-fu-session-global-mode)
   :commands (undo-fu-session-global-mode))
 
-;;; Helpful
-
 (use-package helpful
   :ensure t
   :commands (helpful-callable
@@ -459,8 +405,6 @@
   ([remap describe-key] . helpful-key)
   ([remap describe-symbol] . helpful-symbol)
   ([remap describe-variable] . helpful-variable))
-
-;;; Crux
 
 (use-package crux
   :ensure t
@@ -485,25 +429,17 @@
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save))
 
-;;; Nov
-
 (use-package nov
   :ensure t
   :mode (("\\.epub\\'" . nov-mode)))
-
-;;; Editorconfig
 
 (use-package editorconfig
   :ensure t
   :hook (after-init . editorconfig-mode))
 
-;;; Mise
-
 (use-package mise
   :ensure t
   :hook (after-init . global-mise-mode))
-
-;;; Magit
 
 (use-package magit
   :ensure t
