@@ -12,6 +12,11 @@
 (load-theme 'modus-vivendi t)
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
 (setq-default display-line-numbers-type 'relative)
 
 (if (boundp 'use-short-answers)
@@ -40,28 +45,35 @@
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
 (global-set-key (kbd "M-n") 'forward-paragraph)
 (global-set-key (kbd "M-p") 'backward-paragraph)
-(global-set-key (kbd "C-x 2")
-                (lambda ()
-                  (interactive)
-                  (split-window-vertically)
-                  (other-window 1)))
-(global-set-key (kbd "C-x 3")
-                (lambda ()
-                  (interactive)
-                  (split-window-horizontally)
-                  (other-window 1)))
-(define-key minibuffer-local-map (kbd "C-/")
-            (lambda ()
-              (interactive)
-              (let ((file-name (with-current-buffer (window-buffer (minibuffer-selected-window))
-                                 (file-name-nondirectory (buffer-file-name)))))
-                (insert file-name))))
+(global-set-key (kbd "C-x 2") (lambda ()
+				(interactive)
+				(split-window-vertically)
+				(other-window 1)))
+(global-set-key (kbd "C-x 3") (lambda ()
+				(interactive)
+				(split-window-horizontally)
+				(other-window 1)))
+(define-key minibuffer-local-map (kbd "C-/") (lambda ()
+					       (interactive)
+					       (let ((file-name (with-current-buffer (window-buffer (minibuffer-selected-window))
+								  (file-name-nondirectory (buffer-file-name)))))
+						 (insert file-name))))
 
 (which-key-add-key-based-replacements
   "C-x p" "Project"
   "C-c c" "Crux"
   "C-c f" "Find")
 (add-hook 'after-init-hook #'which-key-mode)
+
+(use-package delight
+  :ensure t
+  :demand t
+  :config
+  (delight 'whitespace-mode nil "whitespace")
+  (delight 'which-key-mode nil "which-key")
+  (delight 'zoom-mode nil "zoom")
+  (delight 'visual-line-mode nil "simple")
+  (delight 'eldoc-mode nil "eldoc"))
 
 (use-package zoom
   :ensure t
@@ -149,22 +161,18 @@
 
 (use-package consult
   :ensure t
-  :config (setq consult-async-min-input 2
-                consult-narrow-key "<")
+  :config
+  (setq consult-async-min-input 2
+        consult-narrow-key "<")
   (consult-customize
    consult-buffer  consult-yank-pop consult-fd consult-outline
    consult-imenu consult-info consult-flymake consult-history
    consult-focus-lines consult-line consult-ripgrep consult-goto-line
    :preview-key nil)
   :bind (("C-c f b" . consult-buffer)
-         ("C-c f y" . consult-yank-pop)
          ("C-c f f" . consult-fd)
          ("C-c f o" . consult-outline)
-         ("C-c f i" . consult-imenu)
-         ("C-c f I" . consult-info)
          ("C-c f k" . consult-flymake)
-         ("C-c f h" . consult-history)
-         ("C-c f u" . consult-focus-lines)
          ("C-c f l" . consult-line)
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
@@ -234,20 +242,20 @@
         eglot-autoshutdown t
         eglot-extend-to-xref t
         jsonrpc-event-hook nil
-        eglot-events-buffer-config '(:size 0 :format lisp))
-  (setq eglot-server-programs
-        '( (python-ts-mode . ("pyright-langserver" "--stdio"))
-           (go-ts-mode . ("gopls"))
-           (typescript-ts-mode . ("typescript-language-server" "--stdio"))
-           (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
+        eglot-events-buffer-config '(:size 0 :format lisp)
+	eglot-server-programs
+	'( (python-ts-mode . ("pyright-langserver" "--stdio"))
+	   (go-ts-mode . ("gopls"))
+	   (typescript-ts-mode . ("typescript-language-server" "--stdio"))
+	   (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
   (setq-default eglot-workspace-configuration
                 '( :pyright ( :disableOrganizeImports t)
-                   :python.analysis ( :autoSearchPaths t
-                                      :useLibraryCodeForTypes t
-                                      :diagnosticMode "openFilesOnly")
-                   :gopls ( :gofumpt t
-                            :staticcheck t
-                            :completeUnimported t))))
+		   :python.analysis ( :autoSearchPaths t
+				      :useLibraryCodeForTypes t
+				      :diagnosticMode "openFilesOnly")
+		   :gopls ( :gofumpt t
+			    :staticcheck t
+			    :completeUnimported t))))
 
 (use-package pyvenv
   :ensure t
@@ -326,16 +334,6 @@
   :defer t
   :vc ( :url "https://github.com/dmacvicar/ob-d2"
         :rev :newest))
-
-(use-package delight
-  :ensure t
-  :demand t
-  :config
-  (delight 'whitespace-mode nil "whitespace")
-  (delight 'which-key-mode nil "which-key")
-  (delight 'devil-mode nil "devil")
-  (delight 'visual-line-mode nil "simple")
-  (delight 'eldoc-mode nil "eldoc"))
 
 (use-package trashed
   :ensure t
