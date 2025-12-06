@@ -1,5 +1,7 @@
 ;;; init.el --- Init -*- lexical-binding: t; -*-
 
+;;; Garbage Collection
+
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 (add-hook 'after-init-hook
@@ -8,31 +10,59 @@
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
+;;; Themes and Fonts
+
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
-(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
+(set-face-attribute 'default nil :height 160 :weight 'normal :family "Iosevka")
 
+;;; Scrolling
+
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+(when (fboundp 'pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode t))
+
+;;; Frames
+
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
 (add-to-list 'display-buffer-alist
              '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
                (display-buffer-no-window)
                (allow-no-window . t)))
 
+;;; Options
+
+(fset 'yes-or-no-p 'y-or-n-p)
+
 (setq-default display-line-numbers-type 'relative)
-
-(if (boundp 'use-short-answers)
-    (setq use-short-answers t)
-  (advice-add 'yes-or-no-p :override #'y-or-n-p))
-
+(setq-default fill-column 80)
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
 (setq completion-ignore-case t)
 (setq whitespace-style '(face trailing empty))
 (setq make-backup-files nil)
+(setq ring-bell-function 'ignore)
+(setq inhibit-startup-screen t)
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
 
-(add-hook 'compilation-filter-hook
-          (lambda ()
-            (ansi-color-apply-on-region compilation-filter-start (point-max))))
+(prefer-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+
+;;; Hooks
+
+(defun my-compilation-filter-hook ()
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
+
+(add-hook 'compilation-filter-hook #'my-compilation-filter-hook)
+(add-hook 'after-init-hook #'which-key-mode)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 (add-hook 'after-init-hook #'display-time-mode)
 (add-hook 'after-init-hook #'delete-selection-mode)
@@ -43,28 +73,52 @@
 (add-hook 'after-init-hook #'recentf-mode)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 
+;;; Keymaps
+
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
 (global-set-key (kbd "M-n") 'forward-paragraph)
 (global-set-key (kbd "M-p") 'backward-paragraph)
-(global-set-key (kbd "C-x 2") (lambda ()
-				(interactive)
-				(split-window-vertically)
-				(other-window 1)))
-(global-set-key (kbd "C-x 3") (lambda ()
-				(interactive)
-				(split-window-horizontally)
-				(other-window 1)))
-(define-key minibuffer-local-map (kbd "C-/") (lambda ()
-					       (interactive)
-					       (let ((file-name (with-current-buffer (window-buffer (minibuffer-selected-window))
-								  (file-name-nondirectory (buffer-file-name)))))
-						 (insert file-name))))
+(global-set-key (kbd "C-x C-b") #'ibuffer)
 
-(which-key-add-key-based-replacements
-  "C-x p" "Project"
-  "C-c c" "Crux"
-  "C-c f" "Find")
-(add-hook 'after-init-hook #'which-key-mode)
+(defun my-split-window-vertically ()
+  (interactive)
+  (split-window-vertically) (other-window 1))
+
+(global-set-key (kbd "C-x 2") #'my-split-window-vertically)
+
+(defun my-split-word-horizontally ()
+  (interactive)
+  (split-window-horizontally) (other-window 1))
+
+(global-set-key (kbd "C-x 3") #'my-split-window-horizontally)
+
+(defun my-forward-word ()
+  "Move forward to the next syntax change, like Vim word movement."
+  (interactive)
+  (let ((start-syntax (if (eobp) nil (char-syntax (char-after)))))
+    (if start-syntax
+        (progn
+          (forward-char 1)
+          (while (and (not (eobp)) (eq (char-syntax (char-after)) start-syntax))
+            (forward-char 1)))
+      (forward-char 1))))
+
+(global-set-key (kbd "M-f") #'my-forward-word)
+
+(defun my-backward-word ()
+  "Move backward to the previous syntax change, like Vim word movement."
+  (interactive)
+  (let ((start-syntax (if (bobp) nil (char-syntax (char-before)))))
+    (if start-syntax
+        (progn
+          (backward-char 1)
+          (while (and (not (bobp)) (eq (char-syntax (char-before)) start-syntax))
+            (backward-char 1)))
+      (backward-char 1))))
+
+(global-set-key (kbd "M-b") #'my-backward-word)
+
+;;; Delight
 
 (use-package delight
   :ensure t
@@ -72,50 +126,23 @@
   :config
   (delight 'whitespace-mode nil "whitespace")
   (delight 'which-key-mode nil "which-key")
-  (delight 'zoom-mode nil "zoom")
   (delight 'visual-line-mode nil "simple")
   (delight 'eldoc-mode nil "eldoc"))
 
-(use-package zoom
-  :ensure t
-  :commands (zoom)
-  :hook (after-init . zoom-mode)
-  :config
-  (setq zoom-size '(0.618 . 0.618))
-  :bind (("C-c w o" . zoom)
-         ("C-c w u" . winner-undo)))
-
-(use-package ace-window
-  :ensure t
-  :config
-  (setq aw-dispatch-always t)
-  (setq aw-keys '(?h ?j ?k ?l))
-  :bind ("M-o" . ace-window))
-
-(use-package avy
-  :ensure t
-  :config
-  (setq avy-keys (number-sequence ?a ?y))
-  :bind (("M-i" . avy-goto-char)
-         ("M-e" . avy-goto-word-0)))
-
-(use-package expand-region
-  :ensure t
-  :bind (("C-=" . er/expand-region)))
+;;; Multiple-cursors
 
 (use-package multiple-cursors
   :ensure t
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
 
-(use-package easy-kill
-  :ensure t
-  :bind (([remap kill-ring-save] . easy-kill)
-         ([remap mark-sexp] . easy-mark)))
+;;; Marginalia
 
 (use-package marginalia
   :ensure t
   :hook (after-init . marginalia-mode))
+
+;;; Vertico
 
 (use-package vertico
   :ensure t
@@ -127,11 +154,15 @@
           ("C-w" . vertico-directory-delete-word )
           ("RET" . vertico-directory-enter)))
 
+;;; Orderless
+
 (use-package orderless
   :ensure t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles partial-completion)))))
+
+;;; Corfu
 
 (use-package corfu
   :ensure t
@@ -160,6 +191,19 @@
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous)))
 
+;;; Cape
+
+(use-package cape
+  :ensure t
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
+  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+  (add-to-list 'completion-at-point-functions #'cape-keyword)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
+
+;;; Consult
+
 (use-package consult
   :ensure t
   :config
@@ -178,11 +222,14 @@
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
 
+;;; Rg
+
 (use-package rg
   :ensure t
   :defer t
-  :config
-  (rg-enable-menu))
+  :config (rg-enable-menu))
+
+;;; Treesitter
 
 (setq treesit-language-source-alist
       '(  ; use `sort-lines' to sort
@@ -223,6 +270,7 @@
 (add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
+;;; Apheleia
 (use-package apheleia
   :ensure t
   :delight
@@ -230,6 +278,8 @@
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
   (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt)))
+
+;;; Eglot
 
 (use-package eglot
   :ensure nil
@@ -258,21 +308,31 @@
 			    :staticcheck t
 			    :completeUnimported t))))
 
+;;; Pyvenv
+
 (use-package pyvenv
   :ensure t
   :defer t)
+
+;;; Json-mode
 
 (use-package json-mode
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
 
+;;; D2-mode
+
 (use-package d2-mode
   :ensure t
   :defer t)
 
+;;; Go-mode
+
 (use-package go-mode
   :ensure t
   :defer t)
+
+;;; Typst-ts-mode
 
 (use-package
   typst-ts-mode
@@ -286,13 +346,19 @@
   :bind ( :map typst-ts-mode-map
           ("C-c C-c" . typst-ts-tmenu)))
 
+;;; Lua-mode
+
 (use-package lua-mode
   :ensure t
   :defer t)
 
+;;; Elisp-mode
+
 (use-package elisp-mode
   :ensure nil
   :delight (emacs-lisp-mode "Elisp" :major))
+
+;;; Markdown-mode
 
 (use-package markdown-mode
   :ensure t
@@ -303,6 +369,8 @@
   :mode (("\\.markdown\\'" . markdown-mode)
          ("\\.md\\'" . markdown-mode)
          ("README\\.md\\'" . gfm-mode)))
+
+;;; Org-mode
 
 (use-package org
   :ensure nil
@@ -330,11 +398,15 @@
   :bind
   ("C-c a" . org-agenda))
 
+;;; Ob-d2 (Org babel for D2)
+
 (use-package ob-d2
   :ensure t
   :defer t
   :vc ( :url "https://github.com/dmacvicar/ob-d2"
         :rev :newest))
+
+;;; Trashed
 
 (use-package trashed
   :ensure t
@@ -345,6 +417,8 @@
   (setq trashed-sort-key '("Date deleted" . t))
   (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
+;;; Exec-path-from-shell
+
 (use-package exec-path-from-shell
   :ensure t
   :demand t
@@ -352,24 +426,7 @@
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
-(use-package buffer-terminator
-  :ensure t
-  :delight
-  :hook (after-init . buffer-terminator-mode)
-  :config (setq buffer-terminator-verbose nil
-                buffer-terminator-inactivity-timeout (* 20 60)
-                buffer-terminator-interval (* 20 60)))
-
-(use-package super-save
-  :ensure t
-  :delight
-  :hook (after-init . super-save-mode)
-  :init (setq auto-save-default nil)
-  :config (setq super-save-auto-save-when-idle t
-                super-save-delete-trailing-whitespace t
-                super-save-all-buffers t)
-  (add-to-list 'super-save-triggers 'ace-window)
-  (add-to-list 'super-save-hook-triggers 'find-file-hook))
+;;; Undo-fu
 
 (use-package undo-fu
   :demand t
@@ -383,10 +440,14 @@
   (global-set-key (kbd "C-z") 'undo-fu-only-undo)
   (global-set-key (kbd "C-S-z") 'undo-fu-only-redo))
 
+;;; Undo-fu-session
+
 (use-package undo-fu-session
   :ensure t
   :hook (after-init . undo-fu-session-global-mode)
   :commands (undo-fu-session-global-mode))
+
+;;; Helpful
 
 (use-package helpful
   :ensure t
@@ -404,6 +465,8 @@
   ([remap describe-key] . helpful-key)
   ([remap describe-symbol] . helpful-symbol)
   ([remap describe-variable] . helpful-variable))
+
+;;; Crux
 
 (use-package crux
   :ensure t
@@ -428,17 +491,25 @@
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save))
 
+;;; Nov
+
 (use-package nov
   :ensure t
   :mode (("\\.epub\\'" . nov-mode)))
+
+;;; Editorconfig
 
 (use-package editorconfig
   :ensure t
   :hook (after-init . editorconfig-mode))
 
+;;; Mise
+
 (use-package mise
   :ensure t
   :hook (after-init . global-mise-mode))
+
+;;; Magit
 
 (use-package magit
   :ensure t

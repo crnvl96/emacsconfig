@@ -1,7 +1,12 @@
 ;;; early-init.el --- Early Init -*- lexical-binding: t; -*-
 
+(setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
+(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+
 (menu-bar-mode -1)
 (tool-bar-mode -1)
+(column-number-mode t)
+(size-indication-mode t)
 
 (package-initialize)
 (unless (package-installed-p 'use-package)
