@@ -1,3 +1,9 @@
-*
+# Ignore everything in var/
+var/
+
+# Allow init files
 !init.el
 !early-init.el
+
+# Allow rc/ and all subdirectories
+!rc/
