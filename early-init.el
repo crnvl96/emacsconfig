@@ -2,6 +2,7 @@
 
 (setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+(setq inhibit-compacting-font-caches t)
 
 (menu-bar-mode -1)
 (tool-bar-mode -1)

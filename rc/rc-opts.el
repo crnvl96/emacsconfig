@@ -25,6 +25,9 @@
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
+(setq read-process-output-max (* 2 1024 1024))  ; 1024kb
+(setq initial-major-mode 'fundamental-mode)
+(setq initial-scratch-message nil)
 (setq completion-ignore-case t)
 (setq whitespace-style '(face trailing empty))
 (setq make-backup-files nil)

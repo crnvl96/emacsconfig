@@ -14,8 +14,20 @@
 (let ((default-directory (expand-file-name "rc" (file-name-parent-directory user-emacs-directory))))
   (normal-top-level-add-subdirs-to-load-path))
 
+;;; Options
 (require 'rc-opts)
+
+;;; Keymaps
 (require 'rc-keymaps)
+
+;;; Treesit
+(require 'rc-treesit)
+
+;;; Eglot & Formatters
+(require 'rc-lsp-fmt)
+
+;;; Lang modes
+(require 'rc-modes)
 
 ;;; Delight
 (use-package delight
@@ -119,92 +131,12 @@
   :defer t
   :config (rg-enable-menu))
 
-;;; Treesitter
-(setq treesit-language-source-alist
-      '(  ; use `sort-lines' to sort
-        (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-        (d2 . ("https://github.com/ravsii/tree-sitter-d2"))
-        (c . ("https://github.com/tree-sitter/tree-sitter-c"))
-        (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-        (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
-        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-        (go . ("https://github.com/tree-sitter/tree-sitter-go"))
-        (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
-        (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-        (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-        (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
-        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-        (typst . ("https://github.com/uben0/tree-sitter-typst"))
-        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
-        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
-        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
-        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
-        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
-        ))
-
-(defun my/treesit-install-all-languages ()
-  "Install all languages specified by `treesit-language-source-alist'."
-  (interactive)
-  (let ((languages (mapcar 'car treesit-language-source-alist)))
-    (dolist (lang languages)
-      (treesit-install-language-grammar lang)
-      (message "`%s' parser was installed." lang)
-      (sit-for 0.75))))
-
-(add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-(add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
-(add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
-(add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
-
 ;;; Jinx - spell checker
-
 (use-package jinx
   :ensure t
-  :config
-  (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
-    (add-hook hook #'jinx-mode))
   :bind (("M-$" . jinx-correct)
+	 ("C-." . jinx-correct)
 	 ("C-M-$" . jinx-languages)))
-
-;;; Apheleia
-(use-package apheleia
-  :ensure t
-  :delight
-  :hook (prog-mode . apheleia-mode)
-  :config
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
-  (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt)))
-
-;;; Eglot
-(use-package eglot
-  :ensure nil
-  :hook
-  (python-ts-mode . eglot-ensure)
-  (go-ts-mode . eglot-ensure)
-  (tsx-ts-mode . eglot-ensure)
-  (typescript-ts-mode . eglot-ensure)
-  :config
-  (setq eglot-sync-connect 0
-        eglot-autoshutdown t
-        eglot-extend-to-xref t
-        jsonrpc-event-hook nil
-        eglot-events-buffer-config '(:size 0 :format lisp)
-	eglot-server-programs
-	'( (python-ts-mode . ("pyright-langserver" "--stdio"))
-	   (go-ts-mode . ("gopls"))
-	   (typescript-ts-mode . ("typescript-language-server" "--stdio"))
-	   (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
-  (setq-default eglot-workspace-configuration
-                '( :pyright ( :disableOrganizeImports t)
-		   :python.analysis ( :autoSearchPaths t
-				      :useLibraryCodeForTypes t
-				      :diagnosticMode "openFilesOnly")
-		   :gopls ( :gofumpt t
-			    :staticcheck t
-			    :completeUnimported t))))
 
 ;;; Pyvenv
 (use-package pyvenv
@@ -309,6 +241,3 @@
 (use-package magit
   :ensure t
   :defer t)
-
-;;; Lang modes
-(require 'rc-modes)
