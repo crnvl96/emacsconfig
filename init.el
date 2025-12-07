@@ -159,6 +159,16 @@
 (add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
+;;; Jinx - spell checker
+
+(use-package jinx
+  :ensure t
+  :config
+  (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
+    (add-hook hook #'jinx-mode))
+  :bind (("M-$" . jinx-correct)
+	 ("C-M-$" . jinx-languages)))
+
 ;;; Apheleia
 (use-package apheleia
   :ensure t
