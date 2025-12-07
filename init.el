@@ -39,6 +39,66 @@
   (delight 'visual-line-mode nil "simple")
   (delight 'eldoc-mode nil "eldoc"))
 
+;;; Paredit
+(use-package paredit
+  :ensure t
+  :config
+  (define-key paredit-mode-map (kbd "RET") nil)
+  (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
+  ;; enable in the *scratch* buffer
+  (add-hook 'lisp-interaction-mode-hook #'paredit-mode)
+  (add-hook 'ielm-mode-hook #'paredit-mode)
+  (add-hook 'lisp-mode-hook #'paredit-mode)
+  (add-hook 'eval-expression-minibuffer-setup-hook #'paredit-mode))
+
+;;; Move text
+(use-package move-text
+  :ensure t
+  :bind (("M-S-p" . move-text-up)
+	 ("M-S-n" . move-text-down)))
+
+;;; Rainbow Delimiters
+(use-package rainbow-delimiters
+  :ensure t
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;;; Rainbow mode
+(use-package rainbow-mode
+  :ensure t
+  :hook (prog-mode . rainbow-mode))
+
+;;; Ace window
+(use-package ace-window
+  :ensure t
+  :demand t
+  :config
+  (global-set-key (kbd "M-o") 'ace-window)
+  (global-set-key [remap other-window] 'ace-window))
+
+;;; Avy
+(use-package avy
+  :ensure t
+  :bind (("s-." . avy-goto-word-or-subword-1)
+         ("s-," . avy-goto-char)
+         ("C-c ." . avy-goto-word-or-subword-1)
+         ("C-c ," . avy-goto-char)
+         ("M-g f" . avy-goto-line)
+         ("M-g w" . avy-goto-word-or-subword-1))
+  :config
+  (setq avy-background t))
+
+;;; Volatile highlights
+(use-package volatile-highlights
+  :ensure t
+  :config
+  (volatile-highlights-mode +1))
+
+;;; Zop
+(use-package zop-to-char
+  :ensure t
+  :bind (("M-z" . zop-up-to-char)
+         ("M-Z" . zop-to-char)))
+
 ;;; Multiple-cursors
 (use-package multiple-cursors
   :ensure t
