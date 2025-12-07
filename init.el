@@ -39,23 +39,11 @@
   (delight 'visual-line-mode nil "simple")
   (delight 'eldoc-mode nil "eldoc"))
 
-;;; Paredit
-(use-package paredit
-  :ensure t
-  :config
-  (define-key paredit-mode-map (kbd "RET") nil)
-  (add-hook 'emacs-lisp-mode-hook #'paredit-mode)
-  ;; enable in the *scratch* buffer
-  (add-hook 'lisp-interaction-mode-hook #'paredit-mode)
-  (add-hook 'ielm-mode-hook #'paredit-mode)
-  (add-hook 'lisp-mode-hook #'paredit-mode)
-  (add-hook 'eval-expression-minibuffer-setup-hook #'paredit-mode))
-
 ;;; Move text
 (use-package move-text
   :ensure t
-  :bind (("M-S-p" . move-text-up)
-	 ("M-S-n" . move-text-down)))
+  :bind (("C-S-p" . move-text-up)
+	 ("C-S-n" . move-text-down)))
 
 ;;; Rainbow Delimiters
 (use-package rainbow-delimiters
@@ -70,28 +58,21 @@
 ;;; Ace window
 (use-package ace-window
   :ensure t
-  :demand t
-  :config
-  (global-set-key (kbd "M-o") 'ace-window)
-  (global-set-key [remap other-window] 'ace-window))
+  :bind
+  (("M-o" . ace-window)
+   ([remap other-window] . ace-window)))
 
 ;;; Avy
 (use-package avy
   :ensure t
-  :bind (("s-." . avy-goto-word-or-subword-1)
-         ("s-," . avy-goto-char)
-         ("C-c ." . avy-goto-word-or-subword-1)
-         ("C-c ," . avy-goto-char)
-         ("M-g f" . avy-goto-line)
-         ("M-g w" . avy-goto-word-or-subword-1))
+  :bind (("M-i" . avy-goto-word-or-subword-1))
   :config
   (setq avy-background t))
 
 ;;; Volatile highlights
 (use-package volatile-highlights
   :ensure t
-  :config
-  (volatile-highlights-mode +1))
+  :hook (after-init . volatile-highlights-mode))
 
 ;;; Zop
 (use-package zop-to-char
@@ -261,22 +242,21 @@
 ;;; Crux
 (use-package crux
   :ensure t
-  :demand t
   :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
          ([remap kill-whole-line] . crux-kill-whole-line)
          ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
          ([remap upcase-region] . crux-upcase-region)
          ([remap downcase-region] . crux-downcase-region)
-         ("C-c c j" . crux-top-join-line)
-         ("C-c c n" . crux-cleanup-buffer-or-region)
-         ("C-c c t" . crux-visit-term-buffer)
-         ("C-c c d" . crux-duplicate-current-line-or-region)
+         ("C-c j" . crux-top-join-line)
+         ("C-c n" . crux-cleanup-buffer-or-region)
+         ("C-c t" . crux-visit-term-buffer)
+         ("C-c d" . crux-duplicate-current-line-or-region)
          ("C-k" . crux-smart-kill-line)
          ("S-<return>" . crux-smart-open-line)
          ("C-S-<return>" . crux-smart-open-line-above)
-         ("C-c c o" . crux-open-with)
-         ("C-c c u" . crux-view-url)
-         ("C-c c k" . crux-kill-other-buffers))
+         ("C-c o" . crux-open-with)
+         ("C-c u" . crux-view-url)
+         ("C-c k" . crux-kill-other-buffers))
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
