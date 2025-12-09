@@ -23,7 +23,6 @@
 (setq-default display-line-numbers-type 'relative)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
-(setq-default fill-column 120)
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
@@ -39,7 +38,8 @@
 (setq auto-revert-verbose t)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 
-(setq whitespace-line-column 80)
+(setq-default fill-column 120)
+(setq whitespace-line-column 120)
 (setq whitespace-style '(face tabs empty trailing lines-tail))
 (dolist (hook '(prog-mode-hook text-mode-hook))
   (add-hook hook #'whitespace-mode))
@@ -117,10 +117,19 @@
 
 (defun my-compilation-filter-hook ()
   (ansi-color-apply-on-region compilation-filter-start (point-max)))
+
 (add-hook 'compilation-filter-hook #'my-compilation-filter-hook)
+
+(add-hook 'isearch-update-post-hook
+          (lambda ()
+            (when (memq this-command '(isearch-repeat-forward isearch-repeat-backward))
+              (recenter))))
+(add-hook 'isearch-mode-end-hook #'recenter)
+
 (add-hook 'after-init-hook #'which-key-mode)
 (add-hook 'after-init-hook #'display-time-mode)
 (add-hook 'after-init-hook #'delete-selection-mode)
 (add-hook 'after-init-hook #'winner-mode)
+(add-hook 'after-init-hook #'global-hl-line-mode)
 
 (provide 'rc-opts)
