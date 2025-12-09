@@ -58,6 +58,8 @@
 ;;; Ace window
 (use-package ace-window
   :ensure t
+  :config
+  (setq aw-keys '(?h ?j ?k ?l))
   :bind
   (("M-o" . ace-window)
    ([remap other-window] . ace-window)))
@@ -65,7 +67,7 @@
 ;;; Avy
 (use-package avy
   :ensure t
-  :bind (("M-i" . avy-goto-word-or-subword-1))
+  :bind (("M-e" . avy-goto-char-timer))
   :config
   (setq avy-background t))
 

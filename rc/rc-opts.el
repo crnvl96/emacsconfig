@@ -38,6 +38,8 @@
 (setq auto-revert-verbose t)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 
+(setq truncate-lines t)
+
 (setq-default fill-column 120)
 (setq whitespace-line-column 120)
 (setq whitespace-style '(face tabs empty trailing lines-tail))
