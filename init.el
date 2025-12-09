@@ -1,5 +1,45 @@
 ;;; init.el --- Init -*- lexical-binding: t; -*-
 
+;;; Commentary:
+
+;;; Code:
+
+;;; Declutter the ~/emacs.d/ folder
+
+(setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
+(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
+(setq inhibit-compacting-font-caches t)
+
+;;; UI adjustments
+
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(tooltip-mode -1)
+(column-number-mode t)
+(size-indication-mode t)
+
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(setq inhibit-splash-screen t)
+(setq inhibit-scratch-message t)
+(setq inhibit-startup-message t)
+
+;;; Package initialization
+(package-initialize)
+(unless (package-installed-p 'use-package)
+  (unless (seq-empty-p package-archive-contents)
+    (package-refresh-contents))
+  (package-install 'use-package))
+(require 'use-package)
+(setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
+                          ("gnu"          . "https://elpa.gnu.org/packages/")
+                          ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+                          ("melpa-stable" . "https://stable.melpa.org/packages/"))
+      package-archive-priorities '( ("melpa"        . 90)
+                                    ("gnu"          . 70)
+                                    ("nongnu"       . 60)
+                                    ("melpa-stable" . 50)))
+
 ;;; Garbage Collection
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
@@ -9,25 +49,384 @@
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
-;;; Load Path
-(add-to-list 'load-path (expand-file-name "rc" (file-name-parent-directory user-emacs-directory)))
-(let ((default-directory (expand-file-name "rc" (file-name-parent-directory user-emacs-directory))))
-  (normal-top-level-add-subdirs-to-load-path))
+;;; Themes and Fonts
+(mapc #'disable-theme custom-enabled-themes)
+(load-theme 'modus-vivendi t)
+(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
-;;; Options
-(require 'rc-opts)
+;;; Scrolling
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+(when (fboundp 'pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode t))
+
+;;; Frames
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-to-list 'display-buffer-alist
+             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+               (display-buffer-no-window)
+               (allow-no-window . t)))
+
+;;; Fringe mode
+;; `Fringe mode` adds more space left & right of emacs frame
+(set-fringe-mode 10)
+
+;;; Edit mode modification
+(setq-default cursor-in-non-selected-windows nil)
+(setq highlight-nonselected-windows nil)
+
+;; As the side line number increases in digits, the whole window
+;;   need to be shifted right, which cost computation.
+;; This is why as least some space need to be separated from start.
+(setq-default display-line-numbers-width 5)
+
+;; How many spaces a tab counts for
+(setq tab-width 4)
+
+(setq-default display-line-numbers-type 'relative)
+(add-hook 'after-init-hook #'global-display-line-numbers-mode)
+
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(if (file-exists-p custom-file) (load custom-file)
+  (progn
+    (make-empty-file custom-file)
+    (load custom-file )))
+
+(setq native-comp-async-query-on-exit t)
+(setq package-install-upgrade-built-in t)
+(setq read-process-output-max (* 2 1024 1024))  ; 1024kb
+(setq initial-major-mode 'fundamental-mode)
+(setq completion-ignore-case t)
+
+;; Save existing clipboard text into the kill ring before replacing it.
+(setq save-interprogram-paste-before-kill t)
+
+(setq auto-revert-interval 3)
+(setq auto-revert-remote-files nil)
+(setq auto-revert-use-notify t)
+(setq auto-revert-avoid-polling nil)
+(setq auto-revert-verbose t)
+(add-hook 'after-init-hook #'global-auto-revert-mode)
+
+(setq truncate-lines t)
+
+(setq-default fill-column 120)
+(setq whitespace-line-column 120)
+(setq whitespace-style '(face tabs empty trailing lines-tail))
+(dolist (hook '(prog-mode-hook text-mode-hook))
+  (add-hook hook #'whitespace-mode))
+(add-hook 'before-save-hook #'whitespace-cleanup)
+
+(setq make-backup-files nil)
+(setq ring-bell-function 'ignore)
+
+(setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
+(setq save-place-limit 400)
+(setq-default save-place t)
+(add-hook 'after-init-hook #'save-place-mode)
+
+;; When auto-save-visited-mode is enabled, Emacs will auto-save file-visiting
+;; buffers after a certain amount of idle time if the user forgets to save it
+;; with save-buffer or C-x s for example.
+;;
+;; This is different from auto-save-mode: auto-save-mode periodically saves
+;; all modified buffers, creating backup files, including those not associated
+;; with a file, while auto-save-visited-mode only saves file-visiting buffers
+;; after a period of idle time, directly saving to the file itself without
+;; creating backup files.
+(setq auto-save-visited-interval 5)   ; Save after 5 seconds if inactivity
+(add-hook 'after-init-hook #'auto-save-visited-mode)
+
+(setq savehist-autosave-interval 60)
+(setq savehist-file (expand-file-name "savehist" user-emacs-directory))
+(setq savehist-additional-variables
+      '(kill-ring                        ; clipboard
+	register-alist                   ; macros
+	mark-ring global-mark-ring       ; marks
+	search-ring regexp-search-ring))
+(add-hook 'after-init-hook #'savehist-mode)
+
+(setq recentf-save-file (expand-file-name "recentf" user-emacs-directory))
+(setq recentf-max-saved-items 500)
+(setq recentf-max-menu-items 15)
+(setq recentf-auto-cleanup (if (daemonp) 300 'never))
+(setq recentf-exclude
+      (list "\\.tar$" "\\.tbz2$" "\\.tbz$" "\\.tgz$" "\\.bz2$"
+	    "\\.bz$" "\\.gz$" "\\.gzip$" "\\.xz$" "\\.zip$"
+	    "\\.7z$" "\\.rar$"
+	    "COMMIT_EDITMSG\\'"
+	    "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\|bmp\\|xpm\\)$"
+	    "-autoloads\\.el$" "autoload\\.el$"))
+;; A cleanup depth of -90 ensures that `recentf-cleanup' runs before
+;; `recentf-save-list', allowing stale entries to be removed before the list
+;; is saved by `recentf-save-list', which is automatically added to
+;; `kill-emacs-hook' by `recentf-mode'.
+(require 'recentf)
+(add-hook 'kill-emacs-hook #'recentf-cleanup -90)
+(add-hook 'after-init-hook #'recentf-mode)
+
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
+
+;; dired - reuse current buffer by pressing 'a'
+(put 'dired-find-alternate-file 'disabled nil)
+;; always delete and copy recursively
+(setq dired-recursive-deletes 'always)
+(setq dired-recursive-copies 'always)
+;; if there is a dired buffer displayed in the next window, use its
+;; current subdir, instead of the current subdir of this dired buffer
+(setq dired-dwim-target t)
+;; enable some really cool extensions like C-x C-j(dired-jump)
+(require 'dired-x)
+
+(fset 'yes-or-no-p 'y-or-n-p)
+(prefer-coding-system 'utf-8)
+(set-default-coding-systems 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+
+(defun my-compilation-filter-hook ()
+  "Allow rendering ansi symbols and colors."
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
+
+(add-hook 'compilation-filter-hook #'my-compilation-filter-hook)
+
+(add-hook 'isearch-update-post-hook
+          (lambda ()
+            (when (memq this-command '(isearch-repeat-forward isearch-repeat-backward))
+              (recenter))))
+(add-hook 'isearch-mode-end-hook #'recenter)
+
+(add-hook 'after-init-hook #'which-key-mode)
+(add-hook 'after-init-hook #'display-time-mode)
+(add-hook 'after-init-hook #'delete-selection-mode)
+(add-hook 'after-init-hook #'winner-mode)
+(add-hook 'after-init-hook #'global-hl-line-mode)
+
+
 
 ;;; Keymaps
-(require 'rc-keymaps)
+(global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
+(global-set-key (kbd "M-n") 'forward-paragraph)
+(global-set-key (kbd "M-p") 'backward-paragraph)
+(global-set-key (kbd "C-x C-b") #'ibuffer)
+
+;; Make `ESC` quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+(defun my-split-window-vertically ()
+  "Keep the cursor on the current window when splitting it vertically."
+  (interactive)
+  (split-window-vertically) (other-window 1))
+(global-set-key (kbd "C-x 2") #'my-split-window-vertically)
+
+(defun my-split-window-horizontally ()
+  "Keep the cursor on the current window when splitting it horizontally."
+  (interactive)
+  (split-window-horizontally) (other-window 1))
+(global-set-key (kbd "C-x 3") #'my-split-window-horizontally)
+
+(defun my-forward-word ()
+  "Move forward to the next syntax change, like Vim word movement."
+  (interactive)
+  (let ((start-syntax (if (eobp) nil (char-syntax (char-after)))))
+    (if start-syntax
+        (progn
+          (forward-char 1)
+          (while (and (not (eobp)) (eq (char-syntax (char-after)) start-syntax))
+            (forward-char 1)))
+      (forward-char 1))))
+(global-set-key (kbd "M-f") #'my-forward-word)
+
+
+(defun my-backward-word ()
+  "Move backward to the previous syntax change, like Vim word movement."
+  (interactive)
+  (let ((start-syntax (if (bobp) nil (char-syntax (char-before)))))
+    (if start-syntax
+        (progn
+          (backward-char 1)
+          (while (and (not (bobp)) (eq (char-syntax (char-before)) start-syntax))
+            (backward-char 1)))
+      (backward-char 1))))
+(global-set-key (kbd "M-b") #'my-backward-word)
+
+(defun my-scroll-up-half ()
+  "Scroll up half screen and center the cursor."
+  (interactive)
+  (scroll-up (/ (window-height) 2))
+  (recenter))
+(global-set-key (kbd "C-v") #'my-scroll-up-half)
+
+(defun my-scroll-down-half ()
+  "Scroll down half screen and center the cursor."
+  (interactive)
+  (scroll-down (/ (window-height) 2))
+  (recenter))
+(global-set-key (kbd "M-v") #'my-scroll-down-half)
 
 ;;; Treesit
-(require 'rc-treesit)
+(setq treesit-language-source-alist
+      '(  ; use `sort-lines' to sort
+        (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+        (d2 . ("https://github.com/ravsii/tree-sitter-d2"))
+        (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+        (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+        (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
+        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+        (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+        (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
+        (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+        (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+        (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
+        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
+        (typst . ("https://github.com/uben0/tree-sitter-typst"))
+        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
+        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
+        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
+        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
+        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
+        ))
+
+(defun my/treesit-install-all-languages ()
+  "Install all languages specified by `treesit-language-source-alist'."
+  (interactive)
+  (let ((languages (mapcar 'car treesit-language-source-alist)))
+    (dolist (lang languages)
+      (treesit-install-language-grammar lang)
+      (message "`%s' parser was installed." lang)
+      (sit-for 0.75))))
+
+(add-to-list 'major-mode-remap-alist '(js-json-mode . json-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
+(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+(add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
+(add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
+(add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
+(add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
 ;;; Eglot & Formatters
-(require 'rc-lsp-fmt)
+(use-package eglot
+  :ensure nil
+  :hook
+  (python-ts-mode . eglot-ensure)
+  (go-ts-mode . eglot-ensure)
+  (tsx-ts-mode . eglot-ensure)
+  (typescript-ts-mode . eglot-ensure)
+  :config
+  (setq eglot-sync-connect 0
+        eglot-autoshutdown t
+        eglot-extend-to-xref t
+        jsonrpc-event-hook nil
+        eglot-events-buffer-config '(:size 0 :format lisp)
+	eglot-server-programs
+	'( (python-ts-mode . ("pyright-langserver" "--stdio"))
+	   (go-ts-mode . ("gopls"))
+	   (typescript-ts-mode . ("typescript-language-server" "--stdio"))
+	   (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
+  (setq-default eglot-workspace-configuration
+                '( :pyright ( :disableOrganizeImports t)
+		   :python.analysis ( :autoSearchPaths t
+				      :useLibraryCodeForTypes t
+				      :diagnosticMode "openFilesOnly")
+		   :gopls ( :gofumpt t
+			    :staticcheck t
+			    :completeUnimported t))))
 
-;;; Lang modes
-(require 'rc-modes)
+;;; Apheleia
+(use-package apheleia
+  :ensure t
+  :delight
+  :hook (prog-mode . apheleia-mode)
+  :config
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
+  (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt)))
+
+;;; Org-mode
+(use-package org
+  :ensure nil
+  :delight (org-indent-mode "" "org-indent")
+  :commands (org-mode org-version)
+  :mode (("\\.org\\'" . org-mode))
+  :hook (org-mode . org-indent-mode)
+  :config
+  (setq org-M-RET-may-split-line '((default . nil))
+        org-insert-heading-respect-content t
+        org-log-done 'time
+        org-log-into-drawer t
+        org-directory "~/Developer/personal/notes/agenda/"
+        org-agenda-files (list org-directory)
+        org-todo-keywords '((sequence "TODO(t)" "WAIT(w!)" "|" "CANCEL(c!)" "DONE(d!)"))
+        org-confirm-babel-evaluate nil)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '( (emacs-lisp . t)
+      (python . t)
+      (shell . t)
+      (js . t)
+      (d2 . t)
+      (sql . t)))
+  :bind
+  ("C-c a" . org-agenda))
+
+;; Ob-d2 (Org babel for D2)
+(use-package ob-d2
+  :ensure t
+  :defer t
+  :vc ( :url "https://github.com/dmacvicar/ob-d2"
+        :rev :newest))
+
+;;; Lua-mode
+(use-package lua-mode
+  :ensure t
+  :defer t)
+
+;;; Elisp-mode
+(use-package elisp-mode
+  :ensure nil
+  :delight (emacs-lisp-mode "Elisp" :major))
+
+;;; Markdown-mode
+(use-package markdown-mode
+  :ensure t
+  :commands (gfm-mode
+             gfm-view-mode
+             markdown-mode
+             markdown-view-mode)
+  :mode (("\\.markdown\\'" . markdown-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("README\\.md\\'" . gfm-mode)))
+
+;;; Json-mode
+(use-package json-mode
+  :ensure t
+  :mode (("\\.json\\'" . json-mode)))
+
+;;; D2-mode
+(use-package d2-mode
+  :ensure t
+  :defer t)
+
+;;; Go-mode
+(use-package go-mode
+  :ensure t
+  :defer t)
+
+;;; Typst-ts-mode
+(use-package
+  typst-ts-mode
+  :vc ( :url "https://codeberg.org/meow_king/typst-ts-mode.git"
+        :rev :newest)
+  :mode (("\\.typ\\'" . typst-ts-mode))
+  :config
+  (setq typst-ts-watch-options "--open")
+  (setq typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory))
+  (setq typst-ts-mode-enable-raw-blocks-highlight t)
+  :bind ( :map typst-ts-mode-map
+          ("C-c C-c" . typst-ts-tmenu)))
 
 ;;; Delight
 (use-package delight
@@ -71,16 +470,11 @@
   :config
   (setq avy-background t))
 
-;;; Volatile highlights
-(use-package volatile-highlights
-  :ensure t
-  :hook (after-init . volatile-highlights-mode))
-
 ;;; Zop
 (use-package zop-to-char
   :ensure t
-  :bind (("M-z" . zop-up-to-char)
-         ("M-Z" . zop-to-char)))
+  :bind (("M-z" . zop-to-char)
+         ("M-Z" . zop-up-to-char)))
 
 ;;; Multiple-cursors
 (use-package multiple-cursors
@@ -137,16 +531,9 @@
   (add-hook 'eshell-mode-hook (lambda ()
 				(setq-local corfu-auto nil)
 				(corfu-mode)))
-  ;; When pressing RET while the Corfu popup is visible, the corfu-insert
-  ;; command will be invoked. This command does inserts the currently selected
-  ;; candidate, but it does not send the prompt input to Eshell or the
-  ;; Comint process. Therefore you often have to press RET twice which feels
-  ;; like an unnecessary double confirmation. Fortunately it is easy to
-  ;; improve this by using the command corfu-send instead.
-  (keymap-set corfu-map "RET" #'corfu-send)
   :bind ( :map corfu-map
-	  ("RET" . nil)
-	  ([ret] . nil)
+	  ("RET" . corfu-send)
+	  ([ret] . corfu-send)
           ("TAB" . corfu-next)
           ([tab] . corfu-next)
           ("S-TAB" . corfu-previous)
@@ -267,6 +654,21 @@
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save))
 
+;;; Flycheck
+(use-package flycheck
+  :ensure t
+  :hook (after-init . global-flycheck-mode)
+  :config
+  (setq flymake-fringe-indicator-position 'left-fringe)
+  (setq flymake-start-on-save-buffer t))
+
+;;; Flyckeck-Eglot
+(use-package flycheck-eglot
+  :ensure t
+  :after (flycheck eglot)
+  :config
+  (global-flycheck-eglot-mode 1))
+
 ;;; Nov
 (use-package nov
   :ensure t
@@ -286,3 +688,9 @@
 (use-package magit
   :ensure t
   :defer t)
+
+;; Local variables:
+;; byte-compile-warnings: (not obsolete free-vars)
+;; End:
+
+;;; init.el ends here
