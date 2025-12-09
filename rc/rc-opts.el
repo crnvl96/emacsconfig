@@ -23,7 +23,7 @@
 (setq-default display-line-numbers-type 'relative)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
-(setq-default fill-column 80)
+(setq-default fill-column 120)
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
