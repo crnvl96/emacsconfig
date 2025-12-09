@@ -109,6 +109,16 @@
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles partial-completion)))))
 
+;;; Cape
+(use-package cape
+  :ensure t
+  :demand t
+  :bind ("C-c p" . cape-prefix-map)
+  :init
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block))
+
 ;;; Corfu
 (use-package corfu
   :ensure t
@@ -120,15 +130,18 @@
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete)
-  ;; Emacs 30 and newer: Disable Ispell completion function.
-  ;; Try `cape-dict' as an alternative.
-  (setq text-mode-ispell-word-completion nil)
-  ;; Hide commands in M-x which do not apply to the current mode.  Corfu
-  ;; commands are hidden, since they are not used via M-x. This setting is
-  ;; useful beyond Corfu.
-  (setq read-extended-command-predicate #'command-completion-default-include-p)
   (setq corfu-cycle t)
   (setq corfu-preselect 'prompt)
+  (add-hook 'eshell-mode-hook (lambda ()
+				(setq-local corfu-auto nil)
+				(corfu-mode)))
+  ;; When pressing RET while the Corfu popup is visible, the corfu-insert
+  ;; command will be invoked. This command does inserts the currently selected
+  ;; candidate, but it does not send the prompt input to Eshell or the
+  ;; Comint process. Therefore you often have to press RET twice which feels
+  ;; like an unnecessary double confirmation. Fortunately it is easy to
+  ;; improve this by using the command corfu-send instead.
+  (keymap-set corfu-map "RET" #'corfu-send)
   :bind ( :map corfu-map
 	  ("RET" . nil)
 	  ([ret] . nil)
@@ -137,27 +150,17 @@
           ("S-TAB" . corfu-previous)
           ([backtab] . corfu-previous)))
 
-;;; Cape
-(use-package cape
-  :ensure t
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-block)
-  (add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
-  (add-to-list 'completion-at-point-functions #'cape-keyword)
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
-
 ;;; Consult
 (use-package consult
   :ensure t
   :config
   (setq consult-async-min-input 2
         consult-narrow-key "<")
-  (consult-customize
-   consult-buffer  consult-yank-pop consult-fd consult-outline
-   consult-imenu consult-info consult-flymake consult-history
-   consult-focus-lines consult-line consult-ripgrep consult-goto-line
-   :preview-key nil)
+  ;; (consult-customize
+  ;;  consult-buffer  consult-yank-pop consult-fd consult-outline
+  ;;  consult-imenu consult-info consult-flymake consult-history
+  ;;  consult-focus-lines consult-line consult-ripgrep consult-goto-line
+  ;;  :preview-key nil)
   :bind (("C-c f b" . consult-buffer)
          ("C-c f f" . consult-fd)
          ("C-c f o" . consult-outline)

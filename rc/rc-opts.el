@@ -3,7 +3,7 @@
 ;;; Themes and Fonts
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
-(set-face-attribute 'default nil :height 160 :weight 'normal :family "Iosevka")
+(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
 ;;; Scrolling
 (setq scroll-margin 0
