@@ -41,4 +41,18 @@
       (backward-char 1))))
 (global-set-key (kbd "M-b") #'my-backward-word)
 
+(defun my-scroll-up-half ()
+  "Scroll up half screen and center the cursor."
+  (interactive)
+  (scroll-up (/ (window-height) 2))
+  (recenter))
+(global-set-key (kbd "C-v") #'my-scroll-up-half)
+
+(defun my-scroll-down-half ()
+  "Scroll down half screen and center the cursor."
+  (interactive)
+  (scroll-down (/ (window-height) 2))
+  (recenter))
+(global-set-key (kbd "M-v") #'my-scroll-down-half)
+
 (provide 'rc-keymaps)
