@@ -11,6 +11,9 @@
 (tool-bar-mode -1)
 (column-number-mode t)
 (size-indication-mode t)
+(blink-cursor-mode 0)
+(global-eldoc-mode -1)
+
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
 (setq inhibit-splash-screen t)
@@ -55,11 +58,11 @@
   (pixel-scroll-precision-mode t))
 
 ;;; Frames
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-to-list 'initial-frame-alist
+	     '(fullscreen . maximized))
+
 (add-to-list 'display-buffer-alist
-             '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-               (display-buffer-no-window)
-               (allow-no-window . t)))
+	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t)))
 
 ;;; Edit mode modification
 (setq-default cursor-in-non-selected-windows nil)
@@ -100,7 +103,7 @@
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 
 ;; Don't split lines if they're too big
-(setq truncate-lines t)
+(setq-default truncate-lines t)
 
 (setq-default fill-column 120)
 (setq whitespace-line-column 120)
@@ -210,15 +213,12 @@
 
 ;;; Keymaps
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
-(global-set-key (kbd "C-M-j") 'forward-paragraph)
-(global-set-key (kbd "C-M-k") 'backward-paragraph)
+(global-set-key (kbd "M-n") 'forward-paragraph)
+(global-set-key (kbd "M-p") 'backward-paragraph)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
 
 ;; Some useful remappings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-set-key (kbd "C-g") 'keyboard-escape-quit)
-(global-set-key (kbd "M-j") 'next-line)
-(global-set-key (kbd "M-k") 'previous-line)
 
 (defun my-split-window-vertically ()
   "Keep the cursor on the current window when splitting it vertically."
@@ -317,8 +317,6 @@
   (go-ts-mode . eglot-ensure)
   (tsx-ts-mode . eglot-ensure)
   (typescript-ts-mode . eglot-ensure)
-  :init
-  (global-eldoc-mode -1)
   :config
   (setq eglot-sync-connect 0
         eglot-autoshutdown t
@@ -420,7 +418,6 @@
 ;;; Delight
 (use-package delight
   :ensure t
-  :demand t
   :config
   (delight 'whitespace-mode nil "whitespace")
   (delight 'which-key-mode nil "which-key")
@@ -429,6 +426,12 @@
   (delight 'beacon-mode nil "beacon")
   (delight 'buffer-terminator-mode nil "buffer-terminator")
   (delight 'rainbow-mode nil "rainbow-mode"))
+
+;;; Eat
+
+(use-package eat
+  :ensure t
+  :commands (eat))
 
 ;;; Beacon
 
@@ -451,6 +454,7 @@
            :scroll-bar-width 8
            :fringe-width 8))
   ;; Read the doc string of `spacious-padding-subtle-mode-line'
+  (setq spacious-padding-subtle-mode-line t)
   (setq spacious-padding-subtle-frame-lines
 	`( :mode-line-active 'default
            :mode-line-inactive vertical-border)))
@@ -597,10 +601,12 @@
   :config
   (marginalia-mode))
 
-;;; Embark
+;;; Wgrep
 
 (use-package wgrep
   :ensure t)
+
+;;; Embark
 
 (use-package embark
   :ensure t
@@ -608,22 +614,23 @@
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("M-." . embark-dwim)        ;; good alternative: M-.
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
-  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-  (context-menu-mode 1)
-  (add-hook 'context-menu-functions #'embark-context-menu 100)
   :config
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
 
+;;; Embark-Consult
+
 (use-package embark-consult
   :ensure t ; only need to install it, embark loads it after consult if found
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+;;; Rg
+(use-package rg
+  :ensure t
+  :config (rg-enable-menu))
 
 ;;; Jinx - spell checker
 (use-package jinx
