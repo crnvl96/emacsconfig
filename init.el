@@ -167,7 +167,7 @@
 ;; if there is a dired buffer displayed in the next window, use its
 ;; current subdir, instead of the current subdir of this dired buffer
 (setq dired-dwim-target t)
-;; enable some really cool extensions like C-x C-j(dired-jump)
+;; enable some really cool extensions like C-x C-j (dired-jump)
 (require 'dired-x)
 
 (fset 'yes-or-no-p 'y-or-n-p)
