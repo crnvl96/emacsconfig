@@ -531,9 +531,11 @@
 ;;; Orderless
 (use-package orderless
   :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles partial-completion)))))
+  :config
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-overrides '((file (styles partial-completion))
+					(eglot (styles orderless))
+					(eglot-capf (styles orderless)))))
 
 ;;; Corfu
 (use-package corfu
@@ -546,14 +548,33 @@
 		   (setq-local corfu-auto nil)
 		   (corfu-mode)))
   :config
-  (setq corfu-auto t
-	corfu-auto-delay 0.2
-	corfu-auto-trigger "."
-	corfu-quit-no-match t
-	corfu-quit-at-boundary t)
+  (setq corfu-cycle t
+	corfu-preselect 'prompt)
   :bind ( :map corfu-map
 	  ("RET" . nil)
-	  ([ret] . nil)))
+	  ([ret] . nil)
+	  ("TAB" . corfu-next)
+	  ([tab] . corfu-next)
+	  ("S-TAB" . corfu-previous)
+	  ([backtab] . corfu-previous)))
+
+;;; Cape
+
+(use-package cape
+  :ensure t
+  :hook ((emacs-lisp-mode .  my/cape-capf-setup-elisp)
+	 (eglot-managed-mode . my/cape-capf-setup-eglot))
+  :init
+  (defun my/cape-capf-setup-elisp ()
+    (let ((result nil))
+      (dolist (element '(cape-file cape-dabbrev cape-elisp-symbol) result)
+	(add-to-list 'completion-at-point-functions element))))
+  (defun my/cape-capf-setup-eglot ()
+    (let ((result nil))
+      (dolist (element '(eglot-completion-at-point cape-file) result)
+	(add-to-list 'completion-at-point-functions element))))
+  :config
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
 
 ;;; Consult
 (use-package consult
