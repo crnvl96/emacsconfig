@@ -2,20 +2,18 @@
 
 ;;; Commentary:
 
+;; My personal Emacs configuration.
+
 ;;; Code:
 
-;;; UI adjustments
-
+;;; UI
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(tooltip-mode -1)
 (column-number-mode t)
 (size-indication-mode t)
-
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
 (setq inhibit-splash-screen t)
-(setq inhibit-scratch-message t)
 (setq inhibit-startup-message t)
 
 ;;; Package initialization
@@ -49,7 +47,7 @@
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
 ;;; Scrolling
-(setq scroll-margin 0
+(setq scroll-margin 8
       scroll-conservatively 100000
       scroll-preserve-screen-position 1)
 (when (fboundp 'pixel-scroll-precision-mode)
@@ -62,36 +60,35 @@
                (display-buffer-no-window)
                (allow-no-window . t)))
 
-;; ;;; Fringe mode
-;; ;; `Fringe mode` adds more space left & right of emacs frame
-;; (set-fringe-mode 10)
-
 ;;; Edit mode modification
 (setq-default cursor-in-non-selected-windows nil)
 (setq highlight-nonselected-windows nil)
 
 ;; As the side line number increases in digits, the whole window
-;;   need to be shifted right, which cost computation.
+;; needs to be shifted right, which cost computation.
 ;; This is why as least some space need to be separated from start.
 (setq-default display-line-numbers-width 5)
 
-;; How many spaces a tab counts for
 (setq tab-width 4)
 
 (setq-default display-line-numbers-type 'relative)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-(if (file-exists-p custom-file) (load custom-file)
-  (progn
-    (make-empty-file custom-file)
-    (load custom-file )))
+
+;; Note:
+;; Not really sure if we want to load the custom file.
+;; (if (file-exists-p custom-file) (load custom-file)
+;;   (progn
+;;     (make-empty-file custom-file)
+;;     (load custom-file )))
 
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
-(setq read-process-output-max (* 2 1024 1024))  ; 1024kb
+(setq read-process-output-max (* 2 1024 1024))  ; 2mb
 (setq initial-major-mode 'fundamental-mode)
 (setq completion-ignore-case t)
+(setq tab-always-indent 'complete)
 
 ;; Save existing clipboard text into the kill ring before replacing it.
 (setq save-interprogram-paste-before-kill t)
@@ -103,6 +100,7 @@
 (setq auto-revert-verbose t)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 
+;; Don't split lines if they're too big
 (setq truncate-lines t)
 
 (setq-default fill-column 120)
@@ -205,7 +203,7 @@
   :hook (after-init . which-key-mode)
   :config
   ;; Time after the suggestion show
-  (setq which-key-idle-delay 0.3)
+  (setq which-key-idle-delay 0.5)
   (setq which-key-sort-order 'which-key-key-order-alpha)
   (setq which-key-min-display-lines 3)
   (setq which-key-max-display-columns 8)
@@ -537,16 +535,6 @@
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles partial-completion)))))
 
-;;; Cape
-(use-package cape
-  :ensure t
-  :demand t
-  :bind ("C-c p" . cape-prefix-map)
-  :init
-  (add-hook 'completion-at-point-functions #'cape-dabbrev)
-  (add-hook 'completion-at-point-functions #'cape-file)
-  (add-hook 'completion-at-point-functions #'cape-elisp-block))
-
 ;;; Corfu
 (use-package corfu
   :ensure t
@@ -558,13 +546,11 @@
 		   (setq-local corfu-auto nil)
 		   (corfu-mode)))
   :config
-  ;; Enable indentation+completion using the TAB key.
-  ;; `completion-at-point' is often bound to M-TAB.
-  (setq tab-always-indent 'complete)
   (setq corfu-auto t
 	corfu-auto-delay 0.2
 	corfu-auto-trigger "."
-	corfu-quit-no-match t)
+	corfu-quit-no-match t
+	corfu-quit-at-boundary t)
   :bind ( :map corfu-map
 	  ("RET" . nil)
 	  ([ret] . nil)))
@@ -575,11 +561,6 @@
   :config
   (setq consult-async-min-input 2
         consult-narrow-key "<")
-  ;; (consult-customize
-  ;;  consult-buffer  consult-yank-pop consult-fd consult-outline
-  ;;  consult-imenu consult-info consult-flymake consult-history
-  ;;  consult-focus-lines consult-line consult-ripgrep consult-goto-line
-  ;;  :preview-key nil)
   :bind (("C-c f b" . consult-buffer)
          ("C-c f f" . consult-fd)
          ("C-c f o" . consult-outline)
@@ -604,7 +585,7 @@
 ;;; Pyvenv
 (use-package pyvenv
   :ensure t
-  :defer t)
+  :commands (pyvenv-activate))
 
 ;;; Trashed
 (use-package trashed
