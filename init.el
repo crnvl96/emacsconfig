@@ -4,12 +4,6 @@
 
 ;;; Code:
 
-;;; Declutter the ~/emacs.d/ folder
-
-(setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
-(setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-(setq inhibit-compacting-font-caches t)
-
 ;;; UI adjustments
 
 (menu-bar-mode -1)
@@ -68,9 +62,9 @@
                (display-buffer-no-window)
                (allow-no-window . t)))
 
-;;; Fringe mode
-;; `Fringe mode` adds more space left & right of emacs frame
-(set-fringe-mode 10)
+;; ;;; Fringe mode
+;; ;; `Fringe mode` adds more space left & right of emacs frame
+;; (set-fringe-mode 10)
 
 ;;; Edit mode modification
 (setq-default cursor-in-non-selected-windows nil)
@@ -200,13 +194,25 @@
               (recenter))))
 (add-hook 'isearch-mode-end-hook #'recenter)
 
-(add-hook 'after-init-hook #'which-key-mode)
 (add-hook 'after-init-hook #'display-time-mode)
 (add-hook 'after-init-hook #'delete-selection-mode)
 (add-hook 'after-init-hook #'winner-mode)
 (add-hook 'after-init-hook #'global-hl-line-mode)
 
-
+;;; Which Key
+(use-package which-key
+  :ensure t
+  :hook (after-init . which-key-mode)
+  :config
+  ;; Time after the suggestion show
+  (setq which-key-idle-delay 0.3)
+  (setq which-key-sort-order 'which-key-key-order-alpha)
+  (setq which-key-min-display-lines 3)
+  (setq which-key-max-display-columns 8)
+  (setq which-key-add-column-padding 4)
+  (setq which-key-unicode-correction 3)
+  (setq which-key-max-description-length 30)
+  (which-key-setup-side-window-bottom))
 
 ;;; Keymaps
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
@@ -214,8 +220,9 @@
 (global-set-key (kbd "M-p") 'backward-paragraph)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
 
-;; Make `ESC` quit prompts
+;; Make `ESC` and `C-g` quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(global-set-key (kbd "C-g") 'keyboard-escape-quit)
 
 (defun my-split-window-vertically ()
   "Keep the cursor on the current window when splitting it vertically."
@@ -438,11 +445,30 @@
   (delight 'visual-line-mode nil "simple")
   (delight 'eldoc-mode nil "eldoc"))
 
-;;; Move text
-(use-package move-text
+;;; Beacon
+
+(use-package beacon
   :ensure t
-  :bind (("C-S-p" . move-text-up)
-	 ("C-S-n" . move-text-down)))
+  :hook (after-init . beacon-mode))
+
+;;; Spacious padding
+(use-package spacious-padding
+  :ensure t
+  :hook (after-init . spacious-padding-mode)
+  :config
+  ;; These are the default values, but I keep them here for visibility.
+  (setq spacious-padding-widths
+	'( :internal-border-width 15
+           :header-line-width 4
+           :mode-line-width 6
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width 8
+           :fringe-width 8))
+  ;; Read the doc string of `spacious-padding-subtle-mode-line'
+  (setq spacious-padding-subtle-frame-lines
+	`( :mode-line-active 'default
+           :mode-line-inactive vertical-border)))
 
 ;;; Rainbow Delimiters
 (use-package rainbow-delimiters
@@ -481,6 +507,12 @@
   :ensure t
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
+
+;;; Expand region
+
+(use-package expand-region
+  :ensure t
+  :bind (("C-=" . er/expand-region)))
 
 ;;; Marginalia
 (use-package marginalia
@@ -522,22 +554,20 @@
   (after-init . global-corfu-mode)
   (after-init . corfu-history-mode)
   (after-init . corfu-popupinfo-mode)
+  (eshell-mode . (lambda ()
+		   (setq-local corfu-auto nil)
+		   (corfu-mode)))
   :config
   ;; Enable indentation+completion using the TAB key.
   ;; `completion-at-point' is often bound to M-TAB.
   (setq tab-always-indent 'complete)
-  (setq corfu-cycle t)
-  (setq corfu-preselect 'prompt)
-  (add-hook 'eshell-mode-hook (lambda ()
-				(setq-local corfu-auto nil)
-				(corfu-mode)))
+  (setq corfu-auto t
+	corfu-auto-delay 0.2
+	corfu-auto-trigger "."
+	corfu-quit-no-match t)
   :bind ( :map corfu-map
-	  ("RET" . corfu-send)
-	  ([ret] . corfu-send)
-          ("TAB" . corfu-next)
-          ([tab] . corfu-next)
-          ("S-TAB" . corfu-previous)
-          ([backtab] . corfu-previous)))
+	  ("RET" . nil)
+	  ([ret] . nil)))
 
 ;;; Consult
 (use-package consult
