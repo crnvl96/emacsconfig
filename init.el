@@ -15,6 +15,7 @@
 (setq inhibit-startup-screen t)
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-message t)
+(setq inhibit-compacting-font-caches t)
 
 ;;; Package initialization
 (package-initialize)
@@ -74,8 +75,6 @@
 (setq-default display-line-numbers-type 'relative)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-
 ;; Note:
 ;; Not really sure if we want to load the custom file.
 ;; (if (file-exists-p custom-file) (load custom-file)
@@ -113,7 +112,6 @@
 (setq make-backup-files nil)
 (setq ring-bell-function 'ignore)
 
-(setq save-place-file (expand-file-name "saveplace" user-emacs-directory))
 (setq save-place-limit 400)
 (setq-default save-place t)
 (add-hook 'after-init-hook #'save-place-mode)
@@ -131,7 +129,6 @@
 (add-hook 'after-init-hook #'auto-save-visited-mode)
 
 (setq savehist-autosave-interval 60)
-(setq savehist-file (expand-file-name "savehist" user-emacs-directory))
 (setq savehist-additional-variables
       '(kill-ring                        ; clipboard
 	register-alist                   ; macros
@@ -139,7 +136,6 @@
 	search-ring regexp-search-ring))
 (add-hook 'after-init-hook #'savehist-mode)
 
-(setq recentf-save-file (expand-file-name "recentf" user-emacs-directory))
 (setq recentf-max-saved-items 500)
 (setq recentf-max-menu-items 15)
 (setq recentf-auto-cleanup (if (daemonp) 300 'never))
@@ -214,13 +210,15 @@
 
 ;;; Keymaps
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
-(global-set-key (kbd "M-n") 'forward-paragraph)
-(global-set-key (kbd "M-p") 'backward-paragraph)
+(global-set-key (kbd "C-M-j") 'forward-paragraph)
+(global-set-key (kbd "C-M-k") 'backward-paragraph)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
 
-;; Make `ESC` and `C-g` quit prompts
+;; Some useful remappings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-g") 'keyboard-escape-quit)
+(global-set-key (kbd "M-j") 'next-line)
+(global-set-key (kbd "M-k") 'previous-line)
 
 (defun my-split-window-vertically ()
   "Keep the cursor on the current window when splitting it vertically."
@@ -277,7 +275,6 @@
 (setq treesit-language-source-alist
       '(  ; use `sort-lines' to sort
         (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-        (d2 . ("https://github.com/ravsii/tree-sitter-d2"))
         (c . ("https://github.com/tree-sitter/tree-sitter-c"))
         (html . ("https://github.com/tree-sitter/tree-sitter-html"))
         (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
@@ -310,7 +307,6 @@
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
 (add-to-list 'major-mode-remap-alist '(go-mode . go-ts-mode))
 (add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
-(add-to-list 'major-mode-remap-alist '(d2-mode . d2-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
 ;;; Eglot & Formatters
@@ -372,17 +368,9 @@
       (python . t)
       (shell . t)
       (js . t)
-      (d2 . t)
       (sql . t)))
   :bind
   ("C-c a" . org-agenda))
-
-;; Ob-d2 (Org babel for D2)
-(use-package ob-d2
-  :ensure t
-  :defer t
-  :vc ( :url "https://github.com/dmacvicar/ob-d2"
-        :rev :newest))
 
 ;;; Lua-mode
 (use-package lua-mode
@@ -410,19 +398,13 @@
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
 
-;;; D2-mode
-(use-package d2-mode
-  :ensure t
-  :defer t)
-
 ;;; Go-mode
 (use-package go-mode
   :ensure t
   :defer t)
 
 ;;; Typst-ts-mode
-(use-package
-  typst-ts-mode
+(use-package typst-ts-mode
   :vc ( :url "https://codeberg.org/meow_king/typst-ts-mode.git"
         :rev :newest)
   :mode (("\\.typ\\'" . typst-ts-mode))
@@ -467,6 +449,15 @@
   (setq spacious-padding-subtle-frame-lines
 	`( :mode-line-active 'default
            :mode-line-inactive vertical-border)))
+
+;;; Buffer Terminator
+(use-package buffer-terminator
+  :ensure t
+  :hook (after-init . buffer-terminator-mode)
+  :config
+  (setq buffer-terminator-verbose nil)
+  (setq buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
+  (setq buffer-terminator-interval (* 10 60))) ; 10 minutes
 
 ;;; Rainbow Delimiters
 (use-package rainbow-delimiters

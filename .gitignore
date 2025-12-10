@@ -1,5 +1,6 @@
 var/
 auto-save-list/
+eln-cache/
 
 !init.el
 !early-init.el
