@@ -317,6 +317,8 @@
   (go-ts-mode . eglot-ensure)
   (tsx-ts-mode . eglot-ensure)
   (typescript-ts-mode . eglot-ensure)
+  :init
+  (global-eldoc-mode -1)
   :config
   (setq eglot-sync-connect 0
         eglot-autoshutdown t
@@ -581,17 +583,51 @@
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
 
-;;; Rg
-(use-package rg
+;; ;;; Rg
+;; (use-package rg
+;;   :ensure t
+;;   :defer t
+;;   :config (rg-enable-menu))
+
+;;; Marginalia
+
+(use-package marginalia
   :ensure t
-  :defer t
-  :config (rg-enable-menu))
+  :config
+  (marginalia-mode))
+
+;;; Embark
+
+(use-package wgrep
+  :ensure t)
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("M-." . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
+  ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+  ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+  (context-menu-mode 1)
+  (add-hook 'context-menu-functions #'embark-context-menu 100)
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :ensure t ; only need to install it, embark loads it after consult if found
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 ;;; Jinx - spell checker
 (use-package jinx
   :ensure t
   :bind (("M-$" . jinx-correct)
-	 ("C-." . jinx-correct)
 	 ("C-M-$" . jinx-languages)))
 
 ;;; Pyvenv
