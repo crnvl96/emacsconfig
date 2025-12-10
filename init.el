@@ -425,7 +425,10 @@
   (delight 'whitespace-mode nil "whitespace")
   (delight 'which-key-mode nil "which-key")
   (delight 'visual-line-mode nil "simple")
-  (delight 'eldoc-mode nil "eldoc"))
+  (delight 'eldoc-mode nil "eldoc")
+  (delight 'beacon-mode nil "beacon")
+  (delight 'buffer-terminator-mode nil "buffer-terminator")
+  (delight 'rainbow-mode nil "rainbow-mode"))
 
 ;;; Beacon
 
@@ -544,8 +547,6 @@
   (setq corfu-cycle t
 	corfu-preselect 'prompt)
   :bind ( :map corfu-map
-	  ("RET" . nil)
-	  ([ret] . nil)
 	  ("TAB" . corfu-next)
 	  ([tab] . corfu-next)
 	  ("S-TAB" . corfu-previous)
