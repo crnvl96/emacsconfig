@@ -128,8 +128,8 @@
 ;; with a file, while auto-save-visited-mode only saves file-visiting buffers
 ;; after a period of idle time, directly saving to the file itself without
 ;; creating backup files.
-(setq auto-save-visited-interval 5)   ; Save after 5 seconds if inactivity
-(add-hook 'after-init-hook #'auto-save-visited-mode)
+;; (setq auto-save-visited-interval 5)   ; Save after 5 seconds if inactivity
+;; (add-hook 'after-init-hook #'auto-save-visited-mode)
 
 (setq savehist-autosave-interval 60)
 (setq savehist-additional-variables
