@@ -697,10 +697,9 @@
   :ensure t
   :hook (after-init . global-flycheck-mode)
   :config
-  (setq flymake-fringe-indicator-position 'left-fringe)
-  (setq flymake-start-on-save-buffer t))
+  (setq flycheck-check-syntax-automatically '(mode-enabled save)))
 
-;;; Flyckeck-Eglot
+;;; Flycheck-Eglot
 (use-package flycheck-eglot
   :ensure t
   :after (flycheck eglot)
