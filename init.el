@@ -51,7 +51,7 @@
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
 ;;; Scrolling
-(setq scroll-margin 8
+(setq scroll-margin 0
       scroll-conservatively 100000
       scroll-preserve-screen-position 1)
 (when (fboundp 'pixel-scroll-precision-mode)
