@@ -7,17 +7,18 @@
 ;;; Code:
 
 ;;; UI
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(column-number-mode t)
-(size-indication-mode t)
-(blink-cursor-mode 0)
+(menu-bar-mode -1)		; Disable the menu bar
+(tool-bar-mode -1)		; Disable the tool bar
+(column-number-mode t)		; Show the current column where cursor is
+(size-indication-mode t)	; Show size of current buffer
+(blink-cursor-mode 0)		; Disable cursor blinking
 
-(setq message-truncate-lines t)
-(setq use-dialog-box nil)
-(setq inhibit-startup-screen t)
-(setq inhibit-splash-screen t)
-(setq inhibit-startup-message t)
+(setq message-truncate-lines t)		; Don't split long lines into multiple lines
+(setq inhibit-startup-screen t)		; Disable the startup screen
+(setq inhibit-startup-message t)	; Disable the startup message
+;; Some large fonts cause lots of consing and trigger GC.
+;; Disabling compaction of font caches might enlarge the Emacs memory
+;; footprint in sessions that use lots of different fonts.
 (setq inhibit-compacting-font-caches t)
 
 ;;; Package initialization
@@ -51,29 +52,38 @@
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
 ;;; Scrolling
-(setq scroll-margin 0
-      scroll-conservatively 100000
-      scroll-preserve-screen-position 1)
+(setq scroll-margin 0)				; Don't leave margin between the cursor and the vertical borders of screen
+(setq scroll-conservatively 100000)		; Scroll up to this many lines, to bring point back on screen
+(setq scroll-preserve-screen-position 1)	; Scroll commands keep the cursor on the same position on screen
 (when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode t))
+  (pixel-scroll-precision-mode t))		; Enable precise scroll
 
 ;;; Frames
+;; Automatically resize emacs to make it fullscreen
 (add-to-list 'initial-frame-alist
 	     '(fullscreen . maximized))
-
+;; Key regex elements:
+;; - \\` matches the beginning of the string
+;; - \\' matches the end of the string
+;; - \\* matches a literal asterisk (*)
+;; - \\( and \\) group parts of the pattern
+;; - \\| acts as an OR operator within groups
+;;
+;; Example: The regex below matches buffer names that start and end with *,
+;; containing either "Warnings" or "Compile-Log" in the middle.
 (add-to-list 'display-buffer-alist
 	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t)))
 
 ;;; Edit mode modification
-(setq-default cursor-in-non-selected-windows nil)
-(setq highlight-nonselected-windows nil)
+(setq-default cursor-in-non-selected-windows nil)	; Don't show cursor in inactive windows
+(setq highlight-nonselected-windows nil)		; Don't highlight lines in inactive windows
 
 ;; As the side line number increases in digits, the whole window
 ;; needs to be shifted right, which cost computation.
 ;; This is why as least some space need to be separated from start.
 (setq-default display-line-numbers-width 5)
 
-(setq tab-width 4)
+(setq tab-width 4) ; Distance in columns between tabstops
 
 (setq-default display-line-numbers-type 'relative)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
@@ -320,10 +330,10 @@
 (use-package apheleia
   :ensure t
   :delight
-  :hook (prog-mode . apheleia-mode)
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
-  (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt)))
+  (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt))
+  :bind (("C-c c f" . apheleia-format-buffer)))
 
 ;;; Org-mode
 (use-package org
@@ -512,46 +522,17 @@
   :ensure t
   :config
   (setq completion-styles '(orderless basic))
-  (setq completion-category-overrides '((file (styles partial-completion))
-					(eglot (styles orderless))
-					(eglot-capf (styles orderless)))))
+  (setq completion-category-overrides '((file (styles partial-completion)))))
 
 ;;; Corfu
 (use-package corfu
   :ensure t
   :hook
   (after-init . global-corfu-mode)
-  (after-init . corfu-history-mode)
   (after-init . corfu-popupinfo-mode)
-  (eshell-mode . (lambda ()
-		   (setq-local corfu-auto nil)
-		   (corfu-mode)))
+  (eshell-mode . (lambda () (setq-local corfu-auto nil) (corfu-mode)))
   :config
-  (setq corfu-cycle t
-	corfu-preselect 'prompt)
-  :bind ( :map corfu-map
-	  ("TAB" . corfu-next)
-	  ([tab] . corfu-next)
-	  ("S-TAB" . corfu-previous)
-	  ([backtab] . corfu-previous)))
-
-;;; Cape
-
-(use-package cape
-  :ensure t
-  :hook ((emacs-lisp-mode .  my/cape-capf-setup-elisp)
-	 (eglot-managed-mode . my/cape-capf-setup-eglot))
-  :init
-  (defun my/cape-capf-setup-elisp ()
-    (let ((result nil))
-      (dolist (element '(cape-file cape-dabbrev cape-elisp-symbol) result)
-	(add-to-list 'completion-at-point-functions element))))
-  (defun my/cape-capf-setup-eglot ()
-    (let ((result nil))
-      (dolist (element '(eglot-completion-at-point cape-file) result)
-	(add-to-list 'completion-at-point-functions element))))
-  :config
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
+  (setq corfu-cycle t))
 
 ;;; Consult
 (use-package consult
@@ -697,7 +678,10 @@
   :ensure t
   :hook (after-init . global-flycheck-mode)
   :config
-  (setq flycheck-check-syntax-automatically '(mode-enabled save)))
+  ;; (setq flycheck-check-syntax-automatically nil)
+  (define-key flycheck-mode-map flycheck-keymap-prefix nil)
+  (setq flycheck-keymap-prefix (kbd "C-c c"))
+  (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
 
 ;;; Flycheck-Eglot
 (use-package flycheck-eglot
