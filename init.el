@@ -12,8 +12,8 @@
 (column-number-mode t)
 (size-indication-mode t)
 (blink-cursor-mode 0)
-(global-eldoc-mode -1)
 
+(setq message-truncate-lines t)
 (setq use-dialog-box nil)
 (setq inhibit-startup-screen t)
 (setq inhibit-splash-screen t)
@@ -78,13 +78,6 @@
 (setq-default display-line-numbers-type 'relative)
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 
-;; Note:
-;; Not really sure if we want to load the custom file.
-;; (if (file-exists-p custom-file) (load custom-file)
-;;   (progn
-;;     (make-empty-file custom-file)
-;;     (load custom-file )))
-
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
 (setq read-process-output-max (* 2 1024 1024))  ; 2mb
@@ -118,18 +111,6 @@
 (setq save-place-limit 400)
 (setq-default save-place t)
 (add-hook 'after-init-hook #'save-place-mode)
-
-;; When auto-save-visited-mode is enabled, Emacs will auto-save file-visiting
-;; buffers after a certain amount of idle time if the user forgets to save it
-;; with save-buffer or C-x s for example.
-;;
-;; This is different from auto-save-mode: auto-save-mode periodically saves
-;; all modified buffers, creating backup files, including those not associated
-;; with a file, while auto-save-visited-mode only saves file-visiting buffers
-;; after a period of idle time, directly saving to the file itself without
-;; creating backup files.
-;; (setq auto-save-visited-interval 5)   ; Save after 5 seconds if inactivity
-;; (add-hook 'after-init-hook #'auto-save-visited-mode)
 
 (setq savehist-autosave-interval 60)
 (setq savehist-additional-variables
@@ -216,8 +197,6 @@
 (global-set-key (kbd "M-n") 'forward-paragraph)
 (global-set-key (kbd "M-p") 'backward-paragraph)
 (global-set-key (kbd "C-x C-b") #'ibuffer)
-
-;; Some useful remappings
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (defun my-split-window-vertically ()
@@ -580,6 +559,7 @@
   :config
   (setq consult-async-min-input 2
         consult-narrow-key "<")
+  (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
   :bind (("C-c f b" . consult-buffer)
          ("C-c f f" . consult-fd)
          ("C-c f o" . consult-outline)
@@ -588,14 +568,7 @@
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
 
-;; ;;; Rg
-;; (use-package rg
-;;   :ensure t
-;;   :defer t
-;;   :config (rg-enable-menu))
-
 ;;; Marginalia
-
 (use-package marginalia
   :ensure t
   :config
@@ -607,7 +580,6 @@
   :ensure t)
 
 ;;; Embark
-
 (use-package embark
   :ensure t
   :bind
@@ -621,7 +593,6 @@
                  (window-parameters (mode-line-format . none)))))
 
 ;;; Embark-Consult
-
 (use-package embark-consult
   :ensure t ; only need to install it, embark loads it after consult if found
   :hook
