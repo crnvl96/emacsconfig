@@ -6,22 +6,9 @@
 
 ;;; Code:
 
-;;; UI
-(menu-bar-mode -1)		; Disable the menu bar
-(tool-bar-mode -1)		; Disable the tool bar
-(column-number-mode t)		; Show the current column where cursor is
-(size-indication-mode t)	; Show size of current buffer
-(blink-cursor-mode 0)		; Disable cursor blinking
+(menu-bar-mode -1)
+(tool-bar-mode -1)
 
-(setq message-truncate-lines t)		; Don't split long lines into multiple lines
-(setq inhibit-startup-screen t)		; Disable the startup screen
-(setq inhibit-startup-message t)	; Disable the startup message
-;; Some large fonts cause lots of consing and trigger GC.
-;; Disabling compaction of font caches might enlarge the Emacs memory
-;; footprint in sessions that use lots of different fonts.
-(setq inhibit-compacting-font-caches t)
-
-;;; Package initialization
 (package-initialize)
 (unless (package-installed-p 'use-package)
   (unless (seq-empty-p package-archive-contents)
@@ -37,7 +24,6 @@
                                     ("nongnu"       . 60)
                                     ("melpa-stable" . 50)))
 
-;;; Garbage Collection
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 (add-hook 'after-init-hook
@@ -46,180 +32,57 @@
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
-;;; Themes and Fonts
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
-;;; Scrolling
-(setq scroll-margin 0)				; Don't leave margin between the cursor and the vertical borders of screen
-(setq scroll-conservatively 100000)		; Scroll up to this many lines, to bring point back on screen
-(setq scroll-preserve-screen-position 1)	; Scroll commands keep the cursor on the same position on screen
-(when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode t))		; Enable precise scroll
+(setq tab-width 4)
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq scroll-margin 0)
 
-;;; Frames
-;; Automatically resize emacs to make it fullscreen
 (add-to-list 'initial-frame-alist
 	     '(fullscreen . maximized))
-;; Key regex elements:
-;; - \\` matches the beginning of the string
-;; - \\' matches the end of the string
-;; - \\* matches a literal asterisk (*)
-;; - \\( and \\) group parts of the pattern
-;; - \\| acts as an OR operator within groups
-;;
-;; Example: The regex below matches buffer names that start and end with *,
-;; containing either "Warnings" or "Compile-Log" in the middle.
 (add-to-list 'display-buffer-alist
 	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t)))
 
-;;; Edit mode modification
-(setq-default cursor-in-non-selected-windows nil)	; Don't show cursor in inactive windows
-(setq highlight-nonselected-windows nil)		; Don't highlight lines in inactive windows
-
-;; As the side line number increases in digits, the whole window
-;; needs to be shifted right, which cost computation.
-;; This is why as least some space need to be separated from start.
-(setq-default display-line-numbers-width 5)
-
-(setq tab-width 4) ; Distance in columns between tabstops
+(fset 'yes-or-no-p 'y-or-n-p)
 
 (setq-default display-line-numbers-type 'relative)
-(add-hook 'after-init-hook #'global-display-line-numbers-mode)
-
 (setq native-comp-async-query-on-exit t)
 (setq package-install-upgrade-built-in t)
-(setq read-process-output-max (* 2 1024 1024))  ; 2mb
-(setq initial-major-mode 'fundamental-mode)
 (setq completion-ignore-case t)
 (setq tab-always-indent 'complete)
-
-;; Save existing clipboard text into the kill ring before replacing it.
-(setq save-interprogram-paste-before-kill t)
-
-(setq auto-revert-interval 3)
-(setq auto-revert-remote-files nil)
-(setq auto-revert-use-notify t)
-(setq auto-revert-avoid-polling nil)
-(setq auto-revert-verbose t)
-(add-hook 'after-init-hook #'global-auto-revert-mode)
-
-;; Don't split lines if they're too big
-(setq-default truncate-lines t)
-
-(setq-default fill-column 120)
-(setq whitespace-line-column 120)
 (setq whitespace-style '(face tabs empty trailing lines-tail))
-(dolist (hook '(prog-mode-hook text-mode-hook))
-  (add-hook hook #'whitespace-mode))
-(add-hook 'before-save-hook #'whitespace-cleanup)
 
-(setq make-backup-files nil)
-(setq ring-bell-function 'ignore)
-
-(setq save-place-limit 400)
-(setq-default save-place t)
+(add-hook 'after-init-hook #'global-display-line-numbers-mode)
+(add-hook 'after-init-hook #'global-auto-revert-mode)
+(add-hook 'after-init-hook #'global-whitespace-mode)
 (add-hook 'after-init-hook #'save-place-mode)
-
-(setq savehist-autosave-interval 60)
-(setq savehist-additional-variables
-      '(kill-ring                        ; clipboard
-	register-alist                   ; macros
-	mark-ring global-mark-ring       ; marks
-	search-ring regexp-search-ring))
 (add-hook 'after-init-hook #'savehist-mode)
-
-(setq recentf-max-saved-items 500)
-(setq recentf-max-menu-items 15)
-(setq recentf-auto-cleanup (if (daemonp) 300 'never))
-(setq recentf-exclude
-      (list "\\.tar$" "\\.tbz2$" "\\.tbz$" "\\.tgz$" "\\.bz2$"
-	    "\\.bz$" "\\.gz$" "\\.gzip$" "\\.xz$" "\\.zip$"
-	    "\\.7z$" "\\.rar$"
-	    "COMMIT_EDITMSG\\'"
-	    "\\.\\(?:gz\\|gif\\|svg\\|png\\|jpe?g\\|bmp\\|xpm\\)$"
-	    "-autoloads\\.el$" "autoload\\.el$"))
-;; A cleanup depth of -90 ensures that `recentf-cleanup' runs before
-;; `recentf-save-list', allowing stale entries to be removed before the list
-;; is saved by `recentf-save-list', which is automatically added to
-;; `kill-emacs-hook' by `recentf-mode'.
-(require 'recentf)
-(add-hook 'kill-emacs-hook #'recentf-cleanup -90)
 (add-hook 'after-init-hook #'recentf-mode)
-
-(setq frame-title-format
-      '((:eval (if (buffer-file-name)
-                   (abbreviate-file-name (buffer-file-name))
-                 "%b"))))
-
-;; dired - reuse current buffer by pressing 'a'
-(put 'dired-find-alternate-file 'disabled nil)
-;; always delete and copy recursively
-(setq dired-recursive-deletes 'always)
-(setq dired-recursive-copies 'always)
-;; if there is a dired buffer displayed in the next window, use its
-;; current subdir, instead of the current subdir of this dired buffer
-(setq dired-dwim-target t)
-;; enable some really cool extensions like C-x C-j (dired-jump)
-(require 'dired-x)
-
-(fset 'yes-or-no-p 'y-or-n-p)
-(prefer-coding-system 'utf-8)
-(set-default-coding-systems 'utf-8)
-(set-terminal-coding-system 'utf-8)
-(set-keyboard-coding-system 'utf-8)
-
-(defun my-compilation-filter-hook ()
-  "Allow rendering ansi symbols and colors."
-  (ansi-color-apply-on-region compilation-filter-start (point-max)))
-
-(add-hook 'compilation-filter-hook #'my-compilation-filter-hook)
-
-(add-hook 'isearch-update-post-hook
-          (lambda ()
-            (when (memq this-command '(isearch-repeat-forward isearch-repeat-backward))
-              (recenter))))
-(add-hook 'isearch-mode-end-hook #'recenter)
-
 (add-hook 'after-init-hook #'display-time-mode)
 (add-hook 'after-init-hook #'delete-selection-mode)
 (add-hook 'after-init-hook #'winner-mode)
 (add-hook 'after-init-hook #'global-hl-line-mode)
+(add-hook 'after-init-hook #'which-key-mode)
 
-;;; Which Key
-(use-package which-key
-  :ensure t
-  :hook (after-init . which-key-mode)
-  :config
-  ;; Time after the suggestion show
-  (setq which-key-idle-delay 0.5)
-  (setq which-key-sort-order 'which-key-key-order-alpha)
-  (setq which-key-min-display-lines 3)
-  (setq which-key-max-display-columns 8)
-  (setq which-key-add-column-padding 4)
-  (setq which-key-unicode-correction 3)
-  (setq which-key-max-description-length 30)
-  (which-key-setup-side-window-bottom))
+(require 'ansi-color)
+(defun my-compilation-filter-hook ()
+  "Allow rendering ansi symbols and colors."
+  (ansi-color-apply-on-region compilation-filter-start (point-max)))
+(add-hook 'compilation-filter-hook #'my-compilation-filter-hook)
 
 ;;; Keymaps
-(global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
-(global-set-key (kbd "M-n") 'forward-paragraph)
-(global-set-key (kbd "M-p") 'backward-paragraph)
-(global-set-key (kbd "C-x C-b") #'ibuffer)
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (defun my-split-window-vertically ()
   "Keep the cursor on the current window when splitting it vertically."
   (interactive)
   (split-window-vertically) (other-window 1))
-(global-set-key (kbd "C-x 2") #'my-split-window-vertically)
 
 (defun my-split-window-horizontally ()
   "Keep the cursor on the current window when splitting it horizontally."
   (interactive)
   (split-window-horizontally) (other-window 1))
-(global-set-key (kbd "C-x 3") #'my-split-window-horizontally)
 
 (defun my-forward-word ()
   "Move forward to the next syntax change, like Vim word movement."
@@ -231,8 +94,6 @@
           (while (and (not (eobp)) (eq (char-syntax (char-after)) start-syntax))
             (forward-char 1)))
       (forward-char 1))))
-(global-set-key (kbd "M-f") #'my-forward-word)
-
 
 (defun my-backward-word ()
   "Move backward to the previous syntax change, like Vim word movement."
@@ -244,20 +105,28 @@
           (while (and (not (bobp)) (eq (char-syntax (char-before)) start-syntax))
             (backward-char 1)))
       (backward-char 1))))
-(global-set-key (kbd "M-b") #'my-backward-word)
 
 (defun my-scroll-up-half ()
   "Scroll up half screen and center the cursor."
   (interactive)
   (scroll-up (/ (window-height) 2))
   (recenter))
-(global-set-key (kbd "C-v") #'my-scroll-up-half)
 
 (defun my-scroll-down-half ()
   "Scroll down half screen and center the cursor."
   (interactive)
   (scroll-down (/ (window-height) 2))
   (recenter))
+
+(global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
+(global-set-key (kbd "M-n") 'forward-paragraph)
+(global-set-key (kbd "M-p") 'backward-paragraph)
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(global-set-key (kbd "C-x 2") #'my-split-window-vertically)
+(global-set-key (kbd "C-x 3") #'my-split-window-horizontally)
+(global-set-key (kbd "M-f") #'my-forward-word)
+(global-set-key (kbd "M-b") #'my-backward-word)
+(global-set-key (kbd "C-v") #'my-scroll-up-half)
 (global-set-key (kbd "M-v") #'my-scroll-down-half)
 
 ;;; Treesit
@@ -266,15 +135,12 @@
         (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
         (c . ("https://github.com/tree-sitter/tree-sitter-c"))
         (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-        (lua . ("https://github.com/tree-sitter-grammars/tree-sitter-lua"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-        (go . ("https://github.com/tree-sitter/tree-sitter-go"))
         (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
         (json . ("https://github.com/tree-sitter/tree-sitter-json"))
         (python . ("https://github.com/tree-sitter/tree-sitter-python"))
         (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
         (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-        (typst . ("https://github.com/uben0/tree-sitter-typst"))
         (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
         (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
         (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
@@ -298,78 +164,29 @@
 (add-to-list 'major-mode-remap-alist '(lua-mode . lua-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?js\\'" . js-ts-mode))
 
-;;; Eglot & Formatters
+;;; Eglot
 (use-package eglot
   :ensure nil
   :hook
   (python-ts-mode . eglot-ensure)
-  (go-ts-mode . eglot-ensure)
-  (tsx-ts-mode . eglot-ensure)
-  (typescript-ts-mode . eglot-ensure)
   :config
-  (setq eglot-sync-connect 0
-        eglot-autoshutdown t
-        eglot-extend-to-xref t
-        jsonrpc-event-hook nil
+  (setq eglot-autoshutdown t
         eglot-events-buffer-config '(:size 0 :format lisp)
-	eglot-server-programs
-	'( (python-ts-mode . ("pyright-langserver" "--stdio"))
-	   (go-ts-mode . ("gopls"))
-	   (typescript-ts-mode . ("typescript-language-server" "--stdio"))
-	   (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
-  (setq-default eglot-workspace-configuration
-                '( :pyright ( :disableOrganizeImports t)
-		   :python.analysis ( :autoSearchPaths t
-				      :useLibraryCodeForTypes t
-				      :diagnosticMode "openFilesOnly")
-		   :gopls ( :gofumpt t
-			    :staticcheck t
-			    :completeUnimported t))))
+	eglot-server-programs '( (python-ts-mode . ("pyright-langserver" "--stdio"))
+				 (go-ts-mode . ("gopls"))
+				 (typescript-ts-mode . ("typescript-language-server" "--stdio"))
+				 (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
+  (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
+						 :python.analysis ( :autoSearchPaths t
+								    :useLibraryCodeForTypes t
+								    :diagnosticMode "openFilesOnly"))))
 
 ;;; Apheleia
 (use-package apheleia
   :ensure t
-  :delight
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
-  (setf (alist-get 'go-ts-mode apheleia-mode-alist) '(gofumpt))
   :bind (("C-c c f" . apheleia-format-buffer)))
-
-;;; Org-mode
-(use-package org
-  :ensure nil
-  :delight (org-indent-mode "" "org-indent")
-  :commands (org-mode org-version)
-  :mode (("\\.org\\'" . org-mode))
-  :hook (org-mode . org-indent-mode)
-  :config
-  (setq org-M-RET-may-split-line '((default . nil))
-        org-insert-heading-respect-content t
-        org-log-done 'time
-        org-log-into-drawer t
-        org-directory "~/Developer/personal/notes/agenda/"
-        org-agenda-files (list org-directory)
-        org-todo-keywords '((sequence "TODO(t)" "WAIT(w!)" "|" "CANCEL(c!)" "DONE(d!)"))
-        org-confirm-babel-evaluate nil)
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '( (emacs-lisp . t)
-      (python . t)
-      (shell . t)
-      (js . t)
-      (sql . t)))
-  :bind
-  ("C-c a" . org-agenda))
-
-;;; Lua-mode
-(use-package lua-mode
-  :ensure t
-  :defer t)
-
-;;; Elisp-mode
-(use-package elisp-mode
-  :ensure nil
-  :delight (emacs-lisp-mode "Elisp" :major))
 
 ;;; Markdown-mode
 (use-package markdown-mode
@@ -387,23 +204,6 @@
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
 
-;;; Go-mode
-(use-package go-mode
-  :ensure t
-  :defer t)
-
-;;; Typst-ts-mode
-(use-package typst-ts-mode
-  :vc ( :url "https://codeberg.org/meow_king/typst-ts-mode.git"
-        :rev :newest)
-  :mode (("\\.typ\\'" . typst-ts-mode))
-  :config
-  (setq typst-ts-watch-options "--open")
-  (setq typst-ts-mode-grammar-location (expand-file-name "tree-sitter/libtree-sitter-typst.so" user-emacs-directory))
-  (setq typst-ts-mode-enable-raw-blocks-highlight t)
-  :bind ( :map typst-ts-mode-map
-          ("C-c C-c" . typst-ts-tmenu)))
-
 ;;; Delight
 (use-package delight
   :ensure t
@@ -417,13 +217,11 @@
   (delight 'rainbow-mode nil "rainbow-mode"))
 
 ;;; Eat
-
 (use-package eat
   :ensure t
   :commands (eat))
 
 ;;; Beacon
-
 (use-package beacon
   :ensure t
   :hook (after-init . beacon-mode))
@@ -433,7 +231,6 @@
   :ensure t
   :hook (after-init . spacious-padding-mode)
   :config
-  ;; These are the default values, but I keep them here for visibility.
   (setq spacious-padding-widths
 	'( :internal-border-width 15
            :header-line-width 4
@@ -442,7 +239,6 @@
            :right-divider-width 30
            :scroll-bar-width 8
            :fringe-width 8))
-  ;; Read the doc string of `spacious-padding-subtle-mode-line'
   (setq spacious-padding-subtle-mode-line t)
   (setq spacious-padding-subtle-frame-lines
 	`( :mode-line-active 'default
@@ -483,12 +279,6 @@
   :config
   (setq avy-background t))
 
-;;; Zop
-(use-package zop-to-char
-  :ensure t
-  :bind (("M-z" . zop-to-char)
-         ("M-Z" . zop-up-to-char)))
-
 ;;; Multiple-cursors
 (use-package multiple-cursors
   :ensure t
@@ -496,7 +286,6 @@
          ("C-<" . mc/mark-previous-like-this)))
 
 ;;; Expand region
-
 (use-package expand-region
   :ensure t
   :bind (("C-=" . er/expand-region)))
@@ -512,8 +301,6 @@
   :hook (after-init . vertico-mode)
   :bind ( :map vertico-map
           ("<backspace>" . vertico-directory-delete-char)
-          ("C-j" . vertico-next)
-          ("C-k" . vertico-previous)
           ("C-w" . vertico-directory-delete-word )
           ("RET" . vertico-directory-enter)))
 
@@ -528,11 +315,7 @@
 (use-package corfu
   :ensure t
   :hook
-  (after-init . global-corfu-mode)
-  (after-init . corfu-popupinfo-mode)
-  (eshell-mode . (lambda () (setq-local corfu-auto nil) (corfu-mode)))
-  :config
-  (setq corfu-cycle t))
+  (after-init . global-corfu-mode))
 
 ;;; Consult
 (use-package consult
@@ -549,36 +332,6 @@
          ("C-c f g" . consult-ripgrep)
          ("C-c f L" . consult-goto-line)))
 
-;;; Marginalia
-(use-package marginalia
-  :ensure t
-  :config
-  (marginalia-mode))
-
-;;; Wgrep
-
-(use-package wgrep
-  :ensure t)
-
-;;; Embark
-(use-package embark
-  :ensure t
-  :bind
-  (("C-." . embark-act)         ;; pick some comfortable binding
-   ("M-." . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-;;; Embark-Consult
-(use-package embark-consult
-  :ensure t ; only need to install it, embark loads it after consult if found
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-
 ;;; Rg
 (use-package rg
   :ensure t
@@ -594,16 +347,6 @@
 (use-package pyvenv
   :ensure t
   :commands (pyvenv-activate))
-
-;;; Trashed
-(use-package trashed
-  :ensure t
-  :commands (trashed)
-  :config
-  (setq trashed-action-confirmer 'y-or-n-p)
-  (setq trashed-use-header-line t)
-  (setq trashed-sort-key '("Date deleted" . t))
-  (setq trashed-date-format "%Y-%m-%d %H:%M:%S"))
 
 ;;; Exec-path-from-shell
 (use-package exec-path-from-shell
@@ -678,7 +421,6 @@
   :ensure t
   :hook (after-init . global-flycheck-mode)
   :config
-  ;; (setq flycheck-check-syntax-automatically nil)
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
   (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
@@ -689,11 +431,6 @@
   :after (flycheck eglot)
   :config
   (global-flycheck-eglot-mode 1))
-
-;;; Nov
-(use-package nov
-  :ensure t
-  :mode (("\\.epub\\'" . nov-mode)))
 
 ;;; Editorconfig
 (use-package editorconfig
