@@ -12,6 +12,7 @@
 ;;; Options
 (menu-bar-mode -1)
 (tool-bar-mode -1)
+(blink-cursor-mode -1)
 
 (package-initialize)
 (unless (package-installed-p 'use-package)
@@ -40,7 +41,6 @@
 (load-theme 'modus-vivendi t)
 (set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
 
-(setq read-answer-short t)
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
@@ -56,12 +56,18 @@
       tab-always-indent 'complete
       whitespace-style '(face tabs empty trailing))
 
-(add-to-list 'initial-frame-alist
-	     '(fullscreen . maximized))
+(unless (and (eq window-system 'mac)
+             (bound-and-true-p mac-carbon-version-string))
+  (setq pixel-scroll-precision-use-momentum nil)
+  (pixel-scroll-precision-mode 1))
 
-(add-to-list 'display-buffer-alist
-	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-	       (display-buffer-no-window) (allow-no-window . t)))
+(add-to-list
+ 'initial-frame-alist
+ '(fullscreen . maximized))
+
+(add-to-list
+ 'display-buffer-alist
+ '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t)))
 
 ;;; Functions
 (defun cr/compilation-filter-hook ()
@@ -134,12 +140,12 @@
 (add-hook 'after-init-hook #'global-hl-line-mode)
 (add-hook 'after-init-hook #'which-key-mode)
 (add-hook 'before-save-hook #'whitespace-cleanup)
+(add-hook 'after-init-hook #'window-divider-mode)
 (add-hook 'compilation-filter-hook #'cr/compilation-filter-hook)
 
 ;;; Delight
 (use-package delight :ensure t)
 (require 'delight)
-
 (delight 'whitespace-mode nil "whitespace")
 (delight 'which-key-mode nil "which-key")
 (delight 'eldoc-mode nil "eldoc")
@@ -223,8 +229,7 @@
   :ensure t
   :bind (("M-e" . avy-goto-char-timer)
 	 ("M-l" . avy-goto-line))
-  :config
-  (setq avy-background t))
+  :config (setq avy-background t))
 
 (use-package multiple-cursors
   :ensure t
