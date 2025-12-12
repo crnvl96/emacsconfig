@@ -38,7 +38,8 @@
 
 (setq tab-width 4)
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-(setq scroll-margin 0)
+(setq scroll-margin 0
+      scroll-preserve-screen-position 1)
 
 (add-to-list 'initial-frame-alist
 	     '(fullscreen . maximized))
@@ -52,11 +53,12 @@
 (setq package-install-upgrade-built-in t)
 (setq completion-ignore-case t)
 (setq tab-always-indent 'complete)
-(setq whitespace-style '(face tabs empty trailing lines-tail))
+(setq whitespace-style '(face tabs empty trailing))
 
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 (add-hook 'after-init-hook #'global-whitespace-mode)
+(add-hook 'before-save-hook #'whitespace-cleanup)
 (add-hook 'after-init-hook #'save-place-mode)
 (add-hook 'after-init-hook #'savehist-mode)
 (add-hook 'after-init-hook #'recentf-mode)
@@ -170,12 +172,16 @@
   :hook
   (python-ts-mode . eglot-ensure)
   :config
-  (setq eglot-autoshutdown t
-        eglot-events-buffer-config '(:size 0 :format lisp)
-	eglot-server-programs '( (python-ts-mode . ("pyright-langserver" "--stdio"))
-				 (go-ts-mode . ("gopls"))
-				 (typescript-ts-mode . ("typescript-language-server" "--stdio"))
-				 (tsx-ts-mode . ("typescript-language-server" "--stdio"))))
+  (setq eglot-events-buffer-config '(:size 0 :format lisp)
+	eglot-ignored-server-capabilities '( :signatureHelpProvider
+					     :documentHighlightProvider
+					     :codeLensProvider
+					     :documentRangeFormattingProvider
+					     :documentOnTypeFormattingProvider
+					     :documentLinkProvider
+					     :foldingRangeProvider
+					     :inlayHintProvider)
+	eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
 						 :python.analysis ( :autoSearchPaths t
 								    :useLibraryCodeForTypes t
@@ -184,6 +190,7 @@
 ;;; Apheleia
 (use-package apheleia
   :ensure t
+  :hook (after-init . apheleia-global-mode)
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff))
   :bind (("C-c c f" . apheleia-format-buffer)))
@@ -204,64 +211,10 @@
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
 
-;;; Delight
-(use-package delight
-  :ensure t
-  :config
-  (delight 'whitespace-mode nil "whitespace")
-  (delight 'which-key-mode nil "which-key")
-  (delight 'visual-line-mode nil "simple")
-  (delight 'eldoc-mode nil "eldoc")
-  (delight 'beacon-mode nil "beacon")
-  (delight 'buffer-terminator-mode nil "buffer-terminator")
-  (delight 'rainbow-mode nil "rainbow-mode"))
-
 ;;; Eat
 (use-package eat
   :ensure t
   :commands (eat))
-
-;;; Beacon
-(use-package beacon
-  :ensure t
-  :hook (after-init . beacon-mode))
-
-;;; Spacious padding
-(use-package spacious-padding
-  :ensure t
-  :hook (after-init . spacious-padding-mode)
-  :config
-  (setq spacious-padding-widths
-	'( :internal-border-width 15
-           :header-line-width 4
-           :mode-line-width 6
-           :tab-width 4
-           :right-divider-width 30
-           :scroll-bar-width 8
-           :fringe-width 8))
-  (setq spacious-padding-subtle-mode-line t)
-  (setq spacious-padding-subtle-frame-lines
-	`( :mode-line-active 'default
-           :mode-line-inactive vertical-border)))
-
-;;; Buffer Terminator
-(use-package buffer-terminator
-  :ensure t
-  :hook (after-init . buffer-terminator-mode)
-  :config
-  (setq buffer-terminator-verbose nil)
-  (setq buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
-  (setq buffer-terminator-interval (* 10 60))) ; 10 minutes
-
-;;; Rainbow Delimiters
-(use-package rainbow-delimiters
-  :ensure t
-  :hook (prog-mode . rainbow-delimiters-mode))
-
-;;; Rainbow mode
-(use-package rainbow-mode
-  :ensure t
-  :hook (prog-mode . rainbow-mode))
 
 ;;; Ace window
 (use-package ace-window
@@ -315,7 +268,16 @@
 (use-package corfu
   :ensure t
   :hook
-  (after-init . global-corfu-mode))
+  (after-init . global-corfu-mode)
+  :config
+  (setq corfu-auto        t
+	corfu-auto-delay  0.2
+	corfu-auto-prefix 3)
+  (add-hook 'corfu-mode-hook
+            (lambda ()
+	      (setq-local completion-styles '(basic)
+                          completion-category-overrides nil
+                          completion-category-defaults nil))))
 
 ;;; Consult
 (use-package consult
