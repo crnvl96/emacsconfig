@@ -6,7 +6,8 @@
 
 ;;; Declutter the ~/emacs.d/ folder
 
-(setq user-emacs-directory (expand-file-name "var/" user-emacs-directory))
+(defvar cr-user-directory user-emacs-directory)
+(setq user-emacs-directory (expand-file-name "var/" cr-user-directory))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 
 ;; Local variables:
