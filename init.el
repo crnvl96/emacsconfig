@@ -302,10 +302,6 @@ If pyproject.toml or .git/ is found first, do nothing."
   :ensure t
   :hook
   (after-init . global-corfu-mode))
-;; :config
-;; (setq corfu-auto        t
-;; 	corfu-auto-delay  0.2
-;; 	corfu-auto-prefix 3))
 
 (use-package projectile
   :ensure t
@@ -315,7 +311,7 @@ If pyproject.toml or .git/ is found first, do nothing."
   (setq projectile-cleanup-known-projects t)
   (add-hook 'project-find-functions #'project-projectile)
   :bind (:map projectile-mode-map
-              ("C-c g" . projectile-command-map)))
+              ("C-c j" . projectile-command-map)))
 
 (use-package consult-projectile
   :ensure t
@@ -397,16 +393,15 @@ If pyproject.toml or .git/ is found first, do nothing."
          ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
          ([remap upcase-region] . crux-upcase-region)
          ([remap downcase-region] . crux-downcase-region)
-         ("C-c j" . crux-top-join-line)
-         ("C-c n" . crux-cleanup-buffer-or-region)
-         ("C-c t" . crux-visit-term-buffer)
-         ("C-c d" . crux-duplicate-current-line-or-region)
+         ("s-j" . crux-top-join-line)
+         ("s-n" . crux-cleanup-buffer-or-region)
+         ("s-d" . crux-duplicate-current-line-or-region)
          ("C-k" . crux-smart-kill-line)
          ("S-<return>" . crux-smart-open-line)
          ("C-S-<return>" . crux-smart-open-line-above)
-         ("C-c o" . crux-open-with)
-         ("C-c u" . crux-view-url)
-         ("C-c k" . crux-kill-other-buffers))
+         ("s-o" . crux-open-with)
+         ("s-u" . crux-view-url)
+         ("s-k" . crux-kill-other-buffers))
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
