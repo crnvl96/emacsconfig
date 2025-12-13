@@ -301,16 +301,11 @@ If pyproject.toml or .git/ is found first, do nothing."
 (use-package corfu
   :ensure t
   :hook
-  (after-init . global-corfu-mode)
-  :config
-  (setq corfu-auto        t
-	corfu-auto-delay  0.2
-	corfu-auto-prefix 3)
-  (add-hook 'corfu-mode-hook
-            (lambda ()
-	      (setq-local completion-styles '(basic)
-                          completion-category-overrides nil
-                          completion-category-defaults nil))))
+  (after-init . global-corfu-mode))
+;; :config
+;; (setq corfu-auto        t
+;; 	corfu-auto-delay  0.2
+;; 	corfu-auto-prefix 3))
 
 (use-package projectile
   :ensure t
@@ -421,6 +416,7 @@ If pyproject.toml or .git/ is found first, do nothing."
   :ensure t
   :hook (after-init . global-flycheck-mode)
   :config
+  (setq flycheck-check-syntax-automatically nil)
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
   (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
