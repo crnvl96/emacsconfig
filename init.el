@@ -127,6 +127,21 @@
       (message "`%s' parser was installed." lang)
       (sit-for 0.75))))
 
+(defun cr/venv ()
+  "Scan upwards from current directory for .venv/, pyproject.toml, or .git/.
+If .venv/ is found, activate it and reconnect eglot.
+If pyproject.toml or .git/ is found first, do nothing."
+  (interactive)
+  (let ((dir (expand-file-name default-directory))
+        (found nil))
+    (while (and dir (not (string= dir "/")) (not found))
+      (cond ((file-directory-p (expand-file-name ".venv" dir)) (pyvenv-activate (expand-file-name ".venv" dir))
+	     (setq found t))
+            ((or (file-exists-p (expand-file-name "pyproject.toml" dir)) (file-directory-p (expand-file-name ".git" dir)))
+	     (setq found t))
+	    (t
+	     (setq dir (file-name-directory (directory-file-name dir))))))))
+
 ;;; Hooks
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
@@ -256,8 +271,32 @@
   :ensure t
   :config
   (setq completion-styles '(orderless basic))
-  (setq completion-category-overrides '((file (styles partial-completion))))
-  (setq completion-category-defaults nil))
+  (setq completion-category-overrides '((file (styles partial-completion))
+					(eglot (styles orderless))
+					(eglot-capf (styles orderless)))))
+
+(use-package cape
+  :ensure t
+  :hook ((git-commit-mode . cr/cape-capf-setup-git-commit)
+	 (emacs-lisp-mode . cr/cape-capf-setup-elisp)
+	 (eglot-managed-mode . cr/cape-capf-setup-eglot))
+  :init
+  (defun cr/cape-capf-setup-git-commit ()
+    (let ((result nil))
+      (dolist (element '(cape-dabbrev cape-file) result)
+	(add-to-list 'completion-at-point-functions element))))
+  (defun cr/cape-capf-setup-elisp ()
+    (let ((result nil))
+      (dolist (element '(cape-keyword cape-elisp-symbol cape-elisp-block cape-dabbrev cape-line cape-file) result)
+	(add-to-list 'completion-at-point-functions element))))
+  (defun cr/cape-capf-setup-eglot ()
+    (let ((result nil))
+      (dolist (element '(eglot-completion-at-point cape-keyword cape-dabbrev cape-line cape-file) result)
+	(add-to-list 'completion-at-point-functions element))))
+  :config
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
 
 (use-package corfu
   :ensure t
@@ -273,6 +312,20 @@
                           completion-category-overrides nil
                           completion-category-defaults nil))))
 
+(use-package projectile
+  :ensure t
+  :hook (after-init . projectile-mode)
+  :config
+  (setq projectile-project-search-path '("~/Developer/work/" "~/Developer/personal/" "~/.emacs.d/"))
+  (setq projectile-cleanup-known-projects t)
+  (add-hook 'project-find-functions #'project-projectile)
+  :bind (:map projectile-mode-map
+              ("C-c g" . projectile-command-map)))
+
+(use-package consult-projectile
+  :ensure t
+  :after (consult projectile))
+
 (use-package consult
   :ensure t
   :config
@@ -281,6 +334,7 @@
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
   :bind (("C-c f b" . consult-buffer)
          ("C-c f f" . consult-fd)
+	 ("C-c f d" . consult-projectile)
          ("C-c f o" . consult-outline)
          ("C-c f k" . consult-flymake)
          ("C-c f l" . consult-line)
