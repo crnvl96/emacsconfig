@@ -6,20 +6,27 @@
 
 ;;; Code:
 
-;;; Imports
-(require 'ansi-color)
-
 ;;; Options
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(blink-cursor-mode -1)
+(menu-bar-mode -1) ; Disable the menu bar
+(tool-bar-mode -1) ; Disable the tool bar
+(scroll-bar-mode -1) ; Disable the scroll bar
+(blink-cursor-mode -1) ; Disable the cursor blinking
 
+;; Load and activate Emacs Lisp packages
+(require 'package)
 (package-initialize)
-(unless (package-installed-p 'use-package)
-  (unless (seq-empty-p package-archive-contents)
-    (package-refresh-contents))
-  (package-install 'use-package))
+;; If we're on emacs >= 29, skip
+(when (< emacs-major-version 29)
+  ;; If `use-package' is already installed, skip
+  (unless (package-installed-p 'use-package)
+    ;; If `package-archive-contents' exists, skip
+    (unless (seq-empty-p package-archive-contents)
+      ;; Download descriptions of ELPA packages
+      (package-refresh-contents))
+    ;; Install `use-package'
+    (package-install 'use-package)))
 (require 'use-package)
+;; Set package sources and priorities
 (setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
                           ("gnu"          . "https://elpa.gnu.org/packages/")
                           ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
@@ -29,47 +36,65 @@
                                     ("nongnu"       . 60)
                                     ("melpa-stable" . 50)))
 
+;; Temporarily increase the limits of garbage colecction trigger
+;; to increase Emacs performance on startup
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
+;; When Emacs finishes loading, set it back
 (add-hook 'after-init-hook
           (lambda ()
-            (setq gc-cons-threshold (* 64 1024 1024)  ; 64 MB
+            (setq gc-cons-threshold (* 64 1024 1024) ; 64 MB
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
+;; Disable any custom theme that might be loaded
 (mapc #'disable-theme custom-enabled-themes)
+;; Load out preferred theme
 (load-theme 'modus-vivendi t)
-(set-face-attribute 'default nil :height 240 :weight 'normal :family "Iosevka")
+;; Set default font to be used
+(let ((mono-spaced-font "Iosevka")
+      (proportionately-spaced-font "Iosevka Aile"))
+  (set-face-attribute 'default nil :family mono-spaced-font :height 280)
+  (set-face-attribute 'fixed-pitch nil :family mono-spaced-font :height 1.0)
+  (set-face-attribute 'variable-pitch nil :family proportionately-spaced-font :height 1.0))
 
+;; If use short answers ('y' or 'n') to answer prompts
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
+  ;; Adapt the prompt shown on the modeline to reflect that
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
-(setq tab-width 4
-      inhibit-splash-screen 1
-      custom-file (expand-file-name "custom.el" cr-user-directory)
-      scroll-margin 0
-      scroll-preserve-screen-position 1
-      native-comp-async-query-on-exit t
-      package-install-upgrade-built-in t
-      completion-ignore-case t
-      tab-always-indent 'complete
-      whitespace-style '(face tabs empty trailing))
+(setq-default truncate-lines t)  ; Don't split lines
+
+(setq tab-width 4 ; How many spaces count as a <Tab>
+      inhibit-splash-screen 1 ; don't show the startup screen
+      custom-file (expand-file-name "custom.el" cr-user-directory) ; Avoid polluting our init file with custom settings
+      scroll-margin 0 ; Leave a Gap between cursor and window boundaries (vert.)
+      hscroll-margin 24 ; Leave a Gap between cursor and window boundaries (vert.)
+      scroll-preserve-screen-position 1 ; I don't know why, but this is needed to our
+					; custom scroll keybindings (M-v and C-v) to work properly
+      native-comp-async-query-on-exit t ; Prompt the user to confirm quitting Emacs if
+					; there are compilation processes running
+      package-install-upgrade-built-in t ; Allow upgrading builtin packages as well
+      completion-ignore-case t ; Make completion algorithm to be case insensitive
+      tab-always-indent 'complete ; Make <Tab> assume both behaviors of indenting and completing
+      whitespace-style '(face tabs empty trailing)) ; Configure the kinds of whitespace we want to highlight
 
 (unless (and (eq window-system 'mac)
              (bound-and-true-p mac-carbon-version-string))
   (setq pixel-scroll-precision-use-momentum nil)
   (pixel-scroll-precision-mode 1))
 
-(add-to-list
- 'initial-frame-alist
- '(fullscreen . maximized))
+(add-to-list 'initial-frame-alist
+	     '(fullscreen . maximized))
 
-(add-to-list
- 'display-buffer-alist
- '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t)))
+(add-to-list 'display-buffer-alist
+	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+	       (display-buffer-no-window)
+	       (allow-no-window . t)))
 
 ;;; Functions
+(require 'ansi-color)
 (defun cr/compilation-filter-hook ()
   "Allow rendering ansi symbols and colors."
   (ansi-color-apply-on-region compilation-filter-start (point-max)))
@@ -117,6 +142,30 @@
   (interactive)
   (scroll-down (/ (window-height) 2))
   (recenter))
+
+(defun cr/keyboard-quit-dwim ()
+  "Do-What-I-Mean behaviour for a general `keyboard-quit'.
+
+The generic `keyboard-quit' does not do the expected thing when
+the minibuffer is open.  Whereas we want it to close the
+minibuffer, even without explicitly focusing it.
+
+The DWIM behaviour of this command is as follows:
+
+- When the region is active, disable it.
+- When a minibuffer is open, but not focused, close the minibuffer.
+- When the Completions buffer is selected, close it.
+- In every other case use the regular `keyboard-quit'."
+  (interactive)
+  (cond
+   ((region-active-p)
+    (keyboard-quit))
+   ((derived-mode-p 'completion-list-mode)
+    (delete-completion-window))
+   ((> (minibuffer-depth) 0)
+    (abort-recursive-edit))
+   (t
+    (keyboard-quit))))
 
 (defun cr/treesit-install-all-languages ()
   "Install all languages specified by `treesit-language-source-alist'."
@@ -177,6 +226,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 (global-set-key (kbd "M-b") #'cr/backward-word)
 (global-set-key (kbd "C-v") #'cr/scroll-up-half)
 (global-set-key (kbd "M-v") #'cr/scroll-down-half)
+(global-set-key (kbd "C-g") #'cr/keyboard-quit-dwim)
 
 ;;; Treesit
 (setq treesit-language-source-alist
@@ -223,6 +273,30 @@ If pyproject.toml or .git/ is found first, do nothing."
 								  :diagnosticMode "openFilesOnly")))
 
 ;;; Packages
+(use-package centered-cursor-mode
+  :ensure t
+  :hook (after-init . global-centered-cursor-mode))
+
+(use-package beacon
+  :ensure t
+  :hook (after-init . beacon-mode))
+
+(use-package spacious-padding
+  :ensure t
+  :hook (after-init . spacious-padding-mode)
+  :config
+  (setq spacious-padding-widths
+        '( :internal-border-width 15
+           :header-line-width 4
+           :mode-line-width 6
+           :custom-button-width 3
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width 8
+           :fringe-width 8))
+  (setq spacious-padding-subtle-frame-lines t)
+  :bind (([f8] . spacious-padding-mode)))
+
 (use-package apheleia
   :ensure t
   :delight (apheleia-mode " aph")
@@ -231,6 +305,11 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package eat
   :ensure t)
+
+(use-package zop-to-char
+  :ensure t
+  :bind (("M-z" . zop-up-to-char)
+         ("M-Z" . zop-to-char)))
 
 (use-package ace-window
   :ensure t
@@ -310,12 +389,29 @@ If pyproject.toml or .git/ is found first, do nothing."
   (setq projectile-project-search-path '("~/Developer/work/" "~/Developer/personal/" "~/.emacs.d/"))
   (setq projectile-cleanup-known-projects t)
   (add-hook 'project-find-functions #'project-projectile)
-  :bind (:map projectile-mode-map
-              ("C-c j" . projectile-command-map)))
+  :bind-keymap ("C-x p" . projectile-command-map)
+  :bind ( :map projectile-mode-map
+	  ("C-c j" . projectile-command-map)))
 
 (use-package consult-projectile
   :ensure t
   :after (consult projectile))
+
+(use-package embark
+  :ensure t
+  :bind
+  (("C-." . embark-act)
+   ("M-." . embark-dwim)
+   ("C-h B" . embark-bindings))
+  :config
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :ensure t
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package consult
   :ensure t
@@ -323,18 +419,17 @@ If pyproject.toml or .git/ is found first, do nothing."
   (setq consult-async-min-input 2
         consult-narrow-key "<")
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
-  :bind (("C-c f b" . consult-buffer)
-         ("C-c f f" . consult-fd)
-	 ("C-c f d" . consult-projectile)
+  :bind (("C-c f f" . consult-projectile)
          ("C-c f o" . consult-outline)
          ("C-c f k" . consult-flymake)
          ("C-c f l" . consult-line)
-         ("C-c f g" . consult-ripgrep)
-         ("C-c f L" . consult-goto-line)))
+         ("C-c f ." . consult-goto-line)))
 
 (use-package rg
   :ensure t
-  :config (rg-enable-menu))
+  :config
+  (rg-enable-menu)
+  (setq rg-keymap-prefix "C-c f g"))
 
 (use-package jinx
   :ensure t
