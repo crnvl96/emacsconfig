@@ -6,132 +6,110 @@
 
 ;;; Code:
 
-;;; Options
+;; Unused Code:
 
-;; Disable the menu bar
-(menu-bar-mode -1)
-;; Disable the tool bar
-(tool-bar-mode -1)
-;; Disable the scroll bar
-(scroll-bar-mode -1)
-;; Disable the cursor blinking
-(blink-cursor-mode -1)
-;; Display line numbers
-(global-display-line-numbers-mode +1)
-;; Update buffers that have been modified by external processes
-(global-auto-revert-mode +1)
-;; Save the last visited place in buffers
-(save-place-mode +1)
-;; Save the last used commands and options
-(savehist-mode +1)
-;; Save a list of the recently visited files
-(recentf-mode +1)
-;; Show current time
-(display-time-mode +1)
-;; When a region is active, start typing deletes it
-(delete-selection-mode +1)
-;; Save window layout and enable undo-redo actions
-(winner-mode +1)
-;; Highlight current line
-;; (global-hl-line-mode +1)
-;; Render window dividers that can be dragged to resize
-(window-divider-mode +1)
+;;; Eglot
+;; (add-hook 'python-ts-mode-hook #'eglot-ensure)
+;; (setq eglot-events-buffer-config '(:size 0 :format lisp)
+;;       eglot-ignored-server-capabilities '( :signatureHelpProvider
+;; 					   :documentHighlightProvider
+;; 					   :codeLensProvider
+;; 					   :documentRangeFormattingProvider
+;; 					   :documentOnTypeFormattingProvider
+;; 					   :documentLinkProvider
+;; 					   :foldingRangeProvider
+;; 					   :inlayHintProvider)
+;;       eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
+;; (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
+;; 					       :python.analysis ( :autoSearchPaths t
+;; 								  :useLibraryCodeForTypes t
+;; 								  :diagnosticMode "openFilesOnly")))
 
-;; Load and activate Emacs Lisp packages
 (require 'package)
 (package-initialize)
-;; If we're on emacs >= 29, skip
+
 (when (< emacs-major-version 29)
-  ;; If `use-package' is already installed, skip
   (unless (package-installed-p 'use-package)
-    ;; If `package-archive-contents' exists, skip
     (unless (seq-empty-p package-archive-contents)
-      ;; Download descriptions of ELPA packages
       (package-refresh-contents))
-    ;; Install `use-package'
     (package-install 'use-package)))
+
 (require 'use-package)
-;; Set package sources and priorities
-(setq package-archives '( ("melpa"        . "https://melpa.org/packages/")
-                          ("gnu"          . "https://elpa.gnu.org/packages/")
-                          ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-                          ("melpa-stable" . "https://stable.melpa.org/packages/"))
-      package-archive-priorities '( ("melpa"        . 90)
-                                    ("gnu"          . 70)
-                                    ("nongnu"       . 60)
-                                    ("melpa-stable" . 50)))
+(setq package-archives '(("melpa"        . "https://melpa.org/packages/")
+                         ("gnu"          . "https://elpa.gnu.org/packages/")
+                         ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/"))
+      package-archive-priorities '(("melpa"        . 90)
+                                   ("gnu"          . 70)
+                                   ("nongnu"       . 60)
+                                   ("melpa-stable" . 50)))
+
+
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 256 1024 1024)
+                  gc-cons-percentage 0.1)
+            (message "Garbage collection thresholds reset after init.")))
+
 (use-package delight :ensure t)
 (require 'delight)
-
-(which-key-mode +1)
-(delight 'which-key-mode nil "which-key")
 
 (delight 'eldoc-mode nil "eldoc")
 (delight 'emacs-lisp-mode "Elisp" :major)
 
-;; Temporarily increase the limits of garbage colecction trigger to increase Emacs performance on
-;; startup
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6)
-;; When Emacs finishes loading, set it back
-(add-hook 'after-init-hook
-          (lambda ()
-            (setq gc-cons-threshold (* 256 1024 1024) ; 256 MB
-                  gc-cons-percentage 0.1)
-            (message "Garbage collection thresholds reset after init.")))
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(blink-cursor-mode -1)
+(global-display-line-numbers-mode +1)
+(global-auto-revert-mode +1)
+(save-place-mode +1)
+(savehist-mode +1)
+(recentf-mode +1)
+(display-time-mode +1)
+(delete-selection-mode +1)
+(winner-mode +1)
+(window-divider-mode +1)
+(which-key-mode +1)
+(delight 'which-key-mode nil "which-key")
 
-;; Disable any custom theme that might be loaded
 (mapc #'disable-theme custom-enabled-themes)
-;; Load out preferred theme
 (load-theme 'modus-vivendi t)
-;; Set default font to be used
 (let ((mono-spaced-font "Iosevka")
       (proportionately-spaced-font "Iosevka Aile"))
   (set-face-attribute 'default nil :family mono-spaced-font :height 200)
   (set-face-attribute 'fixed-pitch nil :family mono-spaced-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family proportionately-spaced-font :height 1.0))
 
-;; If use short answers ('y' or 'n') to answer prompts
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
-  ;; Adapt the prompt shown on the modeline to reflect that
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
-;; Set the default fill column to 88
 (setq-default fill-column 88)
-;; Enable the indicator globally (for all buffers)
 (global-display-fill-column-indicator-mode 1)
-;; Customize the appearance of the indicator line
 (custom-set-faces
  '(fill-column-indicator-face
    ((t (:foreground "gray" :background nil)))))
 
-(setq-default truncate-lines t)  ; Don't split lines
+(setq-default truncate-lines t)
+(setq-default display-line-numbers-width 5)
 
-;; How many spaces count as a tab
 (setq tab-width 4
-      ;; Don't show the startup screen
       inhibit-splash-screen 1
-      ;; Bytes to read from subprocesses in s single chunk
       read-process-output-max (* 4 1024 1024)
-      ;; Avoid polluting the init.el file with custom configs (auto added by Emacs)
       custom-file (expand-file-name "custom.el" cr-user-directory)
-      scroll-margin 0 ; Leave a Gap between cursor and window boundaries (vert.)
-      hscroll-margin 24 ; Leave a Gap between cursor and window boundaries (vert.)
-      scroll-preserve-screen-position 1 ; I don't know why, but this is needed to our
-					; custom scroll keybindings (M-v and C-v) to work properly
-      native-comp-async-query-on-exit t ; Prompt the user to confirm quitting Emacs if
-					; there are compilation processes running
-      package-install-upgrade-built-in t ; Allow upgrading builtin packages as well
-      completion-ignore-case t ; Make completion algorithm to be case insensitive
-      tab-always-indent 'complete ; Make <Tab> assume both behaviors of indenting and completing
-      )
+      scroll-margin 0
+      hscroll-margin 24
+      scroll-preserve-screen-position 1
+      native-comp-async-query-on-exit t
+      package-install-upgrade-built-in t
+      completion-ignore-case t
+      tab-always-indent 'complete)
 
-;; Configure the kinds of whitespace we want to highlight
 (setq whitespace-style '(face tabs empty trailing))
-;; Highlight some kinds of whitespace (empty lines, trailing, etc)
 (global-whitespace-mode +1)
-;; Clean whitespaces on save
 (add-hook 'before-save-hook #'whitespace-cleanup)
 (delight 'whitespace-mode nil "whitespace")
 
@@ -148,12 +126,15 @@
 	       (display-buffer-no-window)
 	       (allow-no-window . t)))
 
-;;; Functions
-
 (require 'ansi-color)
 (defun cr/compilation-filter-hook ()
   "Allow rendering ansi symbols and colors."
   (ansi-color-apply-on-region compilation-filter-start (point-max)))
+
+(defun cr/lsp-mode-setup-completion ()
+  "Setup `flex' style on lsp completions."
+  (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+        '(flex)))
 
 (defun cr/split-window-vertically ()
   "Keep the cursor on the current window when splitting it vertically."
@@ -213,15 +194,10 @@ The DWIM behaviour of this command is as follows:
 - When the Completions buffer is selected, close it.
 - In every other case use the regular `keyboard-quit'."
   (interactive)
-  (cond
-   ((region-active-p)
-    (keyboard-quit))
-   ((derived-mode-p 'completion-list-mode)
-    (delete-completion-window))
-   ((> (minibuffer-depth) 0)
-    (abort-recursive-edit))
-   (t
-    (keyboard-quit))))
+  (cond ((region-active-p) (keyboard-quit))
+	((derived-mode-p 'completion-list-mode) (delete-completion-window))
+	((> (minibuffer-depth) 0) (abort-recursive-edit))
+	(t (keyboard-quit))))
 
 (defun cr/treesit-install-all-languages ()
   "Install all languages specified by `treesit-language-source-alist'."
@@ -247,72 +223,44 @@ If pyproject.toml or .git/ is found first, do nothing."
 	    (t
 	     (setq dir (file-name-directory (directory-file-name dir))))))))
 
-;;; Hooks
+(with-eval-after-load 'dired
+  (keymap-set dired-mode-map "C-o" 'dired-previous-line))
 
+(keymap-global-set "C-x ;" 'comment-or-uncomment-region)
+(keymap-global-set "C-o" 'previous-line)
+(keymap-global-set "M-n" 'forward-paragraph)
+(keymap-global-set "M-o" 'backward-paragraph)
+(keymap-global-set "<escape>" 'keyboard-escape-quit)
+(keymap-global-set "C-x 2" #'cr/split-window-vertically)
+(keymap-global-set "C-x 3" #'cr/split-window-horizontally)
+(keymap-global-set "M-f" #'cr/forward-word)
+(keymap-global-set "M-b" #'cr/backward-word)
+(keymap-global-set "C-v" #'cr/scroll-up-half)
+(keymap-global-set "M-v" #'cr/scroll-down-half)
+(keymap-global-set "C-g" #'cr/keyboard-quit-dwim)
 (add-hook 'compilation-filter-hook #'cr/compilation-filter-hook)
 
-;;; Keymaps
-
-(global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
-(global-set-key (kbd "C-o") 'previous-line)
-(global-set-key (kbd "M-j") 'forward-paragraph)
-(global-set-key (kbd "M-k") 'backward-paragraph)
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-(global-set-key (kbd "C-x 2") #'cr/split-window-vertically)
-(global-set-key (kbd "C-x 3") #'cr/split-window-horizontally)
-(global-set-key (kbd "M-f") #'cr/forward-word)
-(global-set-key (kbd "M-b") #'cr/backward-word)
-(global-set-key (kbd "C-v") #'cr/scroll-up-half)
-(global-set-key (kbd "M-v") #'cr/scroll-down-half)
-(global-set-key (kbd "C-g") #'cr/keyboard-quit-dwim)
-
-;;; Treesit
-
 (setq treesit-language-source-alist
-      '(  ; use `sort-lines' to sort
-        (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-        (c . ("https://github.com/tree-sitter/tree-sitter-c"))
+      '((c . ("https://github.com/tree-sitter/tree-sitter-c"))
+        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
         (html . ("https://github.com/tree-sitter/tree-sitter-html"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
         (jsdoc . ("https://github.com/tree-sitter/tree-sitter-jsdoc"))
         (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
+        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
         (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
         (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
         (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
         (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
-        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
-        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
-        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
-        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
-        ))
+	(bash . ("https://github.com/tree-sitter/tree-sitter-bash"))))
 
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.jsonc?\\'" . json-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.m?jsx?\\'" . js-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . js-ts-mode))
-
-;;; Eglot
-
-;; (add-hook 'python-ts-mode-hook #'eglot-ensure)
-
-;; (setq eglot-events-buffer-config '(:size 0 :format lisp)
-;;       eglot-ignored-server-capabilities '( :signatureHelpProvider
-;; 					   :documentHighlightProvider
-;; 					   :codeLensProvider
-;; 					   :documentRangeFormattingProvider
-;; 					   :documentOnTypeFormattingProvider
-;; 					   :documentLinkProvider
-;; 					   :foldingRangeProvider
-;; 					   :inlayHintProvider)
-;;       eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
-
-;; (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
-;; 					       :python.analysis ( :autoSearchPaths t
-;; 								  :useLibraryCodeForTypes t
-;; 								  :diagnosticMode "openFilesOnly")))
-
-;;; Packages
 
 (use-package beacon
   :ensure t
@@ -331,9 +279,9 @@ If pyproject.toml or .git/ is found first, do nothing."
            :tab-width 4
            :right-divider-width 30
            :scroll-bar-width 8
-           :fringe-width 8))
-  (setq spacious-padding-subtle-frame-lines t)
-  :bind (([f8] . spacious-padding-mode)))
+           :fringe-width 8)
+	spacious-padding-subtle-frame-lines t)
+  :bind ([f8] . spacious-padding-mode))
 
 (use-package apheleia
   :ensure t
@@ -354,8 +302,7 @@ If pyproject.toml or .git/ is found first, do nothing."
   :config
   (setq aw-keys '(?h ?j ?k ?l))
   :bind
-  (("M-o" . ace-window)
-   ([remap other-window] . ace-window)))
+  (([remap other-window] . ace-window)))
 
 (use-package avy
   :ensure t
@@ -393,32 +340,16 @@ If pyproject.toml or .git/ is found first, do nothing."
         completion-category-defaults nil
         completion-category-overrides nil))
 
-(use-package cape
+(use-package lsp-pyright
   :ensure t
-  :hook ((git-commit-mode . cr/cape-capf-setup-git-commit)
-	 (emacs-lisp-mode . cr/cape-capf-setup-elisp))
-  :init
-  (defun cr/cape-capf-setup-git-commit ()
-    (let ((result nil))
-      (dolist (element '(cape-dabbrev cape-file) result)
-	(add-to-list 'completion-at-point-functions element))))
-  (defun cr/cape-capf-setup-elisp ()
-    (let ((result nil))
-      (dolist (element '(cape-elisp-symbol cape-dabbrev cape-file) result)
-	(add-to-list 'completion-at-point-functions element))))
-  :config
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+  :config (setq lsp-pyright-langserver-command "pyright"))
 
 (use-package lsp-mode
   :ensure t
   :hook ((lsp-mode . lsp-enable-which-key-integration)
 	 (lsp-completion-mode . cr/lsp-mode-setup-completion)
 	 (python-ts-mode . (lambda () (require 'lsp-pyright) (lsp-deferred))))
-  :init
-  (defun cr/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(flex)))
+  :config
   (setq lsp-keymap-prefix "C-l"
 	lsp-enable-symbol-highlighting nil
 	lsp-ui-doc-enable nil
@@ -433,13 +364,9 @@ If pyproject.toml or .git/ is found first, do nothing."
         lsp-auto-execute-action nil
         lsp-before-save-edits nil
 	lsp-modeline-diagnostics-enable t
-	lsp-signature-auto-activate nil ;; you could manually request them via `lsp-signature-activate`
+	lsp-signature-auto-activate nil
 	lsp-signature-render-documentation nil
-	lsp-completion-provider :none)) ;; we use Corfu
-
-(use-package lsp-pyright
-  :ensure t
-  :config (setq lsp-pyright-langserver-command "pyright")) ;; or basedpyright
+	lsp-completion-provider :none))
 
 (use-package lsp-ui
   :ensure t
