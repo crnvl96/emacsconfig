@@ -35,18 +35,21 @@
     (package-install 'use-package)))
 
 (require 'use-package)
-(setq package-archives '(("melpa"        . "https://melpa.org/packages/")
-                         ("gnu"          . "https://elpa.gnu.org/packages/")
-                         ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-                         ("melpa-stable" . "https://stable.melpa.org/packages/"))
-      package-archive-priorities '(("melpa"        . 90)
-                                   ("gnu"          . 70)
-                                   ("nongnu"       . 60)
-                                   ("melpa-stable" . 50)))
+(setq package-archives
+      '(("melpa"        . "https://melpa.org/packages/")
+        ("gnu"          . "https://elpa.gnu.org/packages/")
+        ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+        ("melpa-stable" . "https://stable.melpa.org/packages/")))
+(setq package-archive-priorities
+      '(("melpa"        . 90)
+        ("gnu"          . 70)
+        ("nongnu"       . 60)
+        ("melpa-stable" . 50)))
 
 
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6)
+(setq gc-cons-threshold most-positive-fixnum)
+(setq gc-cons-percentage 0.6)
+
 (add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 256 1024 1024)
@@ -77,6 +80,7 @@
 
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
+
 (let ((mono-spaced-font "Iosevka")
       (proportionately-spaced-font "Iosevka Aile"))
   (set-face-attribute 'default nil :family mono-spaced-font :height 200)
@@ -89,24 +93,24 @@
 
 (setq-default fill-column 88)
 (global-display-fill-column-indicator-mode 1)
+
 (custom-set-faces
- '(fill-column-indicator-face
-   ((t (:foreground "gray" :background nil)))))
+ '(fill-column-indicator-face ((t (:foreground "gray" :background nil)))))
 
 (setq-default truncate-lines t)
 (setq-default display-line-numbers-width 5)
 
-(setq tab-width 4
-      inhibit-splash-screen 1
-      read-process-output-max (* 4 1024 1024)
-      custom-file (expand-file-name "custom.el" cr-user-directory)
-      scroll-margin 0
-      hscroll-margin 24
-      scroll-preserve-screen-position 1
-      native-comp-async-query-on-exit t
-      package-install-upgrade-built-in t
-      completion-ignore-case t
-      tab-always-indent 'complete)
+(setq tab-width 4)
+(setq inhibit-splash-screen 1)
+(setq read-process-output-max (* 4 1024 1024))
+(setq custom-file (expand-file-name "custom.el" cr-user-directory))
+(setq scroll-margin 0)
+(setq hscroll-margin 24)
+(setq scroll-preserve-screen-position 1)
+(setq native-comp-async-query-on-exit t)
+(setq package-install-upgrade-built-in t)
+(setq completion-ignore-case t)
+(setq tab-always-indent 'complete)
 
 (setq whitespace-style '(face tabs empty trailing))
 (global-whitespace-mode +1)
@@ -129,32 +133,33 @@
 (require 'ansi-color)
 (defun cr/compilation-filter-hook ()
   "Allow rendering ansi symbols and colors."
-  (ansi-color-apply-on-region compilation-filter-start (point-max)))
+  (ansi-color-apply-on-region
+   compilation-filter-start (point-max)))
 
 (defun cr/lsp-mode-setup-completion ()
   "Setup `flex' style on lsp completions."
-  (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-        '(flex)))
+  (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
 
 (defun cr/split-window-vertically ()
   "Keep the cursor on the current window when splitting it vertically."
   (interactive)
-  (split-window-vertically) (other-window 1))
+  (split-window-vertically)
+  (other-window 1))
 
 (defun cr/split-window-horizontally ()
   "Keep the cursor on the current window when splitting it horizontally."
   (interactive)
-  (split-window-horizontally) (other-window 1))
+  (split-window-horizontally)
+  (other-window 1))
 
 (defun cr/forward-word ()
   "Move forward to the next syntax change, like Vim word movement."
   (interactive)
   (let ((start-syntax (if (eobp) nil (char-syntax (char-after)))))
     (if start-syntax
-        (progn
-          (forward-char 1)
-          (while (and (not (eobp)) (eq (char-syntax (char-after)) start-syntax))
-            (forward-char 1)))
+        (progn (forward-char 1)
+               (while (and (not (eobp)) (eq (char-syntax (char-after)) start-syntax))
+		 (forward-char 1)))
       (forward-char 1))))
 
 (defun cr/backward-word ()
@@ -162,10 +167,9 @@
   (interactive)
   (let ((start-syntax (if (bobp) nil (char-syntax (char-before)))))
     (if start-syntax
-        (progn
-          (backward-char 1)
-          (while (and (not (bobp)) (eq (char-syntax (char-before)) start-syntax))
-            (backward-char 1)))
+        (progn (backward-char 1)
+               (while (and (not (bobp)) (eq (char-syntax (char-before)) start-syntax))
+		 (backward-char 1)))
       (backward-char 1))))
 
 (defun cr/scroll-up-half ()
@@ -216,9 +220,12 @@ If pyproject.toml or .git/ is found first, do nothing."
   (let ((dir (expand-file-name default-directory))
         (found nil))
     (while (and dir (not (string= dir "/")) (not found))
-      (cond ((file-directory-p (expand-file-name ".venv" dir)) (pyvenv-activate (expand-file-name ".venv" dir))
+      (cond ((file-directory-p (expand-file-name ".venv" dir))
+	     (pyvenv-activate (expand-file-name ".venv" dir))
 	     (setq found t))
-            ((or (file-exists-p (expand-file-name "pyproject.toml" dir)) (file-directory-p (expand-file-name ".git" dir)))
+            ((or
+	      (file-exists-p (expand-file-name "pyproject.toml" dir))
+	      (file-directory-p (expand-file-name ".git" dir)))
 	     (setq found t))
 	    (t
 	     (setq dir (file-name-directory (directory-file-name dir))))))))
@@ -238,6 +245,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 (keymap-global-set "C-v" #'cr/scroll-up-half)
 (keymap-global-set "M-v" #'cr/scroll-down-half)
 (keymap-global-set "C-g" #'cr/keyboard-quit-dwim)
+
 (add-hook 'compilation-filter-hook #'cr/compilation-filter-hook)
 
 (setq treesit-language-source-alist
@@ -265,28 +273,33 @@ If pyproject.toml or .git/ is found first, do nothing."
 (use-package beacon
   :ensure t
   :delight
-  :hook (after-init . beacon-mode))
+  :hook
+  (after-init . beacon-mode))
 
 (use-package spacious-padding
   :ensure t
-  :hook (after-init . spacious-padding-mode)
+  :hook
+  (after-init . spacious-padding-mode)
   :config
-  (setq spacious-padding-widths
-        '( :internal-border-width 15
-           :header-line-width 4
-           :mode-line-width 6
-           :custom-button-width 3
-           :tab-width 4
-           :right-divider-width 30
-           :scroll-bar-width 8
-           :fringe-width 8)
-	spacious-padding-subtle-frame-lines t)
-  :bind ([f8] . spacious-padding-mode))
+  (setq spacious-padding-widths '( :internal-border-width 15
+				   :header-line-width 4
+				   :mode-line-width 6
+				   :custom-button-width 3
+				   :tab-width 4
+				   :right-divider-width 30
+				   :scroll-bar-width 8
+				   :fringe-width 8))
+  (setq spacious-padding-subtle-frame-lines t)
+  :bind
+  ([f8] . spacious-padding-mode))
 
 (use-package apheleia
   :ensure t
   :delight
-  :hook (after-init . apheleia-global-mode)
+  :hook
+  ((emacs-lisp-mode . apheleia-mode)
+   (python-mode . apheleia-mode)
+   (python-ts-mode . apheleia-mode))
   :config
   (setf (alist-get 'python-mode apheleia-mode-alist)
 	'(ruff-isort ruff))
@@ -298,84 +311,95 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package zop-to-char
   :ensure t
-  :bind (("M-z" . zop-up-to-char)
-         ("M-Z" . zop-to-char)))
+  :bind
+  (("M-z" . zop-up-to-char)
+   ("M-Z" . zop-to-char)))
 
 (use-package ace-window
   :ensure t
   :config
   (setq aw-keys '(?h ?j ?k ?l))
   :bind
-  (([remap other-window] . ace-window)))
+  ([remap other-window] . ace-window))
 
 (use-package avy
   :ensure t
-  :bind (("M-e" . avy-goto-char-timer))
-  :config (setq avy-background t))
+  :bind
+  ("M-e" . avy-goto-char-timer)
+  :config
+  (setq avy-background t))
 
 (use-package multiple-cursors
   :ensure t
-  :bind (("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)))
+  :bind
+  (("C->" . mc/mark-next-like-this)
+   ("C-<" . mc/mark-previous-like-this)))
 
 (use-package expand-region
   :ensure t
-  :bind (("C-=" . er/expand-region)))
+  :bind
+  ("C-=" . er/expand-region))
 
 (use-package marginalia
   :ensure t
-  :hook (after-init . marginalia-mode))
+  :hook
+  (after-init . marginalia-mode))
 
 (use-package vertico
   :ensure t
-  :hook (after-init . vertico-mode)
+  :hook
+  (after-init . vertico-mode)
   :config
   (setq vertico-cycle t)
-  :bind ( :map vertico-map
-          ("<backspace>" . vertico-directory-delete-char)
-          ("C-w" . vertico-directory-delete-word)
-          ("C-o" . vertico-previous)
-          ("RET" . vertico-directory-enter)))
+  :bind
+  ( :map vertico-map
+    ("<backspace>" . vertico-directory-delete-char)
+    ("C-w" . vertico-directory-delete-word)
+    ("C-o" . vertico-previous)
+    ("RET" . vertico-directory-enter)))
 
 (use-package orderless
   :ensure t
   :init
-  (setq completion-styles '(orderless partial-completion basic)
-        completion-category-defaults nil
-        completion-category-overrides nil))
+  (setq completion-styles '(orderless partial-completion basic))
+  (setq completion-category-defaults nil)
+  (setq completion-category-overrides nil))
 
 (use-package lsp-pyright
   :ensure t
-  :config (setq lsp-pyright-langserver-command "pyright"))
+  :config
+  (setq lsp-pyright-langserver-command "pyright"))
 
 (use-package lsp-mode
   :ensure t
-  :hook ((lsp-mode . lsp-enable-which-key-integration)
-	 (lsp-completion-mode . cr/lsp-mode-setup-completion)
-	 (python-ts-mode . (lambda () (require 'lsp-pyright) (lsp-deferred)))
-	 (python-mode . (lambda () (require 'lsp-pyright) (lsp-deferred))))
+  :hook
+  ((lsp-mode . lsp-enable-which-key-integration)
+   (lsp-completion-mode . cr/lsp-mode-setup-completion)
+   (python-ts-mode . (lambda () (require 'lsp-pyright) (lsp-deferred)))
+   (python-mode . (lambda () (require 'lsp-pyright) (lsp-deferred))))
   :config
-  (setq lsp-keymap-prefix "C-l"
-	lsp-enable-symbol-highlighting nil
-	lsp-ui-doc-enable nil
-	lsp-lens-enable nil
-	lsp-headerline-breadcrumb-enable nil
-	lsp-ui-sideline-enable nil
-	lsp-modeline-code-actions-enable nil
-	lsp-ui-sideline-enable nil
-	lsp-eldoc-enable-hover nil
-	lsp-enable-indentation nil
-        lsp-enable-on-type-formatting nil
-        lsp-auto-execute-action nil
-        lsp-before-save-edits nil
-	lsp-modeline-diagnostics-enable t
-	lsp-signature-auto-activate nil
-	lsp-signature-render-documentation nil
-	lsp-completion-provider :none))
+  (setq lsp-keymap-prefix "C-l")
+  (setq lsp-enable-symbol-highlighting nil)
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-lens-enable nil)
+  (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-ui-sideline-enable nil)
+  (setq lsp-modeline-code-actions-enable nil)
+  (setq lsp-ui-sideline-enable nil)
+  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-enable-indentation nil)
+  (setq lsp-enable-on-type-formatting nil)
+  (setq lsp-auto-execute-action nil)
+  (setq lsp-before-save-edits nil)
+  (setq lsp-modeline-diagnostics-enable t)
+  (setq lsp-signature-auto-activate nil)
+  (setq lsp-signature-render-documentation nil)
+  (setq lsp-completion-provider :none))
 
 (use-package lsp-ui
   :ensure t
-  :hook (lsp-mode . lsp-ui-mode))
+  :hook
+  (lsp-mode . lsp-ui-mode))
 
 (use-package corfu
   :ensure t
@@ -383,24 +407,28 @@ If pyproject.toml or .git/ is found first, do nothing."
   (after-init . global-corfu-mode)
   :config
   (setq corfu-cycle t)
-  :bind ( :map corfu-map
-          ("C-o" . corfu-previous)))
+  :bind
+  ( :map corfu-map
+    ("C-o" . corfu-previous)))
 
 (use-package projectile
   :ensure t
-  :hook (after-init . projectile-mode)
   :delight
+  :hook
+  (after-init . projectile-mode)
   :config
   (setq projectile-project-search-path '("~/Developer/work/" "~/Developer/personal/" "~/.emacs.d/"))
   (setq projectile-cleanup-known-projects t)
-  (add-hook 'project-find-functions #'project-projectile)
-  :bind-keymap ("C-x p" . projectile-command-map)
-  :bind ( :map projectile-mode-map
-	  ("C-c j" . projectile-command-map)))
+  :bind-keymap
+  ("C-x p" . projectile-command-map)
+  :bind
+  ( :map projectile-mode-map
+    ("C-c j" . projectile-command-map)))
 
 (use-package consult-projectile
   :ensure t
-  :after (consult projectile))
+  :after
+  (consult projectile))
 
 (use-package embark
   :ensure t
@@ -410,25 +438,27 @@ If pyproject.toml or .git/ is found first, do nothing."
    ("C-h B" . embark-bindings))
   :config
   (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
 
 (use-package embark-consult
   :ensure t
-  :hook (embark-collect-mode . consult-preview-at-point-mode))
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package consult
   :ensure t
   :config
-  (setq consult-async-min-input 2
-        consult-narrow-key "<")
+  (setq consult-async-min-input 2)
+  (setq consult-narrow-key "<")
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
-  :bind (("C-c f f" . consult-projectile)
-         ("C-c f o" . consult-outline)
-         ("C-c f k" . consult-flymake)
-         ("C-c f l" . consult-line)
-         ("C-c f ." . consult-goto-line)))
+  :bind
+  (("C-c f f" . consult-projectile)
+   ("C-c f o" . consult-outline)
+   ("C-c f k" . consult-flymake)
+   ("C-c f l" . consult-line)
+   ("C-c f ." . consult-goto-line)))
 
 (use-package rg
   :ensure t
@@ -437,12 +467,14 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package jinx
   :ensure t
-  :bind (("M-$" . jinx-correct)
-	 ("C-M-$" . jinx-languages)))
+  :bind
+  (("M-$" . jinx-correct)
+   ("C-M-$" . jinx-languages)))
 
 (use-package pyvenv
   :ensure t
-  :commands (pyvenv-activate))
+  :commands
+  (pyvenv-activate))
 
 (use-package exec-path-from-shell
   :ensure t
@@ -454,10 +486,11 @@ If pyproject.toml or .git/ is found first, do nothing."
 (use-package undo-fu
   :demand t
   :ensure t
-  :commands (undo-fu-only-undo
-             undo-fu-only-redo
-             undo-fu-only-redo-all
-             undo-fu-disable-checkpoint)
+  :commands
+  (undo-fu-only-undo
+   undo-fu-only-redo
+   undo-fu-only-redo-all
+   undo-fu-disable-checkpoint)
   :config
   (global-unset-key (kbd "C-z"))
   (global-set-key (kbd "C-z") 'undo-fu-only-undo)
@@ -465,17 +498,20 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package undo-fu-session
   :ensure t
-  :hook (after-init . undo-fu-session-global-mode)
-  :commands (undo-fu-session-global-mode))
+  :hook
+  (after-init . undo-fu-session-global-mode)
+  :commands
+  (undo-fu-session-global-mode))
 
 (use-package helpful
   :ensure t
-  :commands (helpful-callable
-             helpful-variable
-             helpful-key
-             helpful-command
-             helpful-at-point
-             helpful-function)
+  :commands
+  (helpful-callable
+   helpful-variable
+   helpful-key
+   helpful-command
+   helpful-at-point
+   helpful-function)
   :config
   (setq helpful-max-buffers 3)
   :bind
@@ -487,20 +523,21 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package crux
   :ensure t
-  :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
-         ([remap kill-whole-line] . crux-kill-whole-line)
-         ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
-         ([remap upcase-region] . crux-upcase-region)
-         ([remap downcase-region] . crux-downcase-region)
-         ("s-j" . crux-top-join-line)
-	 ("s-l" . crux-duplicate-current-line-or-region)
-	 ("C-k" . crux-smart-kill-line)
-         ("s-n" . crux-cleanup-buffer-or-region)
-         ("s-m" . crux-smart-open-line)
-         ("s-M-m" . crux-smart-open-line-above)
-	 ("s-o" . crux-open-with)
-         ("s-u" . crux-view-url)
-         ("s-M-k" . crux-kill-other-buffers))
+  :bind
+  (([remap move-beginning-of-line] . crux-move-beginning-of-line)
+   ([remap kill-whole-line] . crux-kill-whole-line)
+   ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
+   ([remap upcase-region] . crux-upcase-region)
+   ([remap downcase-region] . crux-downcase-region)
+   ("s-j" . crux-top-join-line)
+   ("s-l" . crux-duplicate-current-line-or-region)
+   ("C-k" . crux-smart-kill-line)
+   ("s-n" . crux-cleanup-buffer-or-region)
+   ("s-m" . crux-smart-open-line)
+   ("s-M-m" . crux-smart-open-line-above)
+   ("s-o" . crux-open-with)
+   ("s-u" . crux-view-url)
+   ("s-M-k" . crux-kill-other-buffers))
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
@@ -508,7 +545,8 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package flycheck
   :ensure t
-  :hook (after-init . global-flycheck-mode)
+  :hook
+  (after-init . global-flycheck-mode)
   :config
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
@@ -516,7 +554,8 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package mise
   :ensure t
-  :hook (after-init . global-mise-mode))
+  :hook
+  (after-init . global-mise-mode))
 
 (use-package magit
   :ensure t)
