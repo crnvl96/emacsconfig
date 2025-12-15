@@ -8,10 +8,34 @@
 
 ;;; Options
 
-(menu-bar-mode -1) ; Disable the menu bar
-(tool-bar-mode -1) ; Disable the tool bar
-(scroll-bar-mode -1) ; Disable the scroll bar
-(blink-cursor-mode -1) ; Disable the cursor blinking
+;; Disable the menu bar
+(menu-bar-mode -1)
+;; Disable the tool bar
+(tool-bar-mode -1)
+;; Disable the scroll bar
+(scroll-bar-mode -1)
+;; Disable the cursor blinking
+(blink-cursor-mode -1)
+;; Display line numbers
+(global-display-line-numbers-mode +1)
+;; Update buffers that have been modified by external processes
+(global-auto-revert-mode +1)
+;; Save the last visited place in buffers
+(save-place-mode +1)
+;; Save the last used commands and options
+(savehist-mode +1)
+;; Save a list of the recently visited files
+(recentf-mode +1)
+;; Show current time
+(display-time-mode +1)
+;; When a region is active, start typing deletes it
+(delete-selection-mode +1)
+;; Save window layout and enable undo-redo actions
+(winner-mode +1)
+;; Highlight current line
+;; (global-hl-line-mode +1)
+;; Render window dividers that can be dragged to resize
+(window-divider-mode +1)
 
 ;; Load and activate Emacs Lisp packages
 (require 'package)
@@ -36,9 +60,17 @@
                                     ("gnu"          . 70)
                                     ("nongnu"       . 60)
                                     ("melpa-stable" . 50)))
+(use-package delight :ensure t)
+(require 'delight)
 
-;; Temporarily increase the limits of garbage colecction trigger
-;; to increase Emacs performance on startup
+(which-key-mode +1)
+(delight 'which-key-mode nil "which-key")
+
+(delight 'eldoc-mode nil "eldoc")
+(delight 'emacs-lisp-mode "Elisp" :major)
+
+;; Temporarily increase the limits of garbage colecction trigger to increase Emacs performance on
+;; startup
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
 ;; When Emacs finishes loading, set it back
@@ -65,12 +97,25 @@
   ;; Adapt the prompt shown on the modeline to reflect that
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
+;; Set the default fill column to 88
+(setq-default fill-column 88)
+;; Enable the indicator globally (for all buffers)
+(global-display-fill-column-indicator-mode 1)
+;; Customize the appearance of the indicator line
+(custom-set-faces
+ '(fill-column-indicator-face
+   ((t (:foreground "gray" :background nil)))))
+
 (setq-default truncate-lines t)  ; Don't split lines
 
-(setq tab-width 4 ; How many spaces count as a <Tab>
-      inhibit-splash-screen 1 ; don't show the startup screen
-      read-process-output-max (* 4 1024 1024) ;; 4mb
-      custom-file (expand-file-name "custom.el" cr-user-directory) ; Avoid polluting our init file with custom settings
+;; How many spaces count as a tab
+(setq tab-width 4
+      ;; Don't show the startup screen
+      inhibit-splash-screen 1
+      ;; Bytes to read from subprocesses in s single chunk
+      read-process-output-max (* 4 1024 1024)
+      ;; Avoid polluting the init.el file with custom configs (auto added by Emacs)
+      custom-file (expand-file-name "custom.el" cr-user-directory)
       scroll-margin 0 ; Leave a Gap between cursor and window boundaries (vert.)
       hscroll-margin 24 ; Leave a Gap between cursor and window boundaries (vert.)
       scroll-preserve-screen-position 1 ; I don't know why, but this is needed to our
@@ -80,7 +125,15 @@
       package-install-upgrade-built-in t ; Allow upgrading builtin packages as well
       completion-ignore-case t ; Make completion algorithm to be case insensitive
       tab-always-indent 'complete ; Make <Tab> assume both behaviors of indenting and completing
-      whitespace-style '(face tabs empty trailing)) ; Configure the kinds of whitespace we want to highlight
+      )
+
+;; Configure the kinds of whitespace we want to highlight
+(setq whitespace-style '(face tabs empty trailing))
+;; Highlight some kinds of whitespace (empty lines, trailing, etc)
+(global-whitespace-mode +1)
+;; Clean whitespaces on save
+(add-hook 'before-save-hook #'whitespace-cleanup)
+(delight 'whitespace-mode nil "whitespace")
 
 (unless (and (eq window-system 'mac)
              (bound-and-true-p mac-carbon-version-string))
@@ -196,35 +249,12 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 ;;; Hooks
 
-(add-hook 'after-init-hook #'global-display-line-numbers-mode)
-(add-hook 'after-init-hook #'global-auto-revert-mode)
-(add-hook 'after-init-hook #'global-whitespace-mode)
-(add-hook 'after-init-hook #'save-place-mode)
-(add-hook 'after-init-hook #'savehist-mode)
-(add-hook 'after-init-hook #'recentf-mode)
-(add-hook 'after-init-hook #'display-time-mode)
-(add-hook 'after-init-hook #'delete-selection-mode)
-(add-hook 'after-init-hook #'winner-mode)
-(add-hook 'after-init-hook #'global-hl-line-mode)
-(add-hook 'after-init-hook #'which-key-mode)
-(add-hook 'before-save-hook #'whitespace-cleanup)
-(add-hook 'after-init-hook #'window-divider-mode)
 (add-hook 'compilation-filter-hook #'cr/compilation-filter-hook)
-
-;;; Delight
-
-(use-package delight :ensure t)
-(require 'delight)
-(delight 'whitespace-mode nil "whitespace")
-(delight 'which-key-mode nil "which-key")
-(delight 'eldoc-mode nil "eldoc")
-(delight 'emacs-lisp-mode "Elisp" :major)
 
 ;;; Keymaps
 
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
-(global-set-key (kbd "C-j") 'next-line)
-(global-set-key (kbd "C-k") 'previous-line)
+(global-set-key (kbd "C-o") 'previous-line)
 (global-set-key (kbd "M-j") 'forward-paragraph)
 (global-set-key (kbd "M-k") 'backward-paragraph)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -353,8 +383,7 @@ If pyproject.toml or .git/ is found first, do nothing."
   :bind ( :map vertico-map
           ("<backspace>" . vertico-directory-delete-char)
           ("C-w" . vertico-directory-delete-word)
-          ("C-j" . vertico-next)
-          ("C-k" . vertico-previous)
+          ("C-o" . vertico-previous)
           ("RET" . vertico-directory-enter)))
 
 (use-package orderless
@@ -423,8 +452,7 @@ If pyproject.toml or .git/ is found first, do nothing."
   :config
   (setq corfu-cycle t)
   :bind ( :map corfu-map
-	  ("C-j" . corfu-next)
-          ("C-k" . corfu-previous)))
+          ("C-o" . corfu-previous)))
 
 (use-package projectile
   :ensure t
@@ -534,7 +562,7 @@ If pyproject.toml or .git/ is found first, do nothing."
          ([remap downcase-region] . crux-downcase-region)
          ("s-j" . crux-top-join-line)
 	 ("s-l" . crux-duplicate-current-line-or-region)
-	 ("s-k" . crux-smart-kill-line)
+	 ("C-k" . crux-smart-kill-line)
          ("s-n" . crux-cleanup-buffer-or-region)
          ("s-m" . crux-smart-open-line)
          ("s-M-m" . crux-smart-open-line-above)
