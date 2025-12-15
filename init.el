@@ -286,6 +286,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package beacon
   :ensure t
+  :delight
   :hook (after-init . beacon-mode))
 
 (use-package spacious-padding
@@ -306,7 +307,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package apheleia
   :ensure t
-  :delight (apheleia-mode " aph")
+  :delight
   :hook (after-init . apheleia-global-mode)
   :config (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
@@ -398,6 +399,10 @@ If pyproject.toml or .git/ is found first, do nothing."
 	lsp-modeline-code-actions-enable nil
 	lsp-ui-sideline-enable nil
 	lsp-eldoc-enable-hover nil
+	lsp-enable-indentation nil
+        lsp-enable-on-type-formatting nil
+        lsp-auto-execute-action nil
+        lsp-before-save-edits nil
 	lsp-modeline-diagnostics-enable t
 	lsp-signature-auto-activate nil ;; you could manually request them via `lsp-signature-activate`
 	lsp-signature-render-documentation nil
@@ -424,6 +429,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 (use-package projectile
   :ensure t
   :hook (after-init . projectile-mode)
+  :delight
   :config
   (setq projectile-project-search-path '("~/Developer/work/" "~/Developer/personal/" "~/.emacs.d/"))
   (setq projectile-cleanup-known-projects t)
