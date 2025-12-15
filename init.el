@@ -7,6 +7,7 @@
 ;;; Code:
 
 ;;; Options
+
 (menu-bar-mode -1) ; Disable the menu bar
 (tool-bar-mode -1) ; Disable the tool bar
 (scroll-bar-mode -1) ; Disable the scroll bar
@@ -43,7 +44,7 @@
 ;; When Emacs finishes loading, set it back
 (add-hook 'after-init-hook
           (lambda ()
-            (setq gc-cons-threshold (* 64 1024 1024) ; 64 MB
+            (setq gc-cons-threshold (* 256 1024 1024) ; 256 MB
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
@@ -54,7 +55,7 @@
 ;; Set default font to be used
 (let ((mono-spaced-font "Iosevka")
       (proportionately-spaced-font "Iosevka Aile"))
-  (set-face-attribute 'default nil :family mono-spaced-font :height 280)
+  (set-face-attribute 'default nil :family mono-spaced-font :height 200)
   (set-face-attribute 'fixed-pitch nil :family mono-spaced-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family proportionately-spaced-font :height 1.0))
 
@@ -68,6 +69,7 @@
 
 (setq tab-width 4 ; How many spaces count as a <Tab>
       inhibit-splash-screen 1 ; don't show the startup screen
+      read-process-output-max (* 4 1024 1024) ;; 4mb
       custom-file (expand-file-name "custom.el" cr-user-directory) ; Avoid polluting our init file with custom settings
       scroll-margin 0 ; Leave a Gap between cursor and window boundaries (vert.)
       hscroll-margin 24 ; Leave a Gap between cursor and window boundaries (vert.)
@@ -94,6 +96,7 @@
 	       (allow-no-window . t)))
 
 ;;; Functions
+
 (require 'ansi-color)
 (defun cr/compilation-filter-hook ()
   "Allow rendering ansi symbols and colors."
@@ -178,7 +181,7 @@ The DWIM behaviour of this command is as follows:
 
 (defun cr/venv ()
   "Scan upwards from current directory for .venv/, pyproject.toml, or .git/.
-If .venv/ is found, activate it and reconnect eglot.
+If .venv/ is found, activate it.
 If pyproject.toml or .git/ is found first, do nothing."
   (interactive)
   (let ((dir (expand-file-name default-directory))
@@ -192,6 +195,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 	     (setq dir (file-name-directory (directory-file-name dir))))))))
 
 ;;; Hooks
+
 (add-hook 'after-init-hook #'global-display-line-numbers-mode)
 (add-hook 'after-init-hook #'global-auto-revert-mode)
 (add-hook 'after-init-hook #'global-whitespace-mode)
@@ -208,6 +212,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 (add-hook 'compilation-filter-hook #'cr/compilation-filter-hook)
 
 ;;; Delight
+
 (use-package delight :ensure t)
 (require 'delight)
 (delight 'whitespace-mode nil "whitespace")
@@ -216,9 +221,12 @@ If pyproject.toml or .git/ is found first, do nothing."
 (delight 'emacs-lisp-mode "Elisp" :major)
 
 ;;; Keymaps
+
 (global-set-key (kbd "C-x ;") 'comment-or-uncomment-region)
-(global-set-key (kbd "M-n") 'forward-paragraph)
-(global-set-key (kbd "M-p") 'backward-paragraph)
+(global-set-key (kbd "C-j") 'next-line)
+(global-set-key (kbd "C-k") 'previous-line)
+(global-set-key (kbd "M-j") 'forward-paragraph)
+(global-set-key (kbd "M-k") 'backward-paragraph)
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (global-set-key (kbd "C-x 2") #'cr/split-window-vertically)
 (global-set-key (kbd "C-x 3") #'cr/split-window-horizontally)
@@ -229,6 +237,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 (global-set-key (kbd "C-g") #'cr/keyboard-quit-dwim)
 
 ;;; Treesit
+
 (setq treesit-language-source-alist
       '(  ; use `sort-lines' to sort
         (bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
@@ -254,28 +263,26 @@ If pyproject.toml or .git/ is found first, do nothing."
 (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . js-ts-mode))
 
 ;;; Eglot
-(add-hook 'python-ts-mode-hook #'eglot-ensure)
 
-(setq eglot-events-buffer-config '(:size 0 :format lisp)
-      eglot-ignored-server-capabilities '( :signatureHelpProvider
-					   :documentHighlightProvider
-					   :codeLensProvider
-					   :documentRangeFormattingProvider
-					   :documentOnTypeFormattingProvider
-					   :documentLinkProvider
-					   :foldingRangeProvider
-					   :inlayHintProvider)
-      eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
+;; (add-hook 'python-ts-mode-hook #'eglot-ensure)
 
-(setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
-					       :python.analysis ( :autoSearchPaths t
-								  :useLibraryCodeForTypes t
-								  :diagnosticMode "openFilesOnly")))
+;; (setq eglot-events-buffer-config '(:size 0 :format lisp)
+;;       eglot-ignored-server-capabilities '( :signatureHelpProvider
+;; 					   :documentHighlightProvider
+;; 					   :codeLensProvider
+;; 					   :documentRangeFormattingProvider
+;; 					   :documentOnTypeFormattingProvider
+;; 					   :documentLinkProvider
+;; 					   :foldingRangeProvider
+;; 					   :inlayHintProvider)
+;;       eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
+
+;; (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
+;; 					       :python.analysis ( :autoSearchPaths t
+;; 								  :useLibraryCodeForTypes t
+;; 								  :diagnosticMode "openFilesOnly")))
 
 ;;; Packages
-(use-package centered-cursor-mode
-  :ensure t
-  :hook (after-init . global-centered-cursor-mode))
 
 (use-package beacon
   :ensure t
@@ -321,8 +328,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 
 (use-package avy
   :ensure t
-  :bind (("M-e" . avy-goto-char-timer)
-	 ("M-l" . avy-goto-line))
+  :bind (("M-e" . avy-goto-char-timer))
   :config (setq avy-background t))
 
 (use-package multiple-cursors
@@ -341,24 +347,26 @@ If pyproject.toml or .git/ is found first, do nothing."
 (use-package vertico
   :ensure t
   :hook (after-init . vertico-mode)
+  :config
+  (setq vertico-cycle t)
   :bind ( :map vertico-map
           ("<backspace>" . vertico-directory-delete-char)
-          ("C-w" . vertico-directory-delete-word )
+          ("C-w" . vertico-directory-delete-word)
+          ("C-j" . vertico-next)
+          ("C-k" . vertico-previous)
           ("RET" . vertico-directory-enter)))
 
 (use-package orderless
   :ensure t
-  :config
-  (setq completion-styles '(orderless basic))
-  (setq completion-category-overrides '((file (styles partial-completion))
-					(eglot (styles orderless))
-					(eglot-capf (styles orderless)))))
+  :init
+  (setq completion-styles '(orderless partial-completion basic)
+        completion-category-defaults nil
+        completion-category-overrides nil))
 
 (use-package cape
   :ensure t
   :hook ((git-commit-mode . cr/cape-capf-setup-git-commit)
-	 (emacs-lisp-mode . cr/cape-capf-setup-elisp)
-	 (eglot-managed-mode . cr/cape-capf-setup-eglot))
+	 (emacs-lisp-mode . cr/cape-capf-setup-elisp))
   :init
   (defun cr/cape-capf-setup-git-commit ()
     (let ((result nil))
@@ -366,21 +374,52 @@ If pyproject.toml or .git/ is found first, do nothing."
 	(add-to-list 'completion-at-point-functions element))))
   (defun cr/cape-capf-setup-elisp ()
     (let ((result nil))
-      (dolist (element '(cape-keyword cape-elisp-symbol cape-elisp-block cape-dabbrev cape-line cape-file) result)
-	(add-to-list 'completion-at-point-functions element))))
-  (defun cr/cape-capf-setup-eglot ()
-    (let ((result nil))
-      (dolist (element '(eglot-completion-at-point cape-keyword cape-dabbrev cape-line cape-file) result)
+      (dolist (element '(cape-elisp-symbol cape-dabbrev cape-file) result)
 	(add-to-list 'completion-at-point-functions element))))
   :config
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster))
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify))
+
+(use-package lsp-mode
+  :ensure t
+  :hook ((lsp-mode . lsp-enable-which-key-integration)
+	 (lsp-completion-mode . cr/lsp-mode-setup-completion)
+	 (python-ts-mode . (lambda () (require 'lsp-pyright) (lsp-deferred))))
+  :init
+  (defun cr/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+          '(flex)))
+  (setq lsp-keymap-prefix "C-l"
+	lsp-enable-symbol-highlighting nil
+	lsp-ui-doc-enable nil
+	lsp-lens-enable nil
+	lsp-headerline-breadcrumb-enable nil
+	lsp-ui-sideline-enable nil
+	lsp-modeline-code-actions-enable nil
+	lsp-ui-sideline-enable nil
+	lsp-eldoc-enable-hover nil
+	lsp-modeline-diagnostics-enable t
+	lsp-signature-auto-activate nil ;; you could manually request them via `lsp-signature-activate`
+	lsp-signature-render-documentation nil
+	lsp-completion-provider :none)) ;; we use Corfu
+
+(use-package lsp-pyright
+  :ensure t
+  :config (setq lsp-pyright-langserver-command "pyright")) ;; or basedpyright
+
+(use-package lsp-ui
+  :ensure t
+  :hook (lsp-mode . lsp-ui-mode))
 
 (use-package corfu
   :ensure t
   :hook
-  (after-init . global-corfu-mode))
+  (after-init . global-corfu-mode)
+  :config
+  (setq corfu-cycle t)
+  :bind ( :map corfu-map
+	  ("C-j" . corfu-next)
+          ("C-k" . corfu-previous)))
 
 (use-package projectile
   :ensure t
@@ -428,8 +467,7 @@ If pyproject.toml or .git/ is found first, do nothing."
 (use-package rg
   :ensure t
   :config
-  (rg-enable-menu)
-  (setq rg-keymap-prefix "C-c f g"))
+  (rg-enable-menu))
 
 (use-package jinx
   :ensure t
@@ -489,14 +527,14 @@ If pyproject.toml or .git/ is found first, do nothing."
          ([remap upcase-region] . crux-upcase-region)
          ([remap downcase-region] . crux-downcase-region)
          ("s-j" . crux-top-join-line)
+	 ("s-l" . crux-duplicate-current-line-or-region)
+	 ("s-k" . crux-smart-kill-line)
          ("s-n" . crux-cleanup-buffer-or-region)
-         ("s-d" . crux-duplicate-current-line-or-region)
-         ("C-k" . crux-smart-kill-line)
-         ("S-<return>" . crux-smart-open-line)
-         ("C-S-<return>" . crux-smart-open-line-above)
-         ("s-o" . crux-open-with)
+         ("s-m" . crux-smart-open-line)
+         ("s-M-m" . crux-smart-open-line-above)
+	 ("s-o" . crux-open-with)
          ("s-u" . crux-view-url)
-         ("s-k" . crux-kill-other-buffers))
+         ("s-M-k" . crux-kill-other-buffers))
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
@@ -506,16 +544,9 @@ If pyproject.toml or .git/ is found first, do nothing."
   :ensure t
   :hook (after-init . global-flycheck-mode)
   :config
-  (setq flycheck-check-syntax-automatically nil)
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
   (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
-
-(use-package flycheck-eglot
-  :ensure t
-  :after (flycheck eglot)
-  :config
-  (global-flycheck-eglot-mode 1))
 
 (use-package mise
   :ensure t
