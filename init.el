@@ -241,7 +241,8 @@ If pyproject.toml or .git/ is found first, do nothing."
 (add-hook 'compilation-filter-hook #'cr/compilation-filter-hook)
 
 (setq treesit-language-source-alist
-      '((c . ("https://github.com/tree-sitter/tree-sitter-c"))
+      '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+	(c . ("https://github.com/tree-sitter/tree-sitter-c"))
         (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
         (html . ("https://github.com/tree-sitter/tree-sitter-html"))
         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
@@ -253,8 +254,7 @@ If pyproject.toml or .git/ is found first, do nothing."
         (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
         (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
         (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))
-	(bash . ("https://github.com/tree-sitter/tree-sitter-bash"))))
+        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))))
 
 (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
 (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
@@ -287,7 +287,11 @@ If pyproject.toml or .git/ is found first, do nothing."
   :ensure t
   :delight
   :hook (after-init . apheleia-global-mode)
-  :config (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
+  :config
+  (setf (alist-get 'python-mode apheleia-mode-alist)
+	'(ruff-isort ruff))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+	'(ruff-isort ruff)))
 
 (use-package eat
   :ensure t)
@@ -348,7 +352,8 @@ If pyproject.toml or .git/ is found first, do nothing."
   :ensure t
   :hook ((lsp-mode . lsp-enable-which-key-integration)
 	 (lsp-completion-mode . cr/lsp-mode-setup-completion)
-	 (python-ts-mode . (lambda () (require 'lsp-pyright) (lsp-deferred))))
+	 (python-ts-mode . (lambda () (require 'lsp-pyright) (lsp-deferred)))
+	 (python-mode . (lambda () (require 'lsp-pyright) (lsp-deferred))))
   :config
   (setq lsp-keymap-prefix "C-l"
 	lsp-enable-symbol-highlighting nil
