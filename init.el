@@ -42,34 +42,6 @@
 (delight 'eldoc-mode nil "eldoc")
 (delight 'emacs-lisp-mode "Elisp" :major)
 
-(use-package pyvenv :ensure t)
-(require 'pyvenv)
-
-(defun cr/project-root-p (dir)
-  "Check if DIR is a project root (has pyproject.toml or .git)."
-  (or (file-exists-p (expand-file-name "pyproject.toml" dir))
-      (file-directory-p (expand-file-name ".git" dir))))
-
-(defun cr/find-venv-dir (start-dir)
-  "Find the .venv directory by scanning upwards from START-DIR."
-  (let ((dir start-dir)
-        (venv-dir nil))
-    (while (and dir (not (string= dir "/")) (not venv-dir))
-      (let ((candidate (expand-file-name ".venv" dir)))
-        (if (file-directory-p candidate)
-	    (setq venv-dir candidate)
-          (if (cr/project-root-p dir)
-              (setq dir nil)
-	    (setq dir (file-name-directory (directory-file-name dir)))))))
-    venv-dir))
-
-(defun cr/venv ()
-  "Scan upwards from current directory for .venv/."
-  (interactive)
-  (let ((venv-dir (cr/find-venv-dir (expand-file-name default-directory))))
-    (when venv-dir
-      (pyvenv-activate venv-dir))))
-
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -243,10 +215,11 @@
 (use-package eglot
   :ensure nil
   :hook (
-	 ;; Python
-	 (python-ts-mode . (lambda ()
-			     (eglot-ensure)
-			     (global-flycheck-eglot-mode)))
+
+	 ;; ;; Python
+	 ;; (python-ts-mode . (lambda ()
+	 ;; 		     (eglot-ensure)))
+
 	 )
   :config
   (setq eglot-events-buffer-config '(:size 0 :format lisp)
@@ -276,6 +249,7 @@
 	 (python-ts-mode . (lambda ()
                              (require 'lsp-pyright)
                              (lsp-deferred)))
+
 	 )
   :config
   (setq lsp-keymap-prefix "C-l")
@@ -291,9 +265,9 @@
   (setq lsp-modeline-diagnostics-enable nil)
   (setq lsp-signature-auto-activate nil)
   (setq lsp-signature-render-documentation nil)
-  (setq lsp-completion-provider :none)
-  (setq lsp-completion-show-detail nil)
-  (setq lsp-completion-show-kind nil))
+  (setq lsp-completion-provider :none))
+;; (setq lsp-completion-show-detail nil)
+;; (setq lsp-completion-show-kind nil))
 
 (use-package lsp-ui
   :ensure t
@@ -314,7 +288,33 @@
   (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
 
 (use-package flycheck-eglot
-  :ensure t)
+  :ensure t
+  :hook (eglot-managed . global-flycheck-eglot-mode))
+
+(use-package pyvenv
+  :ensure t
+  :init
+  (defun cr/venv ()
+    "Scan upwards from current directory for .venv/."
+    (interactive)
+    (let ((dir (expand-file-name default-directory))
+          (venv-dir nil)
+          (stopped-dir nil))
+      (while (and dir (not (string= dir "/")) (not venv-dir))
+	(let ((candidate (expand-file-name ".venv" dir)))
+          (if (file-directory-p candidate)
+	      (setq venv-dir candidate)
+            (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
+                    (file-directory-p (expand-file-name ".git" dir)))
+		(progn (setq stopped-dir dir) (setq dir nil))
+	      (setq dir (file-name-directory (directory-file-name dir)))))))
+      (if venv-dir
+          (progn
+            (message "Venv found at %s, activating..." venv-dir)
+            (pyvenv-activate venv-dir))
+        (message "No venv found. Search started from %s and stopped at %s"
+                 default-directory
+                 (or stopped-dir "/"))))))
 
 (use-package beacon
   :ensure t
