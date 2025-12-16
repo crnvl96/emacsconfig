@@ -242,9 +242,12 @@
 
 (use-package eglot
   :ensure nil
-  :hook (python-ts-mode . (lambda ()
-			    (eglot-ensure)
-			    (global-flycheck-eglot-mode)))
+  :hook (
+	 ;; Python
+	 (python-ts-mode . (lambda ()
+			     (eglot-ensure)
+			     (global-flycheck-eglot-mode)))
+	 )
   :config
   (setq eglot-events-buffer-config '(:size 0 :format lisp)
 	eglot-ignored-server-capabilities '( :signatureHelpProvider
@@ -268,25 +271,29 @@
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
   :hook ((lsp-mode . lsp-enable-which-key-integration)
 	 (lsp-completion-mode . my/lsp-mode-setup-completion)
-	 ;; (python-ts-mode . (lambda ()
-         ;;                     (require 'lsp-pyright)
-         ;;                     (lsp-deferred)))
+
+	 ;; Python
+	 (python-ts-mode . (lambda ()
+                             (require 'lsp-pyright)
+                             (lsp-deferred)))
 	 )
   :config
   (setq lsp-keymap-prefix "C-l")
   (setq lsp-enable-file-watchers nil)
+  (setq lsp-completion-provider :none)
   (setq lsp-enable-symbol-highlighting nil)
   (setq lsp-ui-doc-enable nil)
   (setq lsp-lens-enable nil)
-  (setq lsp-ui-sideline-enable nil)
   (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-ui-sideline-enable nil)
   (setq lsp-modeline-code-actions-enable nil)
-  (setq lsp-diagnostics-provider :none)
   (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-modeline-diagnostics-enable nil)
   (setq lsp-signature-auto-activate nil)
   (setq lsp-signature-render-documentation nil)
-  (setq lsp-modeline-diagnostics-enable nil)
-  (setq lsp-completion-provider :none))
+  (setq lsp-completion-provider :none)
+  (setq lsp-completion-show-detail nil)
+  (setq lsp-completion-show-kind nil))
 
 (use-package lsp-ui
   :ensure t
