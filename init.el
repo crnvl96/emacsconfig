@@ -42,6 +42,34 @@
 (delight 'eldoc-mode nil "eldoc")
 (delight 'emacs-lisp-mode "Elisp" :major)
 
+(use-package pyvenv :ensure t)
+(require 'pyvenv)
+
+(defun cr/project-root-p (dir)
+  "Check if DIR is a project root (has pyproject.toml or .git)."
+  (or (file-exists-p (expand-file-name "pyproject.toml" dir))
+      (file-directory-p (expand-file-name ".git" dir))))
+
+(defun cr/find-venv-dir (start-dir)
+  "Find the .venv directory by scanning upwards from START-DIR."
+  (let ((dir start-dir)
+        (venv-dir nil))
+    (while (and dir (not (string= dir "/")) (not venv-dir))
+      (let ((candidate (expand-file-name ".venv" dir)))
+        (if (file-directory-p candidate)
+	    (setq venv-dir candidate)
+          (if (cr/project-root-p dir)
+              (setq dir nil)
+	    (setq dir (file-name-directory (directory-file-name dir)))))))
+    venv-dir))
+
+(defun cr/venv ()
+  "Scan upwards from current directory for .venv/."
+  (interactive)
+  (let ((venv-dir (cr/find-venv-dir (expand-file-name default-directory))))
+    (when venv-dir
+      (pyvenv-activate venv-dir))))
+
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -212,21 +240,74 @@
       (message "`%s' parser was installed." lang)
       (sit-for 0.75))))
 
-(setq eglot-events-buffer-config '(:size 0 :format lisp)
-      eglot-ignored-server-capabilities '( :signatureHelpProvider
-					   :documentHighlightProvider
-					   :codeLensProvider
-					   :documentRangeFormattingProvider
-					   :documentOnTypeFormattingProvider
-					   :documentLinkProvider
-					   :foldingRangeProvider
-					   :inlayHintProvider)
-      eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
-(setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
-					       :python.analysis ( :autoSearchPaths t
-								  :useLibraryCodeForTypes t
-								  :diagnosticMode "openFilesOnly")))
-(add-hook 'python-ts-mode-hook #'eglot-ensure)
+(use-package eglot
+  :ensure nil
+  :hook (python-ts-mode . (lambda ()
+			    (eglot-ensure)
+			    (global-flycheck-eglot-mode)))
+  :config
+  (setq eglot-events-buffer-config '(:size 0 :format lisp)
+	eglot-ignored-server-capabilities '( :signatureHelpProvider
+					     :documentHighlightProvider
+					     :codeLensProvider
+					     :documentRangeFormattingProvider
+					     :documentOnTypeFormattingProvider
+					     :documentLinkProvider
+					     :foldingRangeProvider
+					     :inlayHintProvider)
+	eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
+  (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
+						 :python.analysis ( :autoSearchPaths t
+								    :useLibraryCodeForTypes t
+								    :diagnosticMode "openFilesOnly"))))
+
+(use-package lsp-mode
+  :ensure t
+  :init
+  (defun my/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
+  :hook ((lsp-mode . lsp-enable-which-key-integration)
+	 (lsp-completion-mode . my/lsp-mode-setup-completion)
+	 ;; (python-ts-mode . (lambda ()
+         ;;                     (require 'lsp-pyright)
+         ;;                     (lsp-deferred)))
+	 )
+  :config
+  (setq lsp-keymap-prefix "C-l")
+  (setq lsp-enable-file-watchers nil)
+  (setq lsp-enable-symbol-highlighting nil)
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-lens-enable nil)
+  (setq lsp-ui-sideline-enable nil)
+  (setq lsp-headerline-breadcrumb-enable nil)
+  (setq lsp-modeline-code-actions-enable nil)
+  (setq lsp-diagnostics-provider :none)
+  (setq lsp-eldoc-enable-hover nil)
+  (setq lsp-signature-auto-activate nil)
+  (setq lsp-signature-render-documentation nil)
+  (setq lsp-modeline-diagnostics-enable nil)
+  (setq lsp-completion-provider :none))
+
+(use-package lsp-ui
+  :ensure t
+  :hook (lsp-mode . lsp-ui-mode))
+
+(use-package lsp-pyright
+  :ensure t
+  :config
+  (setq lsp-pyright-langserver-command "pyright"))
+
+(use-package flycheck
+  :ensure t
+  :hook
+  (after-init . global-flycheck-mode)
+  :config
+  (define-key flycheck-mode-map flycheck-keymap-prefix nil)
+  (setq flycheck-keymap-prefix (kbd "C-c c"))
+  (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
+
+(use-package flycheck-eglot
+  :ensure t)
 
 (use-package beacon
   :ensure t
@@ -343,34 +424,6 @@
   :ensure t
   :bind (("M-$" . jinx-correct)
 	 ("C-M-$" . jinx-languages)))
-
-(use-package pyvenv
-  :ensure t
-  :init
-  (defun cr/project-root-p (dir)
-    "Check if DIR is a project root (has pyproject.toml or .git)."
-    (or (file-exists-p (expand-file-name "pyproject.toml" dir))
-        (file-directory-p (expand-file-name ".git" dir))))
-
-  (defun cr/find-venv-dir (start-dir)
-    "Find the .venv directory by scanning upwards from START-DIR."
-    (let ((dir start-dir)
-          (venv-dir nil))
-      (while (and dir (not (string= dir "/")) (not venv-dir))
-        (let ((candidate (expand-file-name ".venv" dir)))
-          (if (file-directory-p candidate)
-              (setq venv-dir candidate)
-            (if (cr/project-root-p dir)
-                (setq dir nil)
-              (setq dir (file-name-directory (directory-file-name dir)))))))
-      venv-dir))
-
-  (defun cr/venv ()
-    "Scan upwards from current directory for .venv/"
-    (interactive)
-    (let ((venv-dir (cr/find-venv-dir (expand-file-name default-directory))))
-      (when venv-dir
-        (pyvenv-activate venv-dir)))))
 
 (use-package exec-path-from-shell
   :ensure t
