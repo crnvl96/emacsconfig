@@ -64,7 +64,7 @@
 
 (let ((mono-spaced-font "Iosevka")
       (proportionately-spaced-font "Iosevka Aile"))
-  (set-face-attribute 'default nil :family mono-spaced-font :height 200)
+  (set-face-attribute 'default nil :family mono-spaced-font :height 160)
   (set-face-attribute 'fixed-pitch nil :family mono-spaced-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family proportionately-spaced-font :height 1.0))
 
@@ -216,9 +216,9 @@
   :ensure nil
   :hook (
 
-	 ;; ;; Python
-	 ;; (python-ts-mode . (lambda ()
-	 ;; 		     (eglot-ensure)))
+	 ;; Python
+	 (python-ts-mode . (lambda ()
+			     (eglot-ensure)))
 
 	 )
   :config
@@ -231,7 +231,7 @@
 					     :documentLinkProvider
 					     :foldingRangeProvider
 					     :inlayHintProvider)
-	eglot-server-programs '( (python-ts-mode . ("~/.local/bin/pyright-langserver" "--stdio"))))
+	eglot-server-programs '( (python-ts-mode . ("pyright-langserver" "--stdio"))))
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
 						 :python.analysis ( :autoSearchPaths t
 								    :useLibraryCodeForTypes t
@@ -245,10 +245,10 @@
   :hook ((lsp-mode . lsp-enable-which-key-integration)
 	 (lsp-completion-mode . my/lsp-mode-setup-completion)
 
-	 ;; Python
-	 (python-ts-mode . (lambda ()
-                             (require 'lsp-pyright)
-                             (lsp-deferred)))
+	 ;; ;; Python
+	 ;; (python-ts-mode . (lambda ()
+         ;;                     (require 'lsp-pyright)
+         ;;                     (lsp-deferred)))
 
 	 )
   :config
@@ -266,8 +266,6 @@
   (setq lsp-signature-auto-activate nil)
   (setq lsp-signature-render-documentation nil)
   (setq lsp-completion-provider :none))
-;; (setq lsp-completion-show-detail nil)
-;; (setq lsp-completion-show-kind nil))
 
 (use-package lsp-ui
   :ensure t
@@ -280,8 +278,7 @@
 
 (use-package flycheck
   :ensure t
-  :hook
-  (after-init . global-flycheck-mode)
+  :hook (after-init . global-flycheck-mode)
   :config
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
@@ -289,7 +286,8 @@
 
 (use-package flycheck-eglot
   :ensure t
-  :hook (eglot-managed . global-flycheck-eglot-mode))
+  :config
+  (global-flycheck-eglot-mode 1))
 
 (use-package pyvenv
   :ensure t
