@@ -332,8 +332,7 @@
   :hook ((emacs-lisp-mode . apheleia-mode)
 	 (python-ts-mode . apheleia-mode))
   :config
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
-	'(ruff-isort ruff)))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 (use-package eat
   :ensure t)
