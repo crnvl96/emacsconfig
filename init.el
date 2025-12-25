@@ -56,9 +56,6 @@
 (winner-mode +1)
 (window-divider-mode +1)
 
-(which-key-mode +1)
-(delight 'which-key-mode nil "which-key")
-
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 
@@ -242,8 +239,7 @@
   :init
   (defun my/lsp-mode-setup-completion ()
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
-  :hook ((lsp-mode . lsp-enable-which-key-integration)
-	 (lsp-completion-mode . my/lsp-mode-setup-completion)
+  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
 
 	 ;; ;; Python
 	 ;; (python-ts-mode . (lambda ()
@@ -371,6 +367,8 @@
   :ensure t
   :hook (after-init . vertico-mode)
   :config
+  (vertico-multiform-mode)
+  (add-to-list 'vertico-multiform-categories '(embark-keybinding grid))
   (setq vertico-cycle t)
   :bind ( :map vertico-map
 	  ("<backspace>" . vertico-directory-delete-char)
@@ -418,6 +416,30 @@
 	 ("C-c f k" . consult-flymake)
 	 ("C-c f l" . consult-line)
 	 ("C-c f ." . consult-goto-line)))
+
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :ensure t
+  :demand t
+  :bind
+  (("C-." . embark-act)
+   ("C-;" . embark-dwim)
+   ("C-h B" . embark-bindings))
+  :config
+  (setq prefix-help-command #'embark-prefix-help-command)
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+(use-package embark-consult
+  :ensure t
+  :after (embark consult)
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package rg
   :ensure t
