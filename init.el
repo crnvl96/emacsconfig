@@ -59,9 +59,9 @@
 (mapc #'disable-theme custom-enabled-themes)
 (load-theme 'modus-vivendi t)
 
-(let ((mono-spaced-font "Iosevka")
-      (proportionately-spaced-font "Iosevka Aile"))
-  (set-face-attribute 'default nil :family mono-spaced-font :height 160)
+(let ((mono-spaced-font "IosevkaNerdFontMono")
+      (proportionately-spaced-font "IosevkaNerdFontMono"))
+  (set-face-attribute 'default nil :family mono-spaced-font :height 140)
   (set-face-attribute 'fixed-pitch nil :family mono-spaced-font :height 1.0)
   (set-face-attribute 'variable-pitch nil :family proportionately-spaced-font :height 1.0))
 
@@ -378,9 +378,11 @@
 (use-package orderless
   :ensure t
   :init
-  (setq completion-styles '(orderless partial-completion basic))
+  (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
-  (setq completion-category-overrides nil))
+  (setq completion-category-overrides '( (file (styles partial-completion))
+					 (embark-keybinding (styles flex))))
+  (setq completion-pcm-leading-wildcard t))
 
 (use-package corfu
   :ensure t
