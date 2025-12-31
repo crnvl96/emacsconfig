@@ -234,43 +234,39 @@
 								    :useLibraryCodeForTypes t
 								    :diagnosticMode "openFilesOnly"))))
 
-(use-package lsp-mode
-  :ensure t
-  :init
-  (defun my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
-  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :init
+;;   (defun my/lsp-mode-setup-completion ()
+;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
+;;   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
+;; 	 (python-ts-mode . (lambda ()
+;;                              (require 'lsp-pyright)
+;;                              (lsp-deferred))))
+;;   :config
+;;   (setq lsp-keymap-prefix "C-l")
+;;   (setq lsp-enable-file-watchers nil)
+;;   (setq lsp-completion-provider :none)
+;;   (setq lsp-enable-symbol-highlighting nil)
+;;   (setq lsp-ui-doc-enable nil)
+;;   (setq lsp-lens-enable nil)
+;;   (setq lsp-headerline-breadcrumb-enable nil)
+;;   (setq lsp-ui-sideline-enable nil)
+;;   (setq lsp-modeline-code-actions-enable nil)
+;;   (setq lsp-eldoc-enable-hover nil)
+;;   (setq lsp-modeline-diagnostics-enable nil)
+;;   (setq lsp-signature-auto-activate nil)
+;;   (setq lsp-signature-render-documentation nil)
+;;   (setq lsp-completion-provider :none))
 
-	 ;; ;; Python
-	 ;; (python-ts-mode . (lambda ()
-         ;;                     (require 'lsp-pyright)
-         ;;                     (lsp-deferred)))
+;; (use-package lsp-ui
+;;   :ensure t
+;;   :hook (lsp-mode . lsp-ui-mode))
 
-	 )
-  :config
-  (setq lsp-keymap-prefix "C-l")
-  (setq lsp-enable-file-watchers nil)
-  (setq lsp-completion-provider :none)
-  (setq lsp-enable-symbol-highlighting nil)
-  (setq lsp-ui-doc-enable nil)
-  (setq lsp-lens-enable nil)
-  (setq lsp-headerline-breadcrumb-enable nil)
-  (setq lsp-ui-sideline-enable nil)
-  (setq lsp-modeline-code-actions-enable nil)
-  (setq lsp-eldoc-enable-hover nil)
-  (setq lsp-modeline-diagnostics-enable nil)
-  (setq lsp-signature-auto-activate nil)
-  (setq lsp-signature-render-documentation nil)
-  (setq lsp-completion-provider :none))
-
-(use-package lsp-ui
-  :ensure t
-  :hook (lsp-mode . lsp-ui-mode))
-
-(use-package lsp-pyright
-  :ensure t
-  :config
-  (setq lsp-pyright-langserver-command "pyright"))
+;; (use-package lsp-pyright
+;;   :ensure t
+;;   :config
+;;   (setq lsp-pyright-langserver-command "pyright"))
 
 (use-package flycheck
   :ensure t
