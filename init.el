@@ -56,11 +56,11 @@
 (winner-mode +1)
 (window-divider-mode +1)
 
-(let ((mono-spaced-font "IosevkaNerdFontMono")
-      (proportionately-spaced-font "IosevkaNerdFontMono"))
-  (set-face-attribute 'default nil :family mono-spaced-font :height 140)
-  (set-face-attribute 'fixed-pitch nil :family mono-spaced-font :height 1.0)
-  (set-face-attribute 'variable-pitch nil :family proportionately-spaced-font :height 1.0))
+(let ((mono-spaced-font "GoMonoNerdFontMono")
+      (proportionately-spaced-font "GoMonoNerdFontPropo"))
+  (set-face-attribute 'default nil :weight 'regular :family mono-spaced-font :height 140)
+  (set-face-attribute 'fixed-pitch nil :weight 'regular :family mono-spaced-font :height 1.0)
+  (set-face-attribute 'variable-pitch nil :weight 'regular :family proportionately-spaced-font :height 1.0))
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
