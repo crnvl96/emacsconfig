@@ -56,9 +56,6 @@
 (winner-mode +1)
 (window-divider-mode +1)
 
-(mapc #'disable-theme custom-enabled-themes)
-(load-theme 'modus-vivendi t)
-
 (let ((mono-spaced-font "IosevkaNerdFontMono")
       (proportionately-spaced-font "IosevkaNerdFontMono"))
   (set-face-attribute 'default nil :family mono-spaced-font :height 140)
@@ -180,44 +177,55 @@
    (ansi-color-apply-on-region
     compilation-filter-start (point-max))))
 
-(setq treesit-language-source-alist
-      '((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-        (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
-        (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-        (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-        (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
-        (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
-        (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-        (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
-        (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
-        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-        (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))))
+(use-package treesit
+  :ensure nil
+  :init
+  (defun cr/treesit-install-all-languages ()
+    "Install all languages specified by `treesit-language-source-alist'."
+    (interactive)
+    (let ((languages (mapcar 'car treesit-language-source-alist)))
+      (dolist (lang languages)
+	(treesit-install-language-grammar lang)
+	(message "`%s' parser was installed." lang)
+	(sit-for 0.75))))
+  :config
+  (setq treesit-language-source-alist
+	'((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
+          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
+          (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
+          (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+          (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
+          (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
+          (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+          (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
+          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
+          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
+          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))))
+  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.jsonc?\\'" . json-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.m?jsx?\\'" . js-ts-mode))
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . js-ts-mode)))
 
-(add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.jsonc?\\'" . json-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.m?jsx?\\'" . js-ts-mode))
-(add-to-list 'auto-mode-alist '("\\.tsx?\\'" . js-ts-mode))
-
-(defun cr/treesit-install-all-languages ()
-  "Install all languages specified by `treesit-language-source-alist'."
-  (interactive)
-  (let ((languages (mapcar 'car treesit-language-source-alist)))
-    (dolist (lang languages)
-      (treesit-install-language-grammar lang)
-      (message "`%s' parser was installed." lang)
-      (sit-for 0.75))))
+(use-package ef-themes
+  :ensure t
+  :init
+  (ef-themes-take-over-modus-themes-mode 1)
+  :bind
+  (("<f5>" . modus-themes-rotate)
+   ("C-<f5>" . modus-themes-select)
+   ("M-<f5>" . modus-themes-load-random))
+  :config
+  (setq modus-themes-mixed-fonts t)
+  (setq modus-themes-italic-constructs t)
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme 'ef-elea-dark t))
 
 (use-package eglot
   :ensure nil
-  :hook (
-
-	 ;; Python
-	 (python-ts-mode . (lambda ()
-			     (eglot-ensure)))
-
-	 )
+  :hook ((python-ts-mode . (lambda ()
+			     (eglot-ensure))))
   :config
   (setq eglot-events-buffer-config '(:size 0 :format lisp)
 	eglot-ignored-server-capabilities '( :signatureHelpProvider
@@ -233,41 +241,6 @@
 						 :python.analysis ( :autoSearchPaths t
 								    :useLibraryCodeForTypes t
 								    :diagnosticMode "openFilesOnly"))))
-
-;; (use-package lsp-mode
-;;   :ensure t
-;;   :init
-;;   (defun my/lsp-mode-setup-completion ()
-;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults)) '(flex)))
-;;   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
-;; 	 (python-ts-mode . (lambda ()
-;;                              (require 'lsp-pyright)
-;;                              (lsp-deferred))))
-;;   :config
-;;   (setq lsp-keymap-prefix "C-l")
-;;   (setq lsp-enable-file-watchers nil)
-;;   (setq lsp-completion-provider :none)
-;;   (setq lsp-enable-symbol-highlighting nil)
-;;   (setq lsp-ui-doc-enable nil)
-;;   (setq lsp-lens-enable nil)
-;;   (setq lsp-headerline-breadcrumb-enable nil)
-;;   (setq lsp-ui-sideline-enable nil)
-;;   (setq lsp-modeline-code-actions-enable nil)
-;;   (setq lsp-eldoc-enable-hover nil)
-;;   (setq lsp-modeline-diagnostics-enable nil)
-;;   (setq lsp-signature-auto-activate nil)
-;;   (setq lsp-signature-render-documentation nil)
-;;   (setq lsp-completion-provider :none))
-
-;; (use-package lsp-ui
-;;   :ensure t
-;;   :hook (lsp-mode . lsp-ui-mode))
-
-;; (use-package lsp-pyright
-;;   :ensure t
-;;   :config
-;;   (setq lsp-pyright-langserver-command "pyright"))
-
 (use-package flycheck
   :ensure t
   :hook (after-init . global-flycheck-mode)
@@ -359,6 +332,12 @@
   :ensure t
   :hook (after-init . marginalia-mode))
 
+(use-package anzu
+  :ensure t
+  :hook (after-init . global-anzu-mode)
+  :bind (("M-%" . anzu-query-replace)
+         ("C-M-%" . anzu-query-replace-regexp)))
+
 (use-package vertico
   :ensure t
   :hook (after-init . vertico-mode)
@@ -393,7 +372,8 @@
   :config
   (setq projectile-project-search-path '( "~/Developer/work/"
 					  "~/Developer/personal/"
-					  "~/.emacs.d/"))
+					  "~/.emacs.d/"
+					  "~/.config/nvim"))
   (setq projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map)
   :bind ( :map projectile-mode-map
