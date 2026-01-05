@@ -86,6 +86,7 @@
 (setq package-install-upgrade-built-in t)
 (setq completion-ignore-case t)
 (setq tab-always-indent 'complete)
+(setq make-backup-files nil)
 
 (setq whitespace-style '(face tabs empty trailing))
 (global-whitespace-mode +1)
