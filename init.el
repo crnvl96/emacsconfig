@@ -56,11 +56,20 @@
 (winner-mode +1)
 (window-divider-mode +1)
 
-(let ((mono-spaced-font "HasklugNerdFontMono")
-      (proportionately-spaced-font "HasklugNerdFontPropo"))
-  (set-face-attribute 'default nil :weight 'regular :family mono-spaced-font :height 140)
-  (set-face-attribute 'fixed-pitch nil :weight 'regular :family mono-spaced-font :height 1.0)
-  (set-face-attribute 'variable-pitch nil :weight 'regular :family proportionately-spaced-font :height 1.0))
+(let ((mono-spaced-font "HackNerdFontMono")
+      (proportionately-spaced-font "HackNerdFontPropo"))
+  (set-face-attribute 'default nil
+		      :weight 'regular
+		      :family mono-spaced-font
+		      :height 110)
+  (set-face-attribute 'fixed-pitch nil
+		      :weight 'regular
+		      :family mono-spaced-font
+		      :height 1.0)
+  (set-face-attribute 'variable-pitch nil
+		      :weight 'regular
+		      :family proportionately-spaced-font
+		      :height 1.0))
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
@@ -70,7 +79,8 @@
 (global-display-fill-column-indicator-mode 1)
 
 (custom-set-faces
- '(fill-column-indicator-face ((t (:foreground "gray" :background nil)))))
+ '(fill-column-indicator-face ((t ( :foreground "gray"
+				    :background nil)))))
 
 (setq-default truncate-lines t)
 (setq-default display-line-numbers-width 5)
@@ -279,12 +289,6 @@
 (use-package eat
   :ensure t)
 
-(use-package zop-to-char
-  :ensure t
-  :bind
-  (("M-z" . zop-up-to-char)
-   ("M-Z" . zop-to-char)))
-
 (use-package ace-window
   :ensure t
   :config (setq aw-keys '(?h ?j ?k ?l))
@@ -294,7 +298,7 @@
 (use-package avy
   :ensure t
   :config (setq avy-background t)
-  :bind ("M-e" . avy-goto-char-timer))
+  :bind ("M-e" . avy-goto-char-2))
 
 (use-package multiple-cursors
   :ensure t
@@ -311,6 +315,7 @@
 
 (use-package anzu
   :ensure t
+  :delight
   :hook (after-init . global-anzu-mode)
   :bind (("M-%" . anzu-query-replace)
          ("C-M-%" . anzu-query-replace-regexp)))
@@ -387,7 +392,7 @@
   :config
   (setq prefix-help-command #'embark-prefix-help-command)
   (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
 
@@ -458,7 +463,7 @@
 	 ([remap upcase-region] . crux-upcase-region)
 	 ([remap downcase-region] . crux-downcase-region)
 	 ("s-j" . crux-top-join-line)
-	 ("s-l" . crux-duplicate-current-line-or-region)
+	 ("s-d" . crux-duplicate-current-line-or-region)
 	 ("C-k" . crux-smart-kill-line)
 	 ("s-n" . crux-cleanup-buffer-or-region)
 	 ("s-m" . crux-smart-open-line)
