@@ -224,8 +224,6 @@
 
 (use-package eglot
   :ensure nil
-  :hook ((python-ts-mode . (lambda ()
-			     (eglot-ensure))))
   :config
   (setq eglot-events-buffer-config '(:size 0 :format lisp)
 	eglot-ignored-server-capabilities '( :signatureHelpProvider
@@ -255,29 +253,7 @@
   (global-flycheck-eglot-mode 1))
 
 (use-package pyvenv
-  :ensure t
-  :init
-  (defun cr/venv ()
-    "Scan upwards from current directory for .venv/."
-    (interactive)
-    (let ((dir (expand-file-name default-directory))
-          (venv-dir nil)
-          (stopped-dir nil))
-      (while (and dir (not (string= dir "/")) (not venv-dir))
-	(let ((candidate (expand-file-name ".venv" dir)))
-          (if (file-directory-p candidate)
-	      (setq venv-dir candidate)
-            (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
-                    (file-directory-p (expand-file-name ".git" dir)))
-		(progn (setq stopped-dir dir) (setq dir nil))
-	      (setq dir (file-name-directory (directory-file-name dir)))))))
-      (if venv-dir
-          (progn
-            (message "Venv found at %s, activating..." venv-dir)
-            (pyvenv-activate venv-dir))
-        (message "No venv found. Search started from %s and stopped at %s"
-                 default-directory
-                 (or stopped-dir "/"))))))
+  :ensure t)
 
 (use-package beacon
   :ensure t
