@@ -113,6 +113,8 @@
 (add-to-list 'initial-frame-alist
 	     '(fullscreen . maximized))
 
+(add-to-list 'default-frame-alist '(undecorated . t))
+
 (add-to-list 'display-buffer-alist
 	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
 	       (display-buffer-no-window)
