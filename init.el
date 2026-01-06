@@ -289,6 +289,9 @@
 (use-package eat
   :ensure t)
 
+(use-package vterm
+  :ensure t)
+
 (use-package ace-window
   :ensure t
   :config (setq aw-keys '(?h ?j ?k ?l))
