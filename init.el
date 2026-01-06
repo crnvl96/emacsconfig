@@ -47,8 +47,6 @@
 (scroll-bar-mode -1)
 (blink-cursor-mode -1)
 (global-display-line-numbers-mode +1)
-(global-auto-revert-mode +1)
-(setq auto-revert-interval 2)
 (save-place-mode +1)
 (savehist-mode +1)
 (recentf-mode +1)
@@ -98,6 +96,8 @@
 (setq completion-ignore-case t)
 (setq tab-always-indent 'complete)
 (setq make-backup-files nil)
+(setq visible-bell nil)
+(setq ring-bell-function #'ignore)
 
 (setq whitespace-style '(face tabs empty trailing))
 (global-whitespace-mode +1)
@@ -182,12 +182,17 @@
 	 ((> (minibuffer-depth) 0) (abort-recursive-edit))
 	 (t (keyboard-quit)))))
 
-(require 'ansi-color)
-(add-hook
- 'compilation-filter-hook
- (lambda ()
-   (ansi-color-apply-on-region
-    compilation-filter-start (point-max))))
+(use-package ansi-color
+  :ensure nil
+  :hook (compilation-filter . (lambda ()
+				(ansi-color-apply-on-region
+				 compilation-filter-start (point-max)))))
+
+(use-package auto-revert
+  :ensure nil
+  :hook (after-init . global-auto-revert-mode)
+  :config
+  (setq auto-revert-interval 2))
 
 (use-package treesit
   :ensure nil
@@ -253,7 +258,7 @@
 								    :diagnosticMode "openFilesOnly"))))
 (use-package flycheck
   :ensure t
-  :hook (after-init . global-flycheck-mode)
+  ;; :hook (after-init . global-flycheck-mode)
   :config
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
@@ -302,7 +307,7 @@
 (use-package avy
   :ensure t
   :config (setq avy-background t)
-  :bind ("M-e" . avy-goto-char-2))
+  :bind ("M-e" . avy-goto-char-timer))
 
 (use-package multiple-cursors
   :ensure t
