@@ -6,14 +6,41 @@
 
 ;;; Code:
 
+(setq gc-cons-threshold most-positive-fixnum)
+(setq gc-cons-percentage 0.6)
+(setq auto-revert-interval 2)
+(setq whitespace-style '(face tabs empty trailing))
+(setq tab-width 4)
+(setq inhibit-splash-screen 1)
+(setq read-process-output-max (* 4 1024 1024))
+(setq custom-file (expand-file-name "custom.el" cr-user-directory))
+(setq scroll-margin 0)
+(setq hscroll-margin 24)
+(setq scroll-preserve-screen-position 1)
+(setq native-comp-async-query-on-exit t)
+(setq package-install-upgrade-built-in t)
+(setq completion-ignore-case t)
+(setq tab-always-indent 'complete)
+(setq make-backup-files nil)
+(setq visible-bell nil)
+(setq ring-bell-function #'ignore)
+
+(setq-default fill-column 88)
+(setq-default truncate-lines t)
+(setq-default display-line-numbers-width 5)
+
+(unless (and
+	 (eq window-system 'mac)
+	 (bound-and-true-p mac-carbon-version-string))
+  (setq pixel-scroll-precision-use-momentum nil)
+  (pixel-scroll-precision-mode 1))
+
+(if (boundp 'use-short-answers)
+    (setq use-short-answers t)
+  (advice-add 'yes-or-no-p :override #'y-or-n-p))
+
 (require 'package)
 (package-initialize)
-
-(when (< emacs-major-version 29)
-  (unless (package-installed-p 'use-package)
-    (unless (seq-empty-p package-archive-contents)
-      (package-refresh-contents))
-    (package-install 'use-package)))
 
 (require 'use-package)
 (setq package-archives
@@ -26,34 +53,6 @@
         ("gnu"          . 70)
         ("nongnu"       . 60)
         ("melpa-stable" . 50)))
-
-(setq gc-cons-threshold most-positive-fixnum)
-(setq gc-cons-percentage 0.6)
-
-(add-hook 'after-init-hook
-          (lambda ()
-            (setq gc-cons-threshold (* 256 1024 1024)
-                  gc-cons-percentage 0.1)
-            (message "Garbage collection thresholds reset after init.")))
-
-(use-package delight :ensure t)
-(require 'delight)
-
-(delight 'eldoc-mode nil "eldoc")
-(delight 'emacs-lisp-mode "Elisp" :major)
-
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(blink-cursor-mode -1)
-(global-display-line-numbers-mode +1)
-(save-place-mode +1)
-(savehist-mode +1)
-(recentf-mode +1)
-(display-time-mode +1)
-(delete-selection-mode +1)
-(winner-mode +1)
-(window-divider-mode +1)
 
 (let ((mono-spaced-font "HackNerdFontMono")
       (proportionately-spaced-font "HackNerdFontPropo"))
@@ -70,48 +69,13 @@
 		      :family proportionately-spaced-font
 		      :height 1.0))
 
-(if (boundp 'use-short-answers)
-    (setq use-short-answers t)
-  (advice-add 'yes-or-no-p :override #'y-or-n-p))
+(require 'ansi-color)
+(add-hook 'compilation-filter-hook (lambda ()
+				     (ansi-color-apply-on-region
+				      compilation-filter-start (point-max))))
 
-(setq-default fill-column 88)
-(global-display-fill-column-indicator-mode 1)
-
-(custom-set-faces
- '(fill-column-indicator-face ((t ( :foreground "gray"
-				    :background nil)))))
-
-(setq-default truncate-lines t)
-(setq-default display-line-numbers-width 5)
-
-(setq tab-width 4)
-(setq inhibit-splash-screen 1)
-(setq read-process-output-max (* 4 1024 1024))
-(setq custom-file (expand-file-name "custom.el" cr-user-directory))
-(setq scroll-margin 0)
-(setq hscroll-margin 24)
-(setq scroll-preserve-screen-position 1)
-(setq native-comp-async-query-on-exit t)
-(setq package-install-upgrade-built-in t)
-(setq completion-ignore-case t)
-(setq tab-always-indent 'complete)
-(setq make-backup-files nil)
-(setq visible-bell nil)
-(setq ring-bell-function #'ignore)
-
-(setq whitespace-style '(face tabs empty trailing))
-(global-whitespace-mode +1)
-(add-hook 'before-save-hook #'whitespace-cleanup)
-(delight 'whitespace-mode nil "whitespace")
-
-(unless (and
-	 (eq window-system 'mac)
-	 (bound-and-true-p mac-carbon-version-string))
-  (setq pixel-scroll-precision-use-momentum nil)
-  (pixel-scroll-precision-mode 1))
-
-(add-to-list 'initial-frame-alist
-	     '(fullscreen . maximized))
+(custom-set-faces '(fill-column-indicator-face
+		    ((t ( :foreground "gray" :background nil)))))
 
 (add-to-list 'default-frame-alist '(undecorated . t))
 
@@ -119,6 +83,25 @@
 	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
 	       (display-buffer-no-window)
 	       (allow-no-window . t)))
+
+(add-to-list 'initial-frame-alist
+	     '(fullscreen . maximized))
+
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(blink-cursor-mode -1)
+(global-display-line-numbers-mode +1)
+(save-place-mode +1)
+(savehist-mode +1)
+(recentf-mode +1)
+(display-time-mode +1)
+(delete-selection-mode +1)
+(winner-mode +1)
+(window-divider-mode +1)
+(global-display-fill-column-indicator-mode 1)
+(global-auto-revert-mode +1)
+(global-whitespace-mode +1)
 
 (keymap-global-set "C-x ;" 'comment-or-uncomment-region)
 (keymap-global-set "M-n" 'forward-paragraph)
@@ -184,18 +167,19 @@
 	 ((> (minibuffer-depth) 0) (abort-recursive-edit))
 	 (t (keyboard-quit)))))
 
-(require 'ansi-color)
-(use-package ansi-color
-  :ensure nil
-  :hook (compilation-filter . (lambda ()
-				(ansi-color-apply-on-region
-				 compilation-filter-start (point-max)))))
 
-(use-package auto-revert
-  :ensure nil
-  :hook (after-init . global-auto-revert-mode)
-  :config
-  (setq auto-revert-interval 2))
+(add-hook 'before-save-hook #'whitespace-cleanup)
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 256 1024 1024)
+                  gc-cons-percentage 0.1)
+            (message "Garbage collection thresholds reset after init.")))
+
+(use-package delight :ensure t)
+(require 'delight)
+(delight 'eldoc-mode nil "eldoc")
+(delight 'emacs-lisp-mode "Elisp" :major)
+(delight 'whitespace-mode nil "whitespace")
 
 (use-package treesit
   :ensure nil
@@ -243,10 +227,9 @@
   (load-theme 'ef-elea-dark t))
 
 (use-package pyvenv
-  :ensure t
-  :demand t)
+  :ensure t)
 
-(defun cr/eglot-if-venv ()
+(defun cr/eglot-py ()
   "Scan upwards from current directory for .venv/."
   (interactive)
   (let ((dir (expand-file-name default-directory))
@@ -310,7 +293,15 @@
   :ensure t
   :hook (after-init . spacious-padding-mode)
   :config
-  (setq spacious-padding-subtle-frame-lines t)
+  (setq spacious-padding-widths
+        '( :internal-border-width 15
+           :header-line-width 4
+           :mode-line-width 6
+           :custom-button-width 3
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width 8
+           :fringe-width 8))
   :bind ([f8] . spacious-padding-mode))
 
 (use-package apheleia
@@ -375,6 +366,7 @@
   :init
   (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
+  (setq orderless-matching-styles '(orderless-flex))
   (setq completion-category-overrides '( (file (styles partial-completion))
 					 (embark-keybinding (styles flex))))
   (setq completion-pcm-leading-wildcard t))
