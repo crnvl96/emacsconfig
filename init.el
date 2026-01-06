@@ -48,6 +48,7 @@
 (blink-cursor-mode -1)
 (global-display-line-numbers-mode +1)
 (global-auto-revert-mode +1)
+(setq auto-revert-interval 2)
 (save-place-mode +1)
 (savehist-mode +1)
 (recentf-mode +1)
