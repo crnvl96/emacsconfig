@@ -184,6 +184,7 @@
 	 ((> (minibuffer-depth) 0) (abort-recursive-edit))
 	 (t (keyboard-quit)))))
 
+(require 'ansi-color)
 (use-package ansi-color
   :ensure nil
   :hook (compilation-filter . (lambda ()
@@ -241,6 +242,35 @@
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-elea-dark t))
 
+(use-package pyvenv
+  :ensure t
+  :demand t)
+
+(defun cr/eglot-if-venv ()
+  "Scan upwards from current directory for .venv/."
+  (interactive)
+  (let ((dir (expand-file-name default-directory))
+        (venv-dir nil)
+        (stopped-dir nil))
+    (while (and dir (not (string= dir "/")) (not venv-dir))
+      (let ((candidate (expand-file-name ".venv" dir)))
+        (if (file-directory-p candidate)
+	    (setq venv-dir candidate)
+          (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
+                  (file-directory-p (expand-file-name ".git" dir)))
+	      (progn (setq stopped-dir dir) (setq dir nil))
+	    (setq dir (file-name-directory (directory-file-name dir)))))))
+    (if venv-dir
+        (progn
+          (message "Venv found at %s, activating..." venv-dir)
+          (pyvenv-activate venv-dir)
+          (when pyvenv-virtual-env
+	    (message "Venv activated. (Re)starting Eglot server...")
+            (eglot-ensure)))
+      (message "No venv found. Search started from %s and stopped at %s"
+               default-directory
+               (or stopped-dir "/")))))
+
 (use-package eglot
   :ensure nil
   :config
@@ -260,7 +290,7 @@
 								    :diagnosticMode "openFilesOnly"))))
 (use-package flycheck
   :ensure t
-  ;; :hook (after-init . global-flycheck-mode)
+  :hook (after-init . global-flycheck-mode)
   :config
   (define-key flycheck-mode-map flycheck-keymap-prefix nil)
   (setq flycheck-keymap-prefix (kbd "C-c c"))
@@ -270,9 +300,6 @@
   :ensure t
   :config
   (global-flycheck-eglot-mode 1))
-
-(use-package pyvenv
-  :ensure t)
 
 (use-package beacon
   :ensure t
