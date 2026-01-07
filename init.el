@@ -107,8 +107,6 @@
 (keymap-global-set "M-n" 'forward-paragraph)
 (keymap-global-set "M-p" 'backward-paragraph)
 (keymap-global-set "<escape>" 'keyboard-escape-quit)
-(keymap-global-set "C-d" 'delete-backward-char)
-(keymap-global-set "C-S-d" 'backward-kill-word)
 
 (keymap-global-set
  "C-x 2"
@@ -167,6 +165,13 @@
 	 ((> (minibuffer-depth) 0) (abort-recursive-edit))
 	 (t (keyboard-quit)))))
 
+(keymap-set minibuffer-local-map
+	    "C-f"
+	    (lambda ()
+	      (interactive)
+	      (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
+		(when fname
+		  (insert (file-name-nondirectory fname))))))
 
 (add-hook 'before-save-hook #'whitespace-cleanup)
 (add-hook 'after-init-hook
@@ -183,15 +188,6 @@
 
 (use-package treesit
   :ensure nil
-  :init
-  (defun cr/treesit-install-all-languages ()
-    "Install all languages specified by `treesit-language-source-alist'."
-    (interactive)
-    (let ((languages (mapcar 'car treesit-language-source-alist)))
-      (dolist (lang languages)
-	(treesit-install-language-grammar lang)
-	(message "`%s' parser was installed." lang)
-	(sit-for 0.75))))
   :config
   (setq treesit-language-source-alist
 	'((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
@@ -206,20 +202,26 @@
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
           (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
           (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))))
+
   (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.jsonc?\\'" . json-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.m?jsx?\\'" . js-ts-mode))
   (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . js-ts-mode)))
 
+(defun cr/treesit-install-all-languages ()
+  "Install all languages specified by `treesit-language-source-alist'."
+  (interactive)
+  (let ((languages (mapcar 'car treesit-language-source-alist)))
+    (dolist (lang languages)
+      (treesit-install-language-grammar lang)
+      (message "`%s' parser was installed." lang)
+      (sit-for 0.75))))
+
 (use-package ef-themes
   :ensure t
   :init
   (ef-themes-take-over-modus-themes-mode 1)
-  :bind
-  (("<f5>" . modus-themes-rotate)
-   ("C-<f5>" . modus-themes-select)
-   ("M-<f5>" . modus-themes-load-random))
   :config
   (setq modus-themes-mixed-fonts t)
   (setq modus-themes-italic-constructs t)
@@ -257,32 +259,20 @@
 (use-package eglot
   :ensure nil
   :config
-  (setq eglot-events-buffer-config '(:size 0 :format lisp)
-	eglot-ignored-server-capabilities '( :signatureHelpProvider
+  (setq eglot-events-buffer-config '(:size 0 :format lisp))
+  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
 					     :documentHighlightProvider
 					     :codeLensProvider
 					     :documentRangeFormattingProvider
 					     :documentOnTypeFormattingProvider
 					     :documentLinkProvider
 					     :foldingRangeProvider
-					     :inlayHintProvider)
-	eglot-server-programs '( (python-ts-mode . ("pyright-langserver" "--stdio"))))
+					     :inlayHintProvider))
+  (setq eglot-server-programs '( (python-ts-mode . ("pyright-langserver" "--stdio"))))
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
 						 :python.analysis ( :autoSearchPaths t
 								    :useLibraryCodeForTypes t
 								    :diagnosticMode "openFilesOnly"))))
-(use-package flycheck
-  :ensure t
-  :hook (after-init . global-flycheck-mode)
-  :config
-  (define-key flycheck-mode-map flycheck-keymap-prefix nil)
-  (setq flycheck-keymap-prefix (kbd "C-c c"))
-  (define-key flycheck-mode-map flycheck-keymap-prefix flycheck-command-map))
-
-(use-package flycheck-eglot
-  :ensure t
-  :config
-  (global-flycheck-eglot-mode 1))
 
 (use-package beacon
   :ensure t
@@ -311,12 +301,6 @@
 	 (python-ts-mode . apheleia-mode))
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
-
-(use-package eat
-  :ensure t)
-
-(use-package vterm
-  :ensure t)
 
 (use-package ace-window
   :ensure t
@@ -366,7 +350,7 @@
   :init
   (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
-  (setq orderless-matching-styles '(orderless-flex))
+  ;; (setq orderless-matching-styles '(orderless-flex))
   (setq completion-category-overrides '( (file (styles partial-completion))
 					 (embark-keybinding (styles flex))))
   (setq completion-pcm-leading-wildcard t))
@@ -414,12 +398,11 @@
 
 (use-package embark
   :ensure t
-  :demand t
   :bind
   (("C-." . embark-act)
    ("C-;" . embark-dwim)
    ("C-h B" . embark-bindings))
-  :config
+  :init
   (setq prefix-help-command #'embark-prefix-help-command)
   (add-to-list 'display-buffer-alist
 	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
@@ -435,11 +418,6 @@
   :ensure t
   :config
   (rg-enable-menu))
-
-(use-package jinx
-  :ensure t
-  :bind (("M-$" . jinx-correct)
-	 ("C-M-$" . jinx-languages)))
 
 (use-package exec-path-from-shell
   :ensure t
