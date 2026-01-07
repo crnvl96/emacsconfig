@@ -29,9 +29,7 @@
 	      truncate-lines t
 	      display-line-numbers-width 5)
 
-(unless (and
-	 (eq window-system 'mac)
-	 (bound-and-true-p mac-carbon-version-string))
+(unless (and (eq window-system 'mac) (bound-and-true-p mac-carbon-version-string))
   (setq pixel-scroll-precision-use-momentum nil)
   (pixel-scroll-precision-mode 1))
 
@@ -187,7 +185,9 @@
 		(when fname
 		  (insert (file-relative-name fname (projectile-project-root)))))))
 
-(add-hook 'before-save-hook #'whitespace-cleanup)
+(add-hook 'before-save-hook
+	  #'whitespace-cleanup)
+
 (add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 256 1024 1024)
@@ -202,6 +202,15 @@
 
 (use-package treesit
   :ensure nil
+  :preface
+  (defun cr/treesit-install-all-languages ()
+    "Install all languages specified by `treesit-language-source-alist'."
+    (interactive)
+    (let ((languages (mapcar 'car treesit-language-source-alist)))
+      (dolist (lang languages)
+	(treesit-install-language-grammar lang)
+	(message "`%s' parser was installed." lang)
+	(sit-for 0.75))))
   :config
   (setq treesit-language-source-alist
 	'((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
@@ -216,62 +225,65 @@
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
           (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
           (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))))
-
-  (add-to-list 'major-mode-remap-alist '(python-mode . python-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.ya?ml\\'" . yaml-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.jsonc?\\'" . json-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.m?jsx?\\'" . js-ts-mode))
-  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . js-ts-mode)))
-
-(defun cr/treesit-install-all-languages ()
-  "Install all languages specified by `treesit-language-source-alist'."
-  (interactive)
-  (let ((languages (mapcar 'car treesit-language-source-alist)))
-    (dolist (lang languages)
-      (treesit-install-language-grammar lang)
-      (message "`%s' parser was installed." lang)
-      (sit-for 0.75))))
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js2-mode . js-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (conf-toml-mode . toml-ts-mode)
+             (go-mode . go-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
+  (dolist (mapping
+	   '(("\\.ya?ml\\'" . yaml-ts-mode)
+	     ("\\.jsonc?\\'" . json-ts-mode)
+	     ("\\.m?jsx?\\'" . js-ts-mode)
+	     ("\\.tsx?\\'" . js-ts-mode)))
+    (add-to-list 'auto-mode-alist mapping)))
 
 (use-package ef-themes
   :ensure t
   :init
   (ef-themes-take-over-modus-themes-mode 1)
   :config
-  (setq modus-themes-mixed-fonts t)
-  (setq modus-themes-italic-constructs t)
+  (setq modus-themes-mixed-fonts t
+	modus-themes-italic-constructs t)
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-elea-dark t))
 
 (use-package pyvenv
   :ensure t)
 
-(defun cr/eglot-py ()
-  "Scan upwards from current directory for .venv/."
-  (interactive)
-  (let ((dir (expand-file-name default-directory))
-        (venv-dir nil)
-        (stopped-dir nil))
-    (while (and dir (not (string= dir "/")) (not venv-dir))
-      (let ((candidate (expand-file-name ".venv" dir)))
-        (if (file-directory-p candidate)
-	    (setq venv-dir candidate)
-          (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
-                  (file-directory-p (expand-file-name ".git" dir)))
-	      (progn (setq stopped-dir dir) (setq dir nil))
-	    (setq dir (file-name-directory (directory-file-name dir)))))))
-    (if venv-dir
-        (progn
-          (message "Venv found at %s, activating..." venv-dir)
-          (pyvenv-activate venv-dir)
-          (when pyvenv-virtual-env
-	    (message "Venv activated. (Re)starting Eglot server...")
-            (eglot-ensure)))
-      (message "No venv found. Search started from %s and stopped at %s"
-               default-directory
-               (or stopped-dir "/")))))
-
 (use-package eglot
   :ensure nil
+  :preface
+  (defun cr/eglot-py ()
+    "Scan upwards from current directory for .venv/."
+    (interactive)
+    (let ((dir (expand-file-name default-directory))
+          (venv-dir nil)
+          (stopped-dir nil))
+      (while (and dir (not (string= dir "/")) (not venv-dir))
+	(let ((candidate (expand-file-name ".venv" dir)))
+          (if (file-directory-p candidate)
+	      (setq venv-dir candidate)
+            (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
+                    (file-directory-p (expand-file-name ".git" dir)))
+		(progn (setq stopped-dir dir) (setq dir nil))
+	      (setq dir (file-name-directory (directory-file-name dir)))))))
+      (if venv-dir
+          (progn
+	    (message "Venv found at %s, activating..." venv-dir)
+            (pyvenv-activate venv-dir)
+            (when pyvenv-virtual-env
+	      (message "Venv activated. (Re)starting Eglot server...")
+              (eglot-ensure)))
+	(message "No venv found. Search started from %s and stopped at %s"
+		 default-directory
+		 (or stopped-dir "/")))))
   :config
   (setq eglot-events-buffer-config
 	'( :size 0
@@ -367,7 +379,6 @@
   :init
   (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
-  ;; (setq orderless-matching-styles '(orderless-flex))
   (setq completion-category-overrides '( (file (styles partial-completion))
 					 (embark-keybinding (styles flex))))
   (setq completion-pcm-leading-wildcard t))
