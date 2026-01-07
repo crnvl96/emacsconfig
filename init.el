@@ -6,28 +6,28 @@
 
 ;;; Code:
 
-(setq gc-cons-threshold most-positive-fixnum)
-(setq gc-cons-percentage 0.6)
-(setq auto-revert-interval 2)
-(setq whitespace-style '(face tabs empty trailing))
-(setq tab-width 4)
-(setq inhibit-splash-screen 1)
-(setq read-process-output-max (* 4 1024 1024))
-(setq custom-file (expand-file-name "custom.el" cr-user-directory))
-(setq scroll-margin 0)
-(setq hscroll-margin 24)
-(setq scroll-preserve-screen-position 1)
-(setq native-comp-async-query-on-exit t)
-(setq package-install-upgrade-built-in t)
-(setq completion-ignore-case t)
-(setq tab-always-indent 'complete)
-(setq make-backup-files nil)
-(setq visible-bell nil)
-(setq ring-bell-function #'ignore)
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6
+      auto-revert-interval 2
+      whitespace-style '(face tabs empty trailing)
+      tab-width 4
+      inhibit-splash-screen 1
+      read-process-output-max (* 4 1024 1024)
+      custom-file (expand-file-name "custom.el" cr-user-directory)
+      scroll-margin 0
+      hscroll-margin 24
+      scroll-preserve-screen-position 1
+      native-comp-async-query-on-exit t
+      package-install-upgrade-built-in t
+      completion-ignore-case t
+      tab-always-indent 'complete
+      make-backup-files nil
+      visible-bell nil
+      ring-bell-function #'ignore)
 
-(setq-default fill-column 88)
-(setq-default truncate-lines t)
-(setq-default display-line-numbers-width 5)
+(setq-default fill-column 88
+	      truncate-lines t
+	      display-line-numbers-width 5)
 
 (unless (and
 	 (eq window-system 'mac)
@@ -47,8 +47,8 @@
       '(("melpa"        . "https://melpa.org/packages/")
         ("gnu"          . "https://elpa.gnu.org/packages/")
         ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/")))
-(setq package-archive-priorities
+        ("melpa-stable" . "https://stable.melpa.org/packages/"))
+      package-archive-priorities
       '(("melpa"        . 90)
         ("gnu"          . 70)
         ("nongnu"       . 60)
@@ -70,14 +70,17 @@
 		      :height 1.0))
 
 (require 'ansi-color)
-(add-hook 'compilation-filter-hook (lambda ()
-				     (ansi-color-apply-on-region
-				      compilation-filter-start (point-max))))
+(add-hook 'compilation-filter-hook
+	  (lambda ()
+	    (ansi-color-apply-on-region
+	     compilation-filter-start (point-max))))
 
 (custom-set-faces '(fill-column-indicator-face
-		    ((t ( :foreground "gray" :background nil)))))
+		    ((t ( :foreground "gray"
+			  :background nil)))))
 
-(add-to-list 'default-frame-alist '(undecorated . t))
+(add-to-list 'default-frame-alist
+	     '(undecorated . t))
 
 (add-to-list 'display-buffer-alist
 	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
@@ -103,10 +106,21 @@
 (global-auto-revert-mode +1)
 (global-whitespace-mode +1)
 
-(keymap-global-set "C-x ;" 'comment-or-uncomment-region)
-(keymap-global-set "M-n" 'forward-paragraph)
-(keymap-global-set "M-p" 'backward-paragraph)
-(keymap-global-set "<escape>" 'keyboard-escape-quit)
+(keymap-global-set
+ "C-x ;"
+ 'comment-or-uncomment-region)
+
+(keymap-global-set
+ "M-n"
+ 'forward-paragraph)
+
+(keymap-global-set
+ "M-p"
+ 'backward-paragraph)
+
+(keymap-global-set
+ "<escape>"
+ 'keyboard-escape-quit)
 
 (keymap-global-set
  "C-x 2"
@@ -261,8 +275,8 @@
   :config
   (setq eglot-events-buffer-config
 	'( :size 0
-	   :format lisp))
-  (setq eglot-ignored-server-capabilities
+	   :format lisp)
+	eglot-ignored-server-capabilities
 	'( :signatureHelpProvider
 	   :documentHighlightProvider
 	   :codeLensProvider
@@ -270,8 +284,8 @@
 	   :documentOnTypeFormattingProvider
 	   :documentLinkProvider
 	   :foldingRangeProvider
-	   :inlayHintProvider))
-  (setq eglot-server-programs
+	   :inlayHintProvider)
+	eglot-server-programs
 	'( (python-ts-mode . ("pyright-langserver" "--stdio"))))
   (setq-default eglot-workspace-configuration
 		'( :pyright ( :disableOrganizeImports t)
