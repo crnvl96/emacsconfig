@@ -408,11 +408,6 @@
 	 ("C-c f l" . consult-line)
 	 ("C-c f ." . consult-goto-line)))
 
-(use-package marginalia
-  :ensure t
-  :config
-  (marginalia-mode))
-
 (use-package embark
   :ensure t
   :bind
@@ -434,9 +429,9 @@
 (use-package rg
   :ensure t
   :config
-  (rg-enable-menu))
+  (keymap-global-set "C-c f g" #'rg-menu))
 
-(use-package eat
+(use-package vterm
   :ensure t)
 
 (use-package exec-path-from-shell
