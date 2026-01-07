@@ -171,7 +171,7 @@
 	      (interactive)
 	      (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
 		(when fname
-		  (insert (file-name-nondirectory fname))))))
+		  (insert (file-relative-name fname (projectile-project-root)))))))
 
 (add-hook 'before-save-hook #'whitespace-cleanup)
 (add-hook 'after-init-hook
@@ -259,20 +259,25 @@
 (use-package eglot
   :ensure nil
   :config
-  (setq eglot-events-buffer-config '(:size 0 :format lisp))
-  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
-					     :documentHighlightProvider
-					     :codeLensProvider
-					     :documentRangeFormattingProvider
-					     :documentOnTypeFormattingProvider
-					     :documentLinkProvider
-					     :foldingRangeProvider
-					     :inlayHintProvider))
-  (setq eglot-server-programs '( (python-ts-mode . ("pyright-langserver" "--stdio"))))
-  (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
-						 :python.analysis ( :autoSearchPaths t
-								    :useLibraryCodeForTypes t
-								    :diagnosticMode "openFilesOnly"))))
+  (setq eglot-events-buffer-config
+	'( :size 0
+	   :format lisp))
+  (setq eglot-ignored-server-capabilities
+	'( :signatureHelpProvider
+	   :documentHighlightProvider
+	   :codeLensProvider
+	   :documentRangeFormattingProvider
+	   :documentOnTypeFormattingProvider
+	   :documentLinkProvider
+	   :foldingRangeProvider
+	   :inlayHintProvider))
+  (setq eglot-server-programs
+	'( (python-ts-mode . ("pyright-langserver" "--stdio"))))
+  (setq-default eglot-workspace-configuration
+		'( :pyright ( :disableOrganizeImports t)
+		   :python.analysis ( :autoSearchPaths t
+				      :useLibraryCodeForTypes t
+				      :diagnosticMode "openFilesOnly"))))
 
 (use-package beacon
   :ensure t
@@ -297,8 +302,6 @@
 (use-package apheleia
   :ensure t
   :delight
-  :hook ((emacs-lisp-mode . apheleia-mode)
-	 (python-ts-mode . apheleia-mode))
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
