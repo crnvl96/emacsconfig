@@ -436,6 +436,9 @@
   :config
   (rg-enable-menu))
 
+(use-package eat
+  :ensure t)
+
 (use-package exec-path-from-shell
   :ensure t
   :demand t
