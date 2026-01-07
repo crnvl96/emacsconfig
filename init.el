@@ -59,7 +59,7 @@
   (set-face-attribute 'default nil
 		      :weight 'regular
 		      :family mono-spaced-font
-		      :height 110)
+		      :height 100)
   (set-face-attribute 'fixed-pitch nil
 		      :weight 'regular
 		      :family mono-spaced-font
