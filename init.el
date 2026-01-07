@@ -328,6 +328,7 @@
 (use-package apheleia
   :ensure t
   :delight
+  :hook ((python-ts-mode . apheleia-mode))
   :config
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
