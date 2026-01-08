@@ -177,13 +177,13 @@
 	 ((> (minibuffer-depth) 0) (abort-recursive-edit))
 	 (t (keyboard-quit)))))
 
-(keymap-set minibuffer-local-map
-	    "C-f"
-	    (lambda ()
-	      (interactive)
-	      (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
-		(when fname
-		  (insert (file-relative-name fname (projectile-project-root)))))))
+(keymap-global-set
+ "C-t"
+ (lambda ()
+   (interactive)
+   (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
+     (when fname
+       (insert (file-relative-name fname (projectile-project-root)))))))
 
 (add-hook 'before-save-hook
 	  #'whitespace-cleanup)
@@ -341,7 +341,7 @@
 (use-package avy
   :ensure t
   :config (setq avy-background t)
-  :bind ("M-e" . avy-goto-char-timer))
+  :bind ("M-i" . avy-goto-char-timer))
 
 (use-package multiple-cursors
   :ensure t
@@ -378,11 +378,11 @@
 (use-package orderless
   :ensure t
   :init
-  (setq completion-styles '(orderless basic))
-  (setq completion-category-defaults nil)
-  (setq completion-category-overrides '( (file (styles partial-completion))
-					 (embark-keybinding (styles flex))))
-  (setq completion-pcm-leading-wildcard t))
+  (setq completion-styles '(orderless basic)
+	completion-category-defaults nil
+	completion-category-overrides '( (file (styles partial-completion))
+  					 (embark-keybinding (styles flex)))
+	completion-pcm-leading-wildcard t))
 
 (use-package corfu
   :ensure t
@@ -398,8 +398,8 @@
   (setq projectile-project-search-path '( "~/Developer/work/"
 					  "~/Developer/personal/"
 					  "~/.emacs.d/"
-					  "~/.config/nvim"))
-  (setq projectile-cleanup-known-projects t)
+					  "~/.config/nvim")
+	projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map)
   :bind ( :map projectile-mode-map
 	  ("C-c j" . projectile-command-map)))
@@ -411,9 +411,9 @@
 (use-package consult
   :ensure t
   :config
-  (setq consult-async-min-input 2)
-  (setq consult-narrow-key "<")
-  (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
+  (setq consult-async-min-input 2
+	consult-narrow-key "<"
+	consult-fd-args "fd --type f --hidden --follow --exclude .git")
   :bind (("C-c f f" . consult-projectile)
 	 ("C-c f o" . consult-outline)
 	 ("C-c f k" . consult-flymake)
@@ -513,6 +513,13 @@
 
 (use-package magit
   :ensure t)
+
+(use-package combobulate
+  :hook ((prog-mode . combobulate-mode))
+  :config
+  (setq combobulate-key-prefix "C-c o"
+	combobulate-cursor-tool 'multiple-cursors)
+  :load-path ("~/Developer/personal/combobulate"))
 
 ;; Local variables:
 ;; byte-compile-warnings: (not obsolete free-vars)
