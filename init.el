@@ -279,8 +279,7 @@
 	    (message "Venv found at %s, activating..." venv-dir)
             (pyvenv-activate venv-dir)
             (when pyvenv-virtual-env
-	      (message "Venv activated. (Re)starting Eglot server...")
-              (eglot-ensure)))
+	      (message "Venv activated. (Re)starting Eglot server...")))
 	(message "No venv found. Search started from %s and stopped at %s"
 		 default-directory
 		 (or stopped-dir "/")))))
