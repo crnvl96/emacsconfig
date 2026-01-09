@@ -185,6 +185,14 @@
      (when fname
        (insert (file-relative-name fname (projectile-project-root)))))))
 
+(keymap-global-set
+ "C-c i"
+ (lambda ()
+   (interactive)
+   (save-excursion
+     (save-restriction
+       (indent-region (point-min) (point-max))))))
+
 (add-hook 'before-save-hook
 	  #'whitespace-cleanup)
 
@@ -279,7 +287,7 @@
 	    (message "Venv found at %s, activating..." venv-dir)
             (pyvenv-activate venv-dir)
             (when pyvenv-virtual-env
-	      (message "Venv activated. (Re)starting Eglot server...")))
+	      (message "Venv activated at %s" venv-dir)))
 	(message "No venv found. Search started from %s and stopped at %s"
 		 default-directory
 		 (or stopped-dir "/")))))
