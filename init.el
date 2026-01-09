@@ -332,19 +332,48 @@
            :fringe-width 8))
   :bind ([f8] . spacious-padding-mode))
 
-(use-package apheleia
-  :ensure t
-  :delight
-  :hook ((python-ts-mode . apheleia-mode)
-	 (emacs-lisp-mode . apheleia-mode))
-  :config
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
+;; (use-package apheleia
+;;   :ensure t
+;;   :delight
+;;   :hook ((python-ts-mode . apheleia-mode)
+;; 	 (emacs-lisp-mode . apheleia-mode))
+;;   :config
+;;   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 (use-package ace-window
   :ensure t
   :config (setq aw-keys '(?h ?j ?k ?l))
   :bind (([remap other-window] . ace-window)
 	 ("M-o" . ace-window)))
+
+(use-package jinx
+  :ensure t
+  :preface
+  (defun my-jinx--lower-case-word-valid-p (start)
+    "Return non-nil if word, that is assumed to be in lower case, at
+START is valid, or would be valid if capitalized or upcased."
+    (let ((word (buffer-substring-no-properties start (point))))
+      (or (member word jinx--session-words)
+	  (cl-loop for dict in jinx--dicts thereis
+		   (or
+		    (jinx--mod-check dict (upcase word))
+		    (jinx--mod-check dict (capitalize word))
+		    (jinx--mod-check dict word))))))
+  (defun cr/jinx-lower-case-only ()
+    "Make `jinx-mode' assume that everything in the current buffer is
+written in lower case and it ignore casing while spell-checking."
+    (interactive)
+    (jinx-mode 0)
+    (set (make-local-variable 'jinx--predicates)
+	 (cl-substitute
+	  #'my-jinx--lower-case-word-valid-p
+	  #'jinx--word-valid-p
+	  jinx--predicates))
+    (jinx-mode 1))
+  :config
+  (setq jinx-languages "pt_BR" "en_US")
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages)))
 
 (use-package avy
   :ensure t
@@ -376,7 +405,10 @@
   :hook (after-init . vertico-mode)
   :config
   (vertico-multiform-mode)
-  (add-to-list 'vertico-multiform-categories '(embark-keybinding grid))
+  (add-to-list 'vertico-multiform-categories
+	       '(embark-keybinding grid))
+  (add-to-list 'vertico-multiform-categories
+               '(jinx grid (vertico-grid-annotate . 20) (vertico-count . 4)))
   (setq vertico-cycle t)
   :bind ( :map vertico-map
 	  ("<backspace>" . vertico-directory-delete-char)
