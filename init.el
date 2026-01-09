@@ -57,7 +57,7 @@
   (set-face-attribute 'default nil
 		      :weight 'regular
 		      :family mono-spaced-font
-		      :height 100)
+		      :height 140)
   (set-face-attribute 'fixed-pitch nil
 		      :weight 'regular
 		      :family mono-spaced-font
@@ -274,6 +274,10 @@
 	modus-themes-italic-constructs t)
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-elea-dark t))
+
+(use-package indent-bars
+  :ensure t
+  :hook ((python-mode yaml-mode) . indent-bars-mode))
 
 (use-package pyvenv
   :ensure t
