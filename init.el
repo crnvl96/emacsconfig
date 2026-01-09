@@ -77,16 +77,19 @@
 		    ((t ( :foreground "gray"
 			  :background nil)))))
 
-(add-to-list 'default-frame-alist
-	     '(undecorated . t))
+(dolist (el
+	 '((undecorated . t)))
+  (add-to-list 'default-frame-alist el))
 
-(add-to-list 'display-buffer-alist
-	     '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-	       (display-buffer-no-window)
-	       (allow-no-window . t)))
+(dolist (el
+	 '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
+	    (display-buffer-no-window)
+	    (allow-no-window . t))))
+  (add-to-list 'display-buffer-alist el))
 
-(add-to-list 'initial-frame-alist
-	     '(fullscreen . maximized))
+(dolist (el
+	 '((fullscreen . maximized)))
+  (add-to-list 'initial-frame-alist el))
 
 (menu-bar-mode -1)
 (tool-bar-mode -1)
@@ -109,11 +112,11 @@
  'comment-or-uncomment-region)
 
 (keymap-global-set
- "M-n"
+ "C-S-j"
  'forward-paragraph)
 
 (keymap-global-set
- "M-p"
+ "C-S-k"
  'backward-paragraph)
 
 (keymap-global-set
@@ -178,7 +181,7 @@
 	 (t (keyboard-quit)))))
 
 (keymap-global-set
- "C-t"
+ "C-c c ."
  (lambda ()
    (interactive)
    (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
@@ -186,12 +189,18 @@
        (insert (file-relative-name fname (projectile-project-root)))))))
 
 (keymap-global-set
- "C-c i"
+ "C-c c i"
  (lambda ()
    (interactive)
    (save-excursion
      (save-restriction
        (indent-region (point-min) (point-max))))))
+
+(keymap-global-set
+ "C-c c r"
+ (lambda ()
+   (interactive)
+   (find-file "/tmp/scratch.txt")))
 
 (add-hook 'before-save-hook
 	  #'whitespace-cleanup)
@@ -221,29 +230,33 @@
 	(sit-for 0.75))))
   :config
   (setq treesit-language-source-alist
-	'((bash . ("https://github.com/tree-sitter/tree-sitter-bash"))
-          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile"))
-          (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
-          (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-          (markdown . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown/src"))
-          (markdown-inline . ("https://github.com/tree-sitter-grammars/tree-sitter-markdown" nil "tree-sitter-markdown-inline/src"))
-          (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-          (toml . ("https://github.com/ikatyang/tree-sitter-toml"))
-          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "tsx/src"))
-          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" nil "typescript/src"))
-          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml"))))
+	'(
+	  (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0"))
+          (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+          (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+          (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+          (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+          (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+          (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+          (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+	  (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1"))
+	  ))
   (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
+	   '((python-mode . python-ts-mode)
+	     (css-mode . css-ts-mode)
+	     (typescript-mode . typescript-ts-mode)
+	     (js2-mode . js-ts-mode)
+	     (bash-mode . bash-ts-mode)
+	     (conf-toml-mode . toml-ts-mode)
+	     (go-mode . go-ts-mode)
+	     (css-mode . css-ts-mode)
+	     (json-mode . json-ts-mode)
+	     (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
   (dolist (mapping
 	   '(("\\.ya?ml\\'" . yaml-ts-mode)
@@ -263,12 +276,9 @@
   (load-theme 'ef-elea-dark t))
 
 (use-package pyvenv
-  :ensure t)
-
-(use-package eglot
-  :ensure nil
+  :ensure t
   :preface
-  (defun cr/eglot-py ()
+  (defun cr/set-venv ()
     "Scan upwards from current directory for .venv/."
     (interactive)
     (let ((dir (expand-file-name default-directory))
@@ -290,7 +300,10 @@
 	      (message "Venv activated at %s" venv-dir)))
 	(message "No venv found. Search started from %s and stopped at %s"
 		 default-directory
-		 (or stopped-dir "/")))))
+		 (or stopped-dir "/"))))))
+
+(use-package eglot
+  :ensure nil
   :config
   (setq eglot-events-buffer-config
 	'( :size 0
@@ -332,14 +345,6 @@
            :fringe-width 8))
   :bind ([f8] . spacious-padding-mode))
 
-;; (use-package apheleia
-;;   :ensure t
-;;   :delight
-;;   :hook ((python-ts-mode . apheleia-mode)
-;; 	 (emacs-lisp-mode . apheleia-mode))
-;;   :config
-;;   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
-
 (use-package ace-window
   :ensure t
   :config (setq aw-keys '(?h ?j ?k ?l))
@@ -348,28 +353,6 @@
 
 (use-package jinx
   :ensure t
-  :preface
-  (defun my-jinx--lower-case-word-valid-p (start)
-    "Return non-nil if word, that is assumed to be in lower case, at
-START is valid, or would be valid if capitalized or upcased."
-    (let ((word (buffer-substring-no-properties start (point))))
-      (or (member word jinx--session-words)
-	  (cl-loop for dict in jinx--dicts thereis
-		   (or
-		    (jinx--mod-check dict (upcase word))
-		    (jinx--mod-check dict (capitalize word))
-		    (jinx--mod-check dict word))))))
-  (defun cr/jinx-lower-case-only ()
-    "Make `jinx-mode' assume that everything in the current buffer is
-written in lower case and it ignore casing while spell-checking."
-    (interactive)
-    (jinx-mode 0)
-    (set (make-local-variable 'jinx--predicates)
-	 (cl-substitute
-	  #'my-jinx--lower-case-word-valid-p
-	  #'jinx--word-valid-p
-	  jinx--predicates))
-    (jinx-mode 1))
   :config
   (setq jinx-languages "pt_BR" "en_US")
   :bind (("M-$" . jinx-correct)
@@ -405,10 +388,10 @@ written in lower case and it ignore casing while spell-checking."
   :hook (after-init . vertico-mode)
   :config
   (vertico-multiform-mode)
-  (add-to-list 'vertico-multiform-categories
-	       '(embark-keybinding grid))
-  (add-to-list 'vertico-multiform-categories
-               '(jinx grid (vertico-grid-annotate . 20) (vertico-count . 4)))
+  (dolist (category
+	   '((embark-keybinding-grid)
+	     (jinx grid (vertico-grid-annotate . 20) (vertico-count . 4))))
+    (add-to-list 'vertico-multiform-categories category))
   (setq vertico-cycle t)
   :bind ( :map vertico-map
 	  ("<backspace>" . vertico-directory-delete-char)
@@ -480,8 +463,7 @@ written in lower case and it ignore casing while spell-checking."
 
 (use-package rg
   :ensure t
-  :config
-  (keymap-global-set "C-c f g" #'rg-menu))
+  :bind (("C-c f g" . rg-menu)))
 
 (use-package vterm
   :ensure t)
@@ -496,14 +478,8 @@ written in lower case and it ignore casing while spell-checking."
 (use-package undo-fu
   :demand t
   :ensure t
-  :commands (undo-fu-only-undo
-	     undo-fu-only-redo
-	     undo-fu-only-redo-all
-	     undo-fu-disable-checkpoint)
-  :config
-  (global-unset-key (kbd "C-z"))
-  (global-set-key (kbd "C-z") 'undo-fu-only-undo)
-  (global-set-key (kbd "C-S-z") 'undo-fu-only-redo))
+  :bind (("C-z" . undo-fu-only-undo)
+	 ("C-S-z" . undo-fu-only-redo)))
 
 (use-package undo-fu-session
   :ensure t
@@ -537,6 +513,8 @@ written in lower case and it ignore casing while spell-checking."
 	 ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
 	 ([remap upcase-region] . crux-upcase-region)
 	 ([remap downcase-region] . crux-downcase-region)
+	 ([(shift return)] . crux-smart-open-line)
+	 ([(control shift return)] . crux-smart-open-line-above)
 	 ("s-j" . crux-top-join-line)
 	 ("s-d" . crux-duplicate-current-line-or-region)
 	 ("C-k" . crux-smart-kill-line)
@@ -560,6 +538,14 @@ written in lower case and it ignore casing while spell-checking."
   (setq combobulate-key-prefix "C-c o"
 	combobulate-cursor-tool 'multiple-cursors)
   :load-path ("~/Developer/personal/combobulate"))
+
+;; (use-package apheleia
+;;   :ensure t
+;;   :delight
+;;   :hook ((python-ts-mode . apheleia-mode)
+;; 	 (emacs-lisp-mode . apheleia-mode))
+;;   :config
+;;   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 ;; Local variables:
 ;; byte-compile-warnings: (not obsolete free-vars)
