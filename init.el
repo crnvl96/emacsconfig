@@ -334,7 +334,9 @@
 	      (setq venv-dir candidate)
             (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
                     (file-directory-p (expand-file-name ".git" dir)))
-		(progn (setq stopped-dir dir) (setq dir nil))
+		(progn
+		  (setq stopped-dir dir)
+		  (setq dir nil))
 	      (setq dir (file-name-directory (directory-file-name dir)))))))
       (if venv-dir
           (progn
