@@ -6,6 +6,48 @@
 
 ;;; Code:
 
+(defvar elpaca-installer-version 0.11)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+
+(elpaca elpaca-use-package
+  (elpaca-use-package-mode))
+
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6
       auto-revert-interval 2
@@ -13,7 +55,7 @@
       tab-width 4
       inhibit-splash-screen 1
       read-process-output-max (* 4 1024 1024)
-      custom-file (expand-file-name "custom.el" cr-user-directory)
+      custom-file (expand-file-name "custom.el" crnvl-user-directory)
       scroll-margin 0
       hscroll-margin 24
       scroll-preserve-screen-position 1
@@ -41,6 +83,7 @@
 (package-initialize)
 
 (require 'use-package)
+
 (setq package-archives
       '(("melpa"        . "https://melpa.org/packages/")
         ("gnu"          . "https://elpa.gnu.org/packages/")
@@ -96,6 +139,7 @@
 (scroll-bar-mode -1)
 (blink-cursor-mode -1)
 (global-display-line-numbers-mode +1)
+(global-hl-line-mode +1)
 (save-place-mode +1)
 (savehist-mode +1)
 (recentf-mode +1)
@@ -110,14 +154,6 @@
 (keymap-global-set
  "C-x ;"
  'comment-or-uncomment-region)
-
-(keymap-global-set
- "C-S-j"
- 'forward-paragraph)
-
-(keymap-global-set
- "C-S-k"
- 'backward-paragraph)
 
 (keymap-global-set
  "<escape>"
@@ -189,14 +225,6 @@
        (insert (file-relative-name fname (projectile-project-root)))))))
 
 (keymap-global-set
- "C-c c i"
- (lambda ()
-   (interactive)
-   (save-excursion
-     (save-restriction
-       (indent-region (point-min) (point-max))))))
-
-(keymap-global-set
  "C-c c r"
  (lambda ()
    (interactive)
@@ -211,16 +239,21 @@
                   gc-cons-percentage 0.1)
             (message "Garbage collection thresholds reset after init.")))
 
-(use-package delight :ensure t)
-(require 'delight)
-(delight 'eldoc-mode nil "eldoc")
-(delight 'emacs-lisp-mode "Elisp" :major)
-(delight 'whitespace-mode nil "whitespace")
+(use-package transient
+  :ensure t)
+
+(use-package delight
+  :ensure t
+  :demand t
+  :config
+  (delight 'eldoc-mode nil "eldoc")
+  (delight 'emacs-lisp-mode "Elisp" :major)
+  (delight 'whitespace-mode nil "whitespace"))
 
 (use-package treesit
   :ensure nil
   :preface
-  (defun cr/treesit-install-all-languages ()
+  (defun crnvl-treesit-install-all-languages ()
     "Install all languages specified by `treesit-language-source-alist'."
     (interactive)
     (let ((languages (mapcar 'car treesit-language-source-alist)))
@@ -231,6 +264,8 @@
   :config
   (setq treesit-language-source-alist
 	'(
+	  (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1"))
+	  (c . ("https://github.com/tree-sitter/tree-sitter-c" "0.24.1"))
 	  (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
           (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0"))
           (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
@@ -244,25 +279,30 @@
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
           (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
           (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-	  (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1"))
 	  ))
   (dolist (mapping
-	   '((python-mode . python-ts-mode)
-	     (css-mode . css-ts-mode)
-	     (typescript-mode . typescript-ts-mode)
-	     (js2-mode . js-ts-mode)
-	     (bash-mode . bash-ts-mode)
+	   '(
+	     (c-mode . c-ts-mode)
 	     (conf-toml-mode . toml-ts-mode)
-	     (go-mode . go-ts-mode)
 	     (css-mode . css-ts-mode)
+	     (css-mode . css-ts-mode)
+	     (go-mode . go-ts-mode)
+	     (js-json-mode . json-ts-mode)
+	     (js2-mode . js-ts-mode)
 	     (json-mode . json-ts-mode)
-	     (js-json-mode . json-ts-mode)))
+	     (python-mode . python-ts-mode)
+	     (typescript-mode . typescript-ts-mode)
+	     (bash-mode . bash-ts-mode)
+	     ))
     (add-to-list 'major-mode-remap-alist mapping))
   (dolist (mapping
-	   '(("\\.ya?ml\\'" . yaml-ts-mode)
-	     ("\\.jsonc?\\'" . json-ts-mode)
+	   '(
+	     ("\\.go\\'" . go-ts-mode)
 	     ("\\.m?jsx?\\'" . js-ts-mode)
-	     ("\\.tsx?\\'" . js-ts-mode)))
+	     ("\\.tsx?\\'" . js-ts-mode)
+	     ("\\.ya?ml\\'" . yaml-ts-mode)
+	     ("\\.jsonc?\\'" . json-ts-mode)
+	     ))
     (add-to-list 'auto-mode-alist mapping)))
 
 (use-package ef-themes
@@ -282,7 +322,7 @@
 (use-package pyvenv
   :ensure t
   :preface
-  (defun cr/set-venv ()
+  (defun crnvl-set-venv ()
     "Scan upwards from current directory for .venv/."
     (interactive)
     (let ((dir (expand-file-name default-directory))
@@ -322,31 +362,60 @@
 	   :foldingRangeProvider
 	   :inlayHintProvider)
 	eglot-server-programs
-	'( (python-ts-mode . ("pyright-langserver" "--stdio"))))
+	'((python-ts-mode . ("pyright-langserver" "--stdio"))
+	  (c-ts-mode . ("clangd"))
+	  (go-ts-mode . ("gopls"))))
   (setq-default eglot-workspace-configuration
 		'( :pyright ( :disableOrganizeImports t)
 		   :python.analysis ( :autoSearchPaths t
 				      :useLibraryCodeForTypes t
-				      :diagnosticMode "openFilesOnly"))))
+				      :diagnosticMode "openFilesOnly")
+		   :gopls ( :gofumpt t))))
 
-(use-package beacon
+(use-package apheleia
   :ensure t
-  :delight
-  :hook (after-init . beacon-mode))
+  :hook (((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode))
+  :preface
+  (load "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el")
+  (defun crnvl-set-clang-format ()
+    "Scan upwards for .clang-format file. If not found, create it at project root."
+    (interactive)
+    (let ((dir (expand-file-name default-directory))
+          (project-root nil)
+          (clang-format-path nil))
+      (while (and dir (not (string= dir "/")) (not project-root))
+	(if (file-directory-p (expand-file-name ".git" dir))
+            (setq project-root dir)
+          (setq dir (file-name-directory (directory-file-name dir)))))
+      (if (not project-root)
+          (message "No git repository found.")
+	(setq clang-format-path (expand-file-name ".clang-format" project-root))
+	(if (file-exists-p clang-format-path)
+            (message ".clang-format already exists at %s" clang-format-path)
+          (let ((default-directory project-root))
+            (shell-command "clang-format -style=llvm -dump-config > .clang-format")
+            (message ".clang-format created at %s" clang-format-path))))))
+  :config
+  (push '(crnvl-clang-format (clang-format-buffer)) apheleia-formatters)
+  (push '(crnvl-gofumpt-format . ("gofumpt")) apheleia-formatters)
+
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)
+	(alist-get 'go-ts-mode apheleia-mode-alist) '(crnvl-gofumpt-format)
+	(alist-get 'c-ts-mode apheleia-mode-alist) '(crnvl-clang-format)))
 
 (use-package spacious-padding
   :ensure t
-  :hook (after-init . spacious-padding-mode)
+  :hook (elpaca-after-init . spacious-padding-mode)
   :config
   (setq spacious-padding-widths
-        '( :internal-border-width 15
-           :header-line-width 4
-           :mode-line-width 6
-           :custom-button-width 3
-           :tab-width 4
-           :right-divider-width 30
-           :scroll-bar-width 8
-           :fringe-width 8))
+	'( :internal-border-width 15
+	   :header-line-width 4
+	   :mode-line-width 6
+	   :custom-button-width 3
+	   :tab-width 4
+	   :right-divider-width 30
+	   :scroll-bar-width 8
+	   :fringe-width 8))
   :bind ([f8] . spacious-padding-mode))
 
 (use-package ace-window
@@ -360,7 +429,7 @@
   :config
   (setq jinx-languages "pt_BR" "en_US")
   :bind (("M-$" . jinx-correct)
-         ("C-M-$" . jinx-languages)))
+	 ("C-M-$" . jinx-languages)))
 
 (use-package avy
   :ensure t
@@ -378,18 +447,18 @@
 
 (use-package marginalia
   :ensure t
-  :hook (after-init . marginalia-mode))
+  :hook (elpaca-after-init . marginalia-mode))
 
 (use-package anzu
   :ensure t
   :delight
-  :hook (after-init . global-anzu-mode)
+  :hook (elpaca-after-init . global-anzu-mode)
   :bind (("M-%" . anzu-query-replace)
-         ("C-M-%" . anzu-query-replace-regexp)))
+	 ("C-M-%" . anzu-query-replace-regexp)))
 
 (use-package vertico
   :ensure t
-  :hook (after-init . vertico-mode)
+  :hook (elpaca-after-init . vertico-mode)
   :config
   (vertico-multiform-mode)
   (dolist (category
@@ -413,14 +482,14 @@
 
 (use-package corfu
   :ensure t
-  :hook (after-init . global-corfu-mode)
+  :hook (elpaca-after-init . global-corfu-mode)
   :config
   (setq corfu-cycle t))
 
 (use-package projectile
   :ensure t
   :delight
-  :hook (after-init . projectile-mode)
+  :hook (elpaca-after-init . projectile-mode)
   :config
   (setq projectile-project-search-path '( "~/Developer/work/"
 					  "~/Developer/personal/"
@@ -457,8 +526,8 @@
   (setq prefix-help-command #'embark-prefix-help-command)
   (add-to-list 'display-buffer-alist
 	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
+		 nil
+		 (window-parameters (mode-line-format . none)))))
 
 (use-package embark-consult
   :ensure t
@@ -487,7 +556,7 @@
 
 (use-package undo-fu-session
   :ensure t
-  :hook (after-init . undo-fu-session-global-mode)
+  :hook (elpaca-after-init . undo-fu-session-global-mode)
   :commands (undo-fu-session-global-mode))
 
 (use-package helpful
@@ -531,7 +600,7 @@
 
 (use-package mise
   :ensure t
-  :hook (after-init . global-mise-mode))
+  :hook (elpaca-after-init . global-mise-mode))
 
 (use-package magit
   :ensure t)
@@ -543,15 +612,10 @@
 	combobulate-cursor-tool 'multiple-cursors)
   :load-path ("~/Developer/personal/combobulate"))
 
-;; (use-package apheleia
-;;   :ensure t
-;;   :delight
-;;   :hook ((python-ts-mode . apheleia-mode)
-;; 	 (emacs-lisp-mode . apheleia-mode))
-;;   :config
-;;   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
-
-;; Local variables:
+;; Local Variables:
+;; no-byte-compile: t
+;; no-native-compile: t
+;; no-update-autoloads: t
 ;; byte-compile-warnings: (not obsolete free-vars)
 ;; End:
 
