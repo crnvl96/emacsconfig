@@ -55,7 +55,7 @@
       tab-width 4
       inhibit-splash-screen 1
       read-process-output-max (* 4 1024 1024)
-      custom-file (expand-file-name "custom.el" crnvl-user-directory)
+      custom-file (expand-file-name "custom.el" my-user-directory)
       scroll-margin 0
       hscroll-margin 24
       scroll-preserve-screen-position 1
@@ -151,88 +151,58 @@
 (global-auto-revert-mode +1)
 (global-whitespace-mode +1)
 
-(keymap-global-set
- "C-x ;"
- 'comment-or-uncomment-region)
+(keymap-global-set "C-x ;" 'comment-or-uncomment-region)
+(keymap-global-set "<escape>" 'keyboard-escape-quit)
 
-(keymap-global-set
- "<escape>"
- 'keyboard-escape-quit)
+(defun scroll-window-halfway-down ()
+  "Scroll window down by half of the total window height."
+  (interactive)
+  (scroll-up (/ (window-height) 2)))
+(keymap-global-set "C-v" 'scroll-window-halfway-down)
 
-(keymap-global-set
- "C-x 2"
- (lambda ()
-   (interactive)
-   (split-window-vertically)
-   (other-window 1)))
+(defun scroll-window-halfway-up ()
+  "Scroll window down by half of the total window height."
+  (interactive)
+  (scroll-down (/ (window-height) 2)))
+(keymap-global-set "M-v" 'scroll-window-halfway-up)
 
-(keymap-global-set
- "C-x 3"
- (lambda ()
-   (interactive)
-   (split-window-horizontally)
-   (other-window 1)))
+(defun ctrl-g-dwim ()
+  "A smarter version of the Ctrl+g keymap."
+  (interactive)
+  (cond ((region-active-p) (keyboard-quit))
+	((derived-mode-p 'completion-list-mode) (delete-completion-window))
+	((> (minibuffer-depth) 0) (abort-recursive-edit))
+	(t (keyboard-quit))))
+(keymap-global-set "C-g" 'ctrl-g-dwim)
 
-(keymap-global-set
- "M-f"
- (lambda ()
-   (interactive)
-   (let ((start-syntax (if (eobp) nil (char-syntax (char-after)))))
-     (if start-syntax
-         (progn (forward-char 1)
-		(while (and (not (eobp)) (eq (char-syntax (char-after)) start-syntax))
-		  (forward-char 1)))
-       (forward-char 1)))))
+(defun toggle-window-split ()
+  "Toggle the state of split windows."
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+					 (car next-win-edges))
+				     (<= (cadr this-win-edges)
+					 (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+		     (car (window-edges (next-window))))
+		  'split-window-horizontally
+		'split-window-vertically)))
+	(delete-other-windows)
+	(let ((first-win (selected-window)))
+	  (funcall splitter)
+	  (if this-win-2nd (other-window 1))
+	  (set-window-buffer (selected-window) this-win-buffer)
+	  (set-window-buffer (next-window) next-win-buffer)
+	  (select-window first-win)
+	  (if this-win-2nd (other-window 1))))))
+(keymap-global-set "C-x |" 'toggle-window-split)
 
-(keymap-global-set
- "M-b"
- (lambda ()
-   (interactive)
-   (let ((start-syntax (if (bobp) nil (char-syntax (char-before)))))
-     (if start-syntax
-         (progn (backward-char 1)
-		(while (and (not (bobp)) (eq (char-syntax (char-before)) start-syntax))
-		  (backward-char 1)))
-       (backward-char 1)))))
-
-(keymap-global-set
- "C-v"
- (lambda ()
-   (interactive)
-   (scroll-up (/ (window-height) 2))))
-
-(keymap-global-set
- "M-v"
- (lambda ()
-   (interactive)
-   (scroll-down (/ (window-height) 2))))
-
-(keymap-global-set
- "C-g"
- (lambda ()
-   (interactive)
-   (cond ((region-active-p) (keyboard-quit))
-	 ((derived-mode-p 'completion-list-mode) (delete-completion-window))
-	 ((> (minibuffer-depth) 0) (abort-recursive-edit))
-	 (t (keyboard-quit)))))
-
-(keymap-global-set
- "C-c c ."
- (lambda ()
-   (interactive)
-   (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
-     (when fname
-       (insert (file-relative-name fname (projectile-project-root)))))))
-
-(keymap-global-set
- "C-c c r"
- (lambda ()
-   (interactive)
-   (find-file "/tmp/scratch.txt")))
-
-(add-hook 'before-save-hook
-	  #'whitespace-cleanup)
-
+(add-hook 'before-save-hook #'whitespace-cleanup)
 (add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 256 1024 1024)
@@ -253,7 +223,7 @@
 (use-package treesit
   :ensure nil
   :preface
-  (defun crnvl-treesit-install-all-languages ()
+  (defun my-treesit-install-all-languages ()
     "Install all languages specified by `treesit-language-source-alist'."
     (interactive)
     (let ((languages (mapcar 'car treesit-language-source-alist)))
@@ -263,8 +233,7 @@
 	(sit-for 0.75))))
   :config
   (setq treesit-language-source-alist
-	'(
-	  (bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1"))
+	'((bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1"))
 	  (c . ("https://github.com/tree-sitter/tree-sitter-c" "0.24.1"))
 	  (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
           (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0"))
@@ -278,11 +247,9 @@
           (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
           (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
           (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-	  ))
+          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
   (dolist (mapping
-	   '(
-	     (c-mode . c-ts-mode)
+	   '((c-mode . c-ts-mode)
 	     (conf-toml-mode . toml-ts-mode)
 	     (css-mode . css-ts-mode)
 	     (css-mode . css-ts-mode)
@@ -292,17 +259,14 @@
 	     (json-mode . json-ts-mode)
 	     (python-mode . python-ts-mode)
 	     (typescript-mode . typescript-ts-mode)
-	     (bash-mode . bash-ts-mode)
-	     ))
+	     (bash-mode . bash-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
   (dolist (mapping
-	   '(
-	     ("\\.go\\'" . go-ts-mode)
+	   '(("\\.go\\'" . go-ts-mode)
+	     ("\\.jsonc?\\'" . json-ts-mode)
 	     ("\\.m?jsx?\\'" . js-ts-mode)
 	     ("\\.tsx?\\'" . js-ts-mode)
-	     ("\\.ya?ml\\'" . yaml-ts-mode)
-	     ("\\.jsonc?\\'" . json-ts-mode)
-	     ))
+	     ("\\.ya?ml\\'" . yaml-ts-mode)))
     (add-to-list 'auto-mode-alist mapping)))
 
 (use-package ef-themes
@@ -322,7 +286,7 @@
 (use-package pyvenv
   :ensure t
   :preface
-  (defun crnvl-set-venv ()
+  (defun my-find-and-activate-venv ()
     "Scan upwards from current directory for .venv/."
     (interactive)
     (let ((dir (expand-file-name default-directory))
@@ -376,10 +340,11 @@
 
 (use-package apheleia
   :ensure t
+  :delight
   :hook (((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode))
   :preface
   (load "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el")
-  (defun crnvl-set-clang-format ()
+  (defun my-set-clang-format ()
     "Scan upwards for .clang-format file. If not found, create it at project root."
     (interactive)
     (let ((dir (expand-file-name default-directory))
@@ -398,27 +363,11 @@
             (shell-command "clang-format -style=llvm -dump-config > .clang-format")
             (message ".clang-format created at %s" clang-format-path))))))
   :config
-  (push '(crnvl-clang-format (clang-format-buffer)) apheleia-formatters)
-  (push '(crnvl-gofumpt-format . ("gofumpt")) apheleia-formatters)
-
+  (push '(my-clang-format (clang-format-buffer)) apheleia-formatters)
+  (push '(my-gofumpt-format . ("gofumpt")) apheleia-formatters)
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)
-	(alist-get 'go-ts-mode apheleia-mode-alist) '(crnvl-gofumpt-format)
-	(alist-get 'c-ts-mode apheleia-mode-alist) '(crnvl-clang-format)))
-
-(use-package spacious-padding
-  :ensure t
-  :hook (elpaca-after-init . spacious-padding-mode)
-  :config
-  (setq spacious-padding-widths
-	'( :internal-border-width 15
-	   :header-line-width 4
-	   :mode-line-width 6
-	   :custom-button-width 3
-	   :tab-width 4
-	   :right-divider-width 30
-	   :scroll-bar-width 8
-	   :fringe-width 8))
-  :bind ([f8] . spacious-padding-mode))
+	(alist-get 'go-ts-mode apheleia-mode-alist) '(my-gofumpt-format)
+	(alist-get 'c-ts-mode apheleia-mode-alist) '(my-clang-format)))
 
 (use-package ace-window
   :ensure t
@@ -492,15 +441,23 @@
   :ensure t
   :delight
   :hook (elpaca-after-init . projectile-mode)
+  :preface
+  (defun put-current-file-name-into-current-buffer ()
+    "Put the name of the currently opened file into the current buffer."
+    (interactive)
+    (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
+      (when fname
+	(insert (file-relative-name fname (projectile-project-root))))))
   :config
-  (setq projectile-project-search-path '( "~/Developer/work/"
-					  "~/Developer/personal/"
-					  "~/.emacs.d/"
-					  "~/.config/nvim")
+  (setq projectile-project-search-path '("~/Developer/work/"
+					 "~/Developer/personal/"
+					 "~/.emacs.d/"
+					 "~/.config/nvim")
 	projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map)
   :bind ( :map projectile-mode-map
-	  ("C-c j" . projectile-command-map)))
+	  ("C-c j" . projectile-command-map)
+	  ("C-c j ." . put-current-file-name-into-current-buffer)))
 
 (use-package consult-projectile
   :ensure t
@@ -520,16 +477,15 @@
 
 (use-package embark
   :ensure t
-  :bind
-  (("C-." . embark-act)
-   ("C-;" . embark-dwim)
-   ("C-h B" . embark-bindings))
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   (add-to-list 'display-buffer-alist
 	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
 		 nil
-		 (window-parameters (mode-line-format . none)))))
+		 (window-parameters (mode-line-format . none))))
+  :bind (("C-." . embark-act)
+	 ("C-;" . embark-dwim)
+	 ("C-h B" . embark-bindings)))
 
 (use-package embark-consult
   :ensure t
@@ -539,9 +495,6 @@
 (use-package rg
   :ensure t
   :bind (("C-c f g" . rg-menu)))
-
-(use-package vterm
-  :ensure t)
 
 (use-package exec-path-from-shell
   :ensure t
