@@ -222,6 +222,9 @@
 (use-package magit
   :ensure t)
 
+(use-package eat
+  :ensure t)
+
 (use-package indent-bars
   :ensure t
   :hook ((python-mode yaml-mode) . indent-bars-mode))
