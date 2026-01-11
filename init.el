@@ -149,7 +149,6 @@
 
 (keymap-global-set "C-x ;" 'comment-or-uncomment-region)
 (keymap-global-set "<escape>" 'keyboard-escape-quit)
-(keymap-global-set "C-c c" 'compile)
 
 (defun scroll-window-halfway-down ()
   "Scroll window down by half of the total window height."
@@ -209,6 +208,10 @@
   :ensure nil
   :bind ( :map dired-mode-map
 	  ("-" . dired-up-directory)))
+
+(use-package compile
+  :ensure nil
+  :bind (("C-c c" . compile)))
 
 (use-package delight
   :ensure t
@@ -467,9 +470,10 @@
       (when fname
 	(insert (file-relative-name fname (projectile-project-root))))))
   :config
-  (setq projectile-project-search-path '("~/Developer/work/"
-					 "~/Developer/personal/"
-					 "~/.emacs.d/"
+  (setq projectile-project-search-path '("~/Developer/work"
+					 "~/Developer/personal"
+					 "~/Developer/personal/dotfiles"
+					 "~/.emacs.d"
 					 "~/.config/nvim")
 	projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map)
