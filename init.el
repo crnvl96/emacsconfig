@@ -204,6 +204,11 @@
 				   gc-cons-percentage 0.1)
 			     (message "Garbage collection thresholds reset after init.")))
 
+(use-package dired
+  :ensure nil
+  :bind ( :map dired-mode-map
+	  ("-" . dired-up-directory)))
+
 (use-package delight
   :ensure t
   :demand t
