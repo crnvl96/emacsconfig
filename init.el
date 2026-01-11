@@ -69,7 +69,7 @@
 
 (setq-default fill-column 88
 	      truncate-lines t
-	      display-line-numbers-width 5)
+	      display-line-numbers-width)
 
 (unless (and (eq window-system 'mac) (bound-and-true-p mac-carbon-version-string))
   (setq pixel-scroll-precision-use-momentum nil)
