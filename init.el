@@ -149,6 +149,7 @@
 
 (keymap-global-set "C-x ;" 'comment-or-uncomment-region)
 (keymap-global-set "<escape>" 'keyboard-escape-quit)
+(keymap-global-set "C-c c" 'compile)
 
 (defun scroll-window-halfway-down ()
   "Scroll window down by half of the total window height."
@@ -558,17 +559,11 @@
 	 ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
 	 ([remap upcase-region] . crux-upcase-region)
 	 ([remap downcase-region] . crux-downcase-region)
+	 ([remap join-line] . crux-top-join-line)
+	 ([remap duplicate-line] . crux-duplicate-current-line-or-region)
+	 ([remap kill-line] . crux-smart-kill-line)
 	 ([(shift return)] . crux-smart-open-line)
-	 ([(control shift return)] . crux-smart-open-line-above)
-	 ("s-j" . crux-top-join-line)
-	 ("s-d" . crux-duplicate-current-line-or-region)
-	 ("C-k" . crux-smart-kill-line)
-	 ("s-n" . crux-cleanup-buffer-or-region)
-	 ("s-m" . crux-smart-open-line)
-	 ("s-M-m" . crux-smart-open-line-above)
-	 ("s-o" . crux-open-with)
-	 ("s-u" . crux-view-url)
-	 ("s-M-k" . crux-kill-other-buffers)))
+	 ([(control shift return)] . crux-smart-open-line-above)))
 
 ;; Local Variables:
 ;; no-byte-compile: t
