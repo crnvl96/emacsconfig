@@ -81,9 +81,7 @@
 
 (require 'package)
 (package-initialize)
-
 (require 'use-package)
-
 (setq package-archives
       '(("melpa"        . "https://melpa.org/packages/")
         ("gnu"          . "https://elpa.gnu.org/packages/")
@@ -125,9 +123,7 @@
   (add-to-list 'default-frame-alist el))
 
 (dolist (el
-	 '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-	    (display-buffer-no-window)
-	    (allow-no-window . t))))
+	 '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
   (add-to-list 'display-buffer-alist el))
 
 (dolist (el
@@ -203,14 +199,10 @@
 (keymap-global-set "C-x |" 'toggle-window-split)
 
 (add-hook 'before-save-hook #'whitespace-cleanup)
-(add-hook 'after-init-hook
-          (lambda ()
-            (setq gc-cons-threshold (* 256 1024 1024)
-                  gc-cons-percentage 0.1)
-            (message "Garbage collection thresholds reset after init.")))
-
-(use-package transient
-  :ensure t)
+(add-hook 'after-init-hook (lambda ()
+			     (setq gc-cons-threshold (* 256 1024 1024)
+				   gc-cons-percentage 0.1)
+			     (message "Garbage collection thresholds reset after init.")))
 
 (use-package delight
   :ensure t
@@ -219,6 +211,27 @@
   (delight 'eldoc-mode nil "eldoc")
   (delight 'emacs-lisp-mode "Elisp" :major)
   (delight 'whitespace-mode nil "whitespace"))
+
+(use-package transient
+  :ensure t)
+
+(use-package mise
+  :ensure t
+  :hook (elpaca-after-init . global-mise-mode))
+
+(use-package magit
+  :ensure t)
+
+(use-package indent-bars
+  :ensure t
+  :hook ((python-mode yaml-mode) . indent-bars-mode))
+
+(use-package combobulate
+  :hook ((prog-mode . combobulate-mode))
+  :config
+  (setq combobulate-key-prefix "C-c o"
+	combobulate-cursor-tool 'multiple-cursors)
+  :load-path ("~/Developer/personal/combobulate"))
 
 (use-package treesit
   :ensure nil
@@ -278,10 +291,6 @@
 	modus-themes-italic-constructs t)
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-elea-dark t))
-
-(use-package indent-bars
-  :ensure t
-  :hook ((python-mode yaml-mode) . indent-bars-mode))
 
 (use-package pyvenv
   :ensure t
@@ -552,20 +561,6 @@
 	 ("s-o" . crux-open-with)
 	 ("s-u" . crux-view-url)
 	 ("s-M-k" . crux-kill-other-buffers)))
-
-(use-package mise
-  :ensure t
-  :hook (elpaca-after-init . global-mise-mode))
-
-(use-package magit
-  :ensure t)
-
-(use-package combobulate
-  :hook ((prog-mode . combobulate-mode))
-  :config
-  (setq combobulate-key-prefix "C-c o"
-	combobulate-cursor-tool 'multiple-cursors)
-  :load-path ("~/Developer/personal/combobulate"))
 
 ;; Local Variables:
 ;; no-byte-compile: t
