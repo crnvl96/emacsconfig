@@ -147,9 +147,6 @@
 (global-auto-revert-mode +1)
 (global-whitespace-mode +1)
 
-(keymap-global-set "C-x ;" 'comment-or-uncomment-region)
-(keymap-global-set "<escape>" 'keyboard-escape-quit)
-
 (defun scroll-window-halfway-down ()
   "Scroll window down by half of the total window height."
   (interactive)
@@ -236,7 +233,7 @@
 
 (use-package indent-bars
   :ensure t
-  :hook ((python-mode yaml-mode) . indent-bars-mode))
+  :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
 
 (use-package combobulate
   :hook ((prog-mode . combobulate-mode))
@@ -336,6 +333,7 @@
 (use-package eglot
   :ensure nil
   :config
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq eglot-events-buffer-config
 	'( :size 0
 	   :format lisp)
@@ -449,12 +447,29 @@
   (setq completion-styles '(orderless basic)
 	completion-category-defaults nil
 	completion-category-overrides '( (file (styles partial-completion))
-  					 (embark-keybinding (styles flex)))
+  					 (embark-keybinding (styles flex))
+					 (eglot (styles orderless))
+					 (eglot-capf (styles orderless)))
 	completion-pcm-leading-wildcard t))
+
+(use-package cape
+  :ensure t
+  :demand t
+  :init
+  ;; Add to the global default value of `completion-at-point-functions' which is
+  ;; used by `completion-at-point'.  The order of the functions matters, the
+  ;; first function returning a result wins.  Note that the list of buffer-local
+  ;; completion functions takes precedence over the global list.
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block))
 
 (use-package corfu
   :ensure t
-  :hook (elpaca-after-init . global-corfu-mode)
+  :hook
+  (elpaca-after-init . global-corfu-mode)
+  :init
+  (corfu-popupinfo-mode)
   :config
   (setq corfu-cycle t))
 
@@ -554,17 +569,19 @@
 
 (use-package crux
   :ensure t
+  :demand t
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save)
-  :bind (([remap move-beginning-of-line] . crux-move-beginning-of-line)
+  :bind (("<escape>" . keyboard-escape-quit)
+	 ("C-x ;" . comment-or-uncomment-region)
+	 ("C-S-j" . crux-top-join-line)
+	 ("C-S-d" . crux-duplicate-current-line-or-region)
+	 ([remap move-beginning-of-line] . crux-move-beginning-of-line)
 	 ([remap kill-whole-line] . crux-kill-whole-line)
-	 ([remap keyboard-quit]  . crux-keyboard-quit-dwin)
 	 ([remap upcase-region] . crux-upcase-region)
 	 ([remap downcase-region] . crux-downcase-region)
-	 ([remap join-line] . crux-top-join-line)
-	 ([remap duplicate-line] . crux-duplicate-current-line-or-region)
 	 ([remap kill-line] . crux-smart-kill-line)
 	 ([(shift return)] . crux-smart-open-line)
 	 ([(control shift return)] . crux-smart-open-line-above)))
