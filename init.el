@@ -323,7 +323,7 @@
   (setq modus-themes-mixed-fonts t
 	modus-themes-italic-constructs t)
   (mapc #'disable-theme custom-enabled-themes)
-  (load-theme 'melissa-light t))
+  (load-theme 'ef-melissa-light t))
 
 (use-package pyvenv
   :ensure t
