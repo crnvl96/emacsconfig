@@ -235,13 +235,6 @@
   :ensure t
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
 
-(use-package combobulate
-  :hook ((prog-mode . combobulate-mode))
-  :config
-  (setq combobulate-key-prefix "C-c o"
-	combobulate-cursor-tool 'multiple-cursors)
-  :load-path ("~/Developer/personal/combobulate"))
-
 (use-package treesit
   :ensure nil
   :preface
