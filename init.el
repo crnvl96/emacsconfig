@@ -208,7 +208,7 @@
 
 (use-package compile
   :ensure nil
-  :bind (("C-c c" . compile)))
+  :bind (("C-c `" . compile)))
 
 (use-package delight
   :ensure t
