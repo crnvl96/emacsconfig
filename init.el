@@ -189,6 +189,10 @@
   :bind(("C-v" . my-scroll-window-halfway-down)
 	("M-v" . my-scroll-window-halfway-up)))
 
+;; (use-package treesit-textobj
+;;   :after (treesit)
+;;   :load-path "/home/adr/Developer/personal/treesit-textobj")
+
 (use-package delight
   :ensure t
   :config
