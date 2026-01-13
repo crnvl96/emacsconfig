@@ -100,24 +100,6 @@
 		      :family proportionately-spaced-font
 		      :height 1.0))
 
-(require 'ansi-color)
-(add-hook 'compilation-filter-hook
-	  (lambda ()
-	    (ansi-color-apply-on-region
-	     compilation-filter-start (point-max))))
-
-(dolist (el
-	 '((undecorated . t)))
-  (add-to-list 'default-frame-alist el))
-
-(dolist (el
-	 '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
-  (add-to-list 'display-buffer-alist el))
-
-(dolist (el
-	 '((fullscreen . maximized)))
-  (add-to-list 'initial-frame-alist el))
-
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
@@ -132,59 +114,6 @@
 (winner-mode +1)
 (window-divider-mode +1)
 (global-auto-revert-mode +1)
-
-(defun scroll-window-halfway-down ()
-  "Scroll window down by half of the total window height."
-  (interactive)
-  (scroll-up (/ (window-height) 2)))
-(keymap-global-set "C-v" 'scroll-window-halfway-down)
-
-(defun scroll-window-halfway-up ()
-  "Scroll window down by half of the total window height."
-  (interactive)
-  (scroll-down (/ (window-height) 2)))
-(keymap-global-set "M-v" 'scroll-window-halfway-up)
-
-(defun ctrl-g-dwim ()
-  "A smarter version of the Ctrl+g keymap."
-  (interactive)
-  (cond ((region-active-p) (keyboard-quit))
-	((derived-mode-p 'completion-list-mode) (delete-completion-window))
-	((> (minibuffer-depth) 0) (abort-recursive-edit))
-	(t (keyboard-quit))))
-(keymap-global-set "C-g" 'ctrl-g-dwim)
-
-(defun toggle-window-split ()
-  "Toggle the state of split windows."
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-					 (car next-win-edges))
-				     (<= (cadr this-win-edges)
-					 (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-		     (car (window-edges (next-window))))
-		  'split-window-horizontally
-		'split-window-vertically)))
-	(delete-other-windows)
-	(let ((first-win (selected-window)))
-	  (funcall splitter)
-	  (if this-win-2nd (other-window 1))
-	  (set-window-buffer (selected-window) this-win-buffer)
-	  (set-window-buffer (next-window) next-win-buffer)
-	  (select-window first-win)
-	  (if this-win-2nd (other-window 1))))))
-(keymap-global-set "C-x |" 'toggle-window-split)
-
-(add-hook 'after-init-hook (lambda ()
-			     (setq gc-cons-threshold (* 256 1024 1024)
-				   gc-cons-percentage 0.1)
-			     (message "Garbage collection thresholds reset after init.")))
 
 (use-package whitespace
   :ensure nil
@@ -202,14 +131,86 @@
   :ensure nil
   :bind (("C-c `" . compile)))
 
+(use-package emacs
+  :ensure nil
+  :preface
+  (defun my-scroll-window-halfway-down ()
+    "Scroll window down by half of the total window height."
+    (interactive)
+    (scroll-up (/ (window-height) 2)))
+  (defun my-scroll-window-halfway-up ()
+    "Scroll window down by half of the total window height."
+    (interactive)
+    (scroll-down (/ (window-height) 2)))
+  (defun my-ctrl-g-dwim ()
+    "A smarter version of the Ctrl+g keymap."
+    (interactive)
+    (cond ((region-active-p) (keyboard-quit))
+	  ((derived-mode-p 'completion-list-mode) (delete-completion-window))
+	  ((> (minibuffer-depth) 0) (abort-recursive-edit))
+	  (t (keyboard-quit))))
+  (defun my-toggle-window-split ()
+    "Toggle the state of split windows."
+    (interactive)
+    (if (= (count-windows) 2)
+	(let* ((this-win-buffer (window-buffer))
+               (next-win-buffer (window-buffer (next-window)))
+               (this-win-edges (window-edges (selected-window)))
+               (next-win-edges (window-edges (next-window)))
+               (this-win-2nd (not (and (<= (car this-win-edges)
+					   (car next-win-edges))
+				       (<= (cadr this-win-edges)
+					   (cadr next-win-edges)))))
+               (splitter
+		(if (= (car this-win-edges)
+		       (car (window-edges (next-window))))
+		    'split-window-horizontally
+		  'split-window-vertically)))
+	  (delete-other-windows)
+	  (let ((first-win (selected-window)))
+	    (funcall splitter)
+	    (if this-win-2nd (other-window 1))
+	    (set-window-buffer (selected-window) this-win-buffer)
+	    (set-window-buffer (next-window) next-win-buffer)
+	    (select-window first-win)
+	    (if this-win-2nd (other-window 1))))))
+  :hook ((after-init . (lambda ()
+			 (message "Garbage collection values: %s, %s" gc-cons-threshold gc-cons-percentage)
+			 (setq gc-cons-threshold (* 256 1024 1024)
+			       gc-cons-percentage 0.1)
+			 (message "Garbage collection thresholds reset after init: %s, %s" gc-cons-threshold gc-cons-percentage)))
+	 (compilation-filter . (lambda ()
+				 (ansi-color-apply-on-region
+				  compilation-filter-start (point-max)))))
+
+  :config
+  ;; (dolist (el
+  ;; 	   '((undecorated . t)))
+  ;;   (add-to-list 'default-frame-alist el))
+  (dolist (el
+	   '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
+    (add-to-list 'display-buffer-alist el))
+  (dolist (el
+	   '((fullscreen . maximized)))
+    (add-to-list 'initial-frame-alist el))
+  (unless (and (eq window-system 'mac)
+               (bound-and-true-p mac-carbon-version-string))
+    (setq pixel-scroll-precision-use-momentum nil)
+    (pixel-scroll-precision-mode 1))
+  :bind(("C-v" . my-scroll-window-halfway-down)
+	("M-v" . my-scroll-window-halfway-up)
+	("C-g" . my-ctrl-g-dwim)
+	("C-x |" . my-toggle-window-split)))
+
 (use-package delight
   :ensure t
   :config
   (delight 'eldoc-mode nil "eldoc")
   (delight 'apheleia-mode nil "apheleia")
+  (delight 'projectile-mode nil "projectile")
   (delight 'global-anzu-mode nil "anzu")
-  (delight 'emacs-lisp-mode "Elisp" :major)
-  (delight 'whitespace-mode nil "whitespace"))
+  (delight 'whitespace-mode nil "whitespace")
+  (delight 'emacs-lisp-mode "Elisp" :major))
 
 (use-package transient
   :ensure t)
@@ -219,7 +220,7 @@
   :hook (elpaca-after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
-  (key-chord-define-global "jj" 'avy-goto-char)
+  (key-chord-define-global "jj" 'avy-goto-char-2)
   (key-chord-define-global "JJ" 'crux-switch-to-previous-buffer))
 
 (use-package ace-window
@@ -450,7 +451,7 @@
   :init
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
-  (add-hook 'completion-at-point-functions #'cape-elisp-block))
+  (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
 
 (use-package corfu
   :ensure t
@@ -462,10 +463,9 @@
 
 (use-package projectile
   :ensure t
-  :delight
   :hook (elpaca-after-init . projectile-mode)
   :preface
-  (defun put-current-file-name-into-current-buffer ()
+  (defun my-put-current-file-name-into-current-buffer ()
     "Put the name of the currently opened file into the current buffer."
     (interactive)
     (let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
@@ -481,7 +481,7 @@
   :bind-keymap ("C-x p" . projectile-command-map)
   :bind ( :map projectile-mode-map
 	  ("C-c j" . projectile-command-map)
-	  ("C-c j ." . put-current-file-name-into-current-buffer)))
+	  ("C-c j ." . my-put-current-file-name-into-current-buffer)))
 
 (use-package consult-projectile
   :ensure t
