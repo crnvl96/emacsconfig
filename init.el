@@ -53,6 +53,7 @@
       inhibit-splash-screen 1
       read-process-output-max (* 4 1024 1024)
       custom-file (expand-file-name "custom.el" my-user-directory)
+      python-indent-guess-indent-offset nil
       scroll-margin 0
       hscroll-margin 24
       scroll-preserve-screen-position 1
@@ -189,9 +190,9 @@
   :bind(("C-v" . my-scroll-window-halfway-down)
 	("M-v" . my-scroll-window-halfway-up)))
 
-;; (use-package treesit-textobj
-;;   :after (treesit)
-;;   :load-path "/home/adr/Developer/personal/treesit-textobj")
+(use-package treesit-textobj
+  :after (treesit)
+  :load-path "/home/adr/Developer/personal/treesit-textobj")
 
 (use-package delight
   :ensure t
@@ -322,7 +323,7 @@
   (setq modus-themes-mixed-fonts t
 	modus-themes-italic-constructs t)
   (mapc #'disable-theme custom-enabled-themes)
-  (load-theme 'ef-elea-dark t))
+  (load-theme 'melissa-light t))
 
 (use-package pyvenv
   :ensure t
