@@ -44,14 +44,11 @@
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
-
-(elpaca elpaca-use-package
-  (elpaca-use-package-mode))
+(elpaca elpaca-use-package (elpaca-use-package-mode))
 
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6
       auto-revert-interval 2
-      whitespace-style '(face tabs empty trailing)
       tab-width 4
       inhibit-splash-screen 1
       read-process-output-max (* 4 1024 1024)
@@ -67,13 +64,8 @@
       visible-bell nil
       ring-bell-function #'ignore)
 
-(setq-default fill-column 88
-	      truncate-lines t
+(setq-default truncate-lines t
 	      display-line-numbers-width)
-
-(unless (and (eq window-system 'mac) (bound-and-true-p mac-carbon-version-string))
-  (setq pixel-scroll-precision-use-momentum nil)
-  (pixel-scroll-precision-mode 1))
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
@@ -114,10 +106,6 @@
 	    (ansi-color-apply-on-region
 	     compilation-filter-start (point-max))))
 
-(custom-set-faces '(fill-column-indicator-face
-		    ((t ( :foreground "gray"
-			  :background nil)))))
-
 (dolist (el
 	 '((undecorated . t)))
   (add-to-list 'default-frame-alist el))
@@ -143,9 +131,7 @@
 (delete-selection-mode +1)
 (winner-mode +1)
 (window-divider-mode +1)
-(global-display-fill-column-indicator-mode 1)
 (global-auto-revert-mode +1)
-(global-whitespace-mode +1)
 
 (defun scroll-window-halfway-down ()
   "Scroll window down by half of the total window height."
@@ -195,11 +181,17 @@
 	  (if this-win-2nd (other-window 1))))))
 (keymap-global-set "C-x |" 'toggle-window-split)
 
-(add-hook 'before-save-hook #'whitespace-cleanup)
 (add-hook 'after-init-hook (lambda ()
 			     (setq gc-cons-threshold (* 256 1024 1024)
 				   gc-cons-percentage 0.1)
 			     (message "Garbage collection thresholds reset after init.")))
+
+(use-package whitespace
+  :ensure nil
+  :hook ((elpaca-after-init . global-whitespace-mode)
+	 (before-save . whitespace-cleanup))
+  :config
+  (setq whitespace-style '(face tabs empty trailing)))
 
 (use-package dired
   :ensure nil
@@ -212,14 +204,41 @@
 
 (use-package delight
   :ensure t
-  :demand t
   :config
   (delight 'eldoc-mode nil "eldoc")
+  (delight 'apheleia-mode nil "apheleia")
+  (delight 'global-anzu-mode nil "anzu")
   (delight 'emacs-lisp-mode "Elisp" :major)
   (delight 'whitespace-mode nil "whitespace"))
 
 (use-package transient
   :ensure t)
+
+(use-package key-chord
+  :ensure t
+  :hook (elpaca-after-init . key-chord-mode)
+  :config
+  (setq key-chord-typing-detection t)
+  (key-chord-define-global "jj" 'avy-goto-char)
+  (key-chord-define-global "JJ" 'crux-switch-to-previous-buffer))
+
+(use-package ace-window
+  :ensure t
+  :config (setq aw-keys '(?h ?j ?k ?l))
+  :bind (([remap other-window] . ace-window)
+	 ("M-o" . ace-window)))
+
+(use-package jinx
+  :ensure t
+  :config
+  (setq jinx-languages "pt_BR" "en_US")
+  :bind (("M-$" . jinx-correct)
+	 ("C-M-$" . jinx-languages)))
+
+(use-package avy
+  :ensure t
+  :config
+  (setq avy-background t))
 
 (use-package mise
   :ensure t
@@ -234,6 +253,25 @@
 (use-package indent-bars
   :ensure t
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
+
+(use-package multiple-cursors
+  :ensure t
+  :bind (("C->" . mc/mark-next-like-this)
+	 ("C-<" . mc/mark-previous-like-this)))
+
+(use-package expand-region
+  :ensure t
+  :bind ("C-=" . er/expand-region))
+
+(use-package marginalia
+  :ensure t
+  :hook (elpaca-after-init . marginalia-mode))
+
+(use-package anzu
+  :ensure t
+  :hook (elpaca-after-init . global-anzu-mode)
+  :bind (("M-%" . anzu-query-replace)
+	 ("C-M-%" . anzu-query-replace-regexp)))
 
 (use-package treesit
   :ensure nil
@@ -352,7 +390,6 @@
 
 (use-package apheleia
   :ensure t
-  :delight
   :hook (((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode))
   :preface
   (load "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el")
@@ -380,44 +417,6 @@
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)
 	(alist-get 'go-ts-mode apheleia-mode-alist) '(my-gofumpt-format)
 	(alist-get 'c-ts-mode apheleia-mode-alist) '(my-clang-format)))
-
-(use-package ace-window
-  :ensure t
-  :config (setq aw-keys '(?h ?j ?k ?l))
-  :bind (([remap other-window] . ace-window)
-	 ("M-o" . ace-window)))
-
-(use-package jinx
-  :ensure t
-  :config
-  (setq jinx-languages "pt_BR" "en_US")
-  :bind (("M-$" . jinx-correct)
-	 ("C-M-$" . jinx-languages)))
-
-(use-package avy
-  :ensure t
-  :config (setq avy-background t)
-  :bind ("M-i" . avy-goto-char-timer))
-
-(use-package multiple-cursors
-  :ensure t
-  :bind (("C->" . mc/mark-next-like-this)
-	 ("C-<" . mc/mark-previous-like-this)))
-
-(use-package expand-region
-  :ensure t
-  :bind ("C-=" . er/expand-region))
-
-(use-package marginalia
-  :ensure t
-  :hook (elpaca-after-init . marginalia-mode))
-
-(use-package anzu
-  :ensure t
-  :delight
-  :hook (elpaca-after-init . global-anzu-mode)
-  :bind (("M-%" . anzu-query-replace)
-	 ("C-M-%" . anzu-query-replace-regexp)))
 
 (use-package vertico
   :ensure t
@@ -449,18 +448,13 @@
   :ensure t
   :demand t
   :init
-  ;; Add to the global default value of `completion-at-point-functions' which is
-  ;; used by `completion-at-point'.  The order of the functions matters, the
-  ;; first function returning a result wins.  Note that the list of buffer-local
-  ;; completion functions takes precedence over the global list.
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
   (add-hook 'completion-at-point-functions #'cape-elisp-block))
 
 (use-package corfu
   :ensure t
-  :hook
-  (elpaca-after-init . global-corfu-mode)
+  :hook (elpaca-after-init . global-corfu-mode)
   :init
   (corfu-popupinfo-mode)
   :config
