@@ -142,13 +142,6 @@
     "Scroll window down by half of the total window height."
     (interactive)
     (scroll-down (/ (window-height) 2)))
-  (defun my-ctrl-g-dwim ()
-    "A smarter version of the Ctrl+g keymap."
-    (interactive)
-    (cond ((region-active-p) (keyboard-quit))
-	  ((derived-mode-p 'completion-list-mode) (delete-completion-window))
-	  ((> (minibuffer-depth) 0) (abort-recursive-edit))
-	  (t (keyboard-quit))))
   (defun my-toggle-window-split ()
     "Toggle the state of split windows."
     (interactive)
@@ -182,11 +175,7 @@
 	 (compilation-filter . (lambda ()
 				 (ansi-color-apply-on-region
 				  compilation-filter-start (point-max)))))
-
   :config
-  ;; (dolist (el
-  ;; 	   '((undecorated . t)))
-  ;;   (add-to-list 'default-frame-alist el))
   (dolist (el
 	   '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
     (add-to-list 'display-buffer-alist el))
@@ -198,9 +187,7 @@
     (setq pixel-scroll-precision-use-momentum nil)
     (pixel-scroll-precision-mode 1))
   :bind(("C-v" . my-scroll-window-halfway-down)
-	("M-v" . my-scroll-window-halfway-up)
-	("C-g" . my-ctrl-g-dwim)
-	("C-x |" . my-toggle-window-split)))
+	("M-v" . my-scroll-window-halfway-up)))
 
 (use-package delight
   :ensure t
@@ -565,6 +552,7 @@
 	 ("C-x ;" . comment-or-uncomment-region)
 	 ("C-S-j" . crux-top-join-line)
 	 ("C-S-d" . crux-duplicate-current-line-or-region)
+	 ("C-g" . crux-keyboard-quit-dwim)
 	 ([remap move-beginning-of-line] . crux-move-beginning-of-line)
 	 ([remap kill-whole-line] . crux-kill-whole-line)
 	 ([remap upcase-region] . crux-upcase-region)
