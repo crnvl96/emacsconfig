@@ -59,11 +59,20 @@
       scroll-preserve-screen-position 1
       native-comp-async-query-on-exit t
       package-install-upgrade-built-in t
+      initial-major-mode 'fundamental-mode
+      display-time-default-load-average nil
       completion-ignore-case t
       tab-always-indent 'complete
       make-backup-files nil
+      sentence-end-double-space nil
       visible-bell nil
-      ring-bell-function #'ignore)
+      ring-bell-function #'ignore
+      enable-recursive-minibuffers t
+      x-underline-at-descent-line nil
+      switch-to-buffer-obey-display-actions t
+      indicate-buffer-boundaries 'left
+      mouse-wheel-tilt-scroll t
+      mouse-wheel-flip-direction t)
 
 (setq-default truncate-lines t
 	      display-line-numbers-width)
@@ -101,10 +110,6 @@
 		      :family proportionately-spaced-font
 		      :height 1.0))
 
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(blink-cursor-mode -1)
 (global-display-line-numbers-mode +1)
 (global-hl-line-mode +1)
 (save-place-mode +1)
@@ -112,9 +117,21 @@
 (recentf-mode +1)
 (display-time-mode +1)
 (delete-selection-mode +1)
+(column-number-mode +1)
 (winner-mode +1)
 (window-divider-mode +1)
-(global-auto-revert-mode +1)
+(windmove-default-keybindings 'control)
+
+(when (display-graphic-p)
+  (context-menu-mode))
+
+(use-package autorevert
+  :ensure nil
+  :hook (elpaca-after-init . global-auto-revert-mode)
+  :config
+  (setq auto-revert-avoid-polling t
+	auto-revert-interval 2
+	auto-revert-check-vc-info t))
 
 (use-package whitespace
   :ensure nil
@@ -241,7 +258,11 @@
   :ensure t)
 
 (use-package eat
-  :ensure t)
+  :ensure t
+  :config
+  (setq eat-term-name "ghostty")
+  (eat-eshell-mode)
+  (eat-eshell-visual-command-mode))
 
 (use-package indent-bars
   :ensure t
@@ -325,6 +346,9 @@
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-melissa-light t))
 
+(use-package agent-shell
+  :ensure t)
+
 (use-package pyvenv
   :ensure t
   :preface
@@ -358,22 +382,21 @@
   :ensure nil
   :config
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  (setq eglot-events-buffer-config
-	'( :size 0
-	   :format lisp)
-	eglot-ignored-server-capabilities
-	'( :signatureHelpProvider
-	   :documentHighlightProvider
-	   :codeLensProvider
-	   :documentRangeFormattingProvider
-	   :documentOnTypeFormattingProvider
-	   :documentLinkProvider
-	   :foldingRangeProvider
-	   :inlayHintProvider)
-	eglot-server-programs
-	'((python-ts-mode . ("pyright-langserver" "--stdio"))
-	  (c-ts-mode . ("clangd"))
-	  (go-ts-mode . ("gopls"))))
+  (fset #'jsonrpc--log-event #'ignore)
+  (setq eglot-events-buffer-config '( :size 0 :format lisp)
+	eglot-send-changes-idle-time 0.1
+	eglot-extend-to-xref t
+	eglot-ignored-server-capabilities '( :signatureHelpProvider
+					     :documentHighlightProvider
+					     :codeLensProvider
+					     :documentRangeFormattingProvider
+					     :documentOnTypeFormattingProvider
+					     :documentLinkProvider
+					     :foldingRangeProvider
+					     :inlayHintProvider)
+	eglot-server-programs '((python-ts-mode . ("pyright-langserver" "--stdio"))
+				(c-ts-mode . ("clangd"))
+				(go-ts-mode . ("gopls"))))
   (setq-default eglot-workspace-configuration
 		'( :pyright ( :disableOrganizeImports t)
 		   :python.analysis ( :autoSearchPaths t
