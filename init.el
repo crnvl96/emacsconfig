@@ -46,69 +46,57 @@
 (elpaca `(,@elpaca-order))
 (elpaca elpaca-use-package (elpaca-use-package-mode))
 
-(setq gc-cons-threshold most-positive-fixnum
-      gc-cons-percentage 0.6
-      auto-revert-interval 2
-      tab-width 4
-      inhibit-splash-screen 1
-      read-process-output-max (* 4 1024 1024)
-      custom-file (expand-file-name "custom.el" my-user-directory)
-      python-indent-guess-indent-offset nil
-      scroll-margin 0
-      hscroll-margin 24
-      scroll-preserve-screen-position 1
-      native-comp-async-query-on-exit t
-      package-install-upgrade-built-in t
-      initial-major-mode 'fundamental-mode
-      display-time-default-load-average nil
-      completion-ignore-case t
-      tab-always-indent 'complete
-      make-backup-files nil
-      sentence-end-double-space nil
-      visible-bell nil
-      ring-bell-function #'ignore
-      enable-recursive-minibuffers t
-      x-underline-at-descent-line nil
-      switch-to-buffer-obey-display-actions t
-      indicate-buffer-boundaries 'left
-      mouse-wheel-tilt-scroll t
-      mouse-wheel-flip-direction t)
+(require 'package)
+(require 'use-package)
+(package-initialize)
 
-(setq-default truncate-lines t
-	      display-line-numbers-width)
+(setq gc-cons-threshold most-positive-fixnum)
+(setq gc-cons-percentage 0.6)
+(setq auto-revert-interval 2)
+(setq tab-width 4)
+(setq inhibit-splash-screen 1)
+(setq read-process-output-max (* 4 1024 1024))
+(setq custom-file (expand-file-name "custom.el" my-user-directory))
+(setq python-indent-guess-indent-offset nil)
+(setq scroll-margin 0)
+(setq hscroll-margin 24)
+(setq scroll-preserve-screen-position 1)
+(setq native-comp-async-query-on-exit t)
+(setq package-install-upgrade-built-in t)
+(setq initial-major-mode 'fundamental-mode)
+(setq display-time-default-load-average nil)
+(setq completion-ignore-case t)
+(setq tab-always-indent 'complete)
+(setq make-backup-files nil)
+(setq sentence-end-double-space nil)
+(setq visible-bell nil)
+(setq ring-bell-function #'ignore)
+(setq enable-recursive-minibuffers t)
+(setq x-underline-at-descent-line nil)
+(setq switch-to-buffer-obey-display-actions t)
+(setq indicate-buffer-boundaries 'left)
+(setq pixel-scroll-precision-use-momentum nil)
+(setq package-archives '(("melpa"        . "https://melpa.org/packages/")
+			 ("gnu"          . "https://elpa.gnu.org/packages/")
+			 ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+			 ("melpa-stable" . "https://stable.melpa.org/packages/")))
+(setq package-archive-priorities '(("melpa"        . 90)
+				   ("gnu"          . 70)
+				   ("nongnu"       . 60)
+				   ("melpa-stable" . 50)))
+
+(setq-default truncate-lines t)
+(setq-default display-line-numbers-width)
 
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
   (advice-add 'yes-or-no-p :override #'y-or-n-p))
 
-(require 'package)
-(package-initialize)
-(require 'use-package)
-(setq package-archives
-      '(("melpa"        . "https://melpa.org/packages/")
-        ("gnu"          . "https://elpa.gnu.org/packages/")
-        ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
-        ("melpa-stable" . "https://stable.melpa.org/packages/"))
-      package-archive-priorities
-      '(("melpa"        . 90)
-        ("gnu"          . 70)
-        ("nongnu"       . 60)
-        ("melpa-stable" . 50)))
-
 (let ((mono-spaced-font "HackNerdFontMono")
       (proportionately-spaced-font "HackNerdFontPropo"))
-  (set-face-attribute 'default nil
-		      :weight 'regular
-		      :family mono-spaced-font
-		      :height 140)
-  (set-face-attribute 'fixed-pitch nil
-		      :weight 'regular
-		      :family mono-spaced-font
-		      :height 1.0)
-  (set-face-attribute 'variable-pitch nil
-		      :weight 'regular
-		      :family proportionately-spaced-font
-		      :height 1.0))
+  (set-face-attribute 'default nil :weight 'regular :family mono-spaced-font :height 140)
+  (set-face-attribute 'fixed-pitch nil :weight 'regular :family mono-spaced-font :height 1.0)
+  (set-face-attribute 'variable-pitch nil :weight 'regular :family proportionately-spaced-font :height 1.0))
 
 (global-display-line-numbers-mode +1)
 (global-hl-line-mode +1)
@@ -120,23 +108,21 @@
 (column-number-mode +1)
 (winner-mode +1)
 (window-divider-mode +1)
-(windmove-default-keybindings 'control)
-
-(when (display-graphic-p)
-  (context-menu-mode))
+(pixel-scroll-precision-mode +1)
+(when (display-graphic-p) (context-menu-mode))
 
 (use-package autorevert
   :ensure nil
   :hook (elpaca-after-init . global-auto-revert-mode)
   :config
-  (setq auto-revert-avoid-polling t
-	auto-revert-interval 2
-	auto-revert-check-vc-info t))
+  (setq auto-revert-avoid-polling t)
+  (setq auto-revert-interval 2)
+  (setq auto-revert-check-vc-info t))
 
 (use-package whitespace
   :ensure nil
-  :hook ((elpaca-after-init . global-whitespace-mode)
-	 (before-save . whitespace-cleanup))
+  :hook ( (elpaca-after-init . global-whitespace-mode)
+	  (before-save . whitespace-cleanup))
   :config
   (setq whitespace-style '(face tabs empty trailing)))
 
@@ -147,7 +133,7 @@
 
 (use-package compile
   :ensure nil
-  :bind (("C-c `" . compile)))
+  :bind ("C-c `" . compile))
 
 (use-package emacs
   :ensure nil
@@ -185,31 +171,27 @@
 	    (set-window-buffer (next-window) next-win-buffer)
 	    (select-window first-win)
 	    (if this-win-2nd (other-window 1))))))
-  :hook ((after-init . (lambda ()
-			 (message "Garbage collection values: %s, %s" gc-cons-threshold gc-cons-percentage)
-			 (setq gc-cons-threshold (* 256 1024 1024)
-			       gc-cons-percentage 0.1)
-			 (message "Garbage collection thresholds reset after init: %s, %s" gc-cons-threshold gc-cons-percentage)))
-	 (compilation-filter . (lambda ()
-				 (ansi-color-apply-on-region
-				  compilation-filter-start (point-max)))))
+  :hook ( (after-init . (lambda ()
+			  (message "Garbage collection values: %s, %s" gc-cons-threshold gc-cons-percentage)
+			  (setq gc-cons-threshold (* 256 1024 1024)
+				gc-cons-percentage 0.1)
+			  (message "Garbage collection thresholds reset after init: %s, %s" gc-cons-threshold gc-cons-percentage)))
+	  (compilation-filter . (lambda ()
+				  (ansi-color-apply-on-region
+				   compilation-filter-start (point-max)))))
   :config
   (dolist (el
-	   '(("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
+	   '( ("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
     (add-to-list 'display-buffer-alist el))
   (dolist (el
-	   '((fullscreen . maximized)))
+	   '( (fullscreen . maximized)))
     (add-to-list 'initial-frame-alist el))
-  (unless (and (eq window-system 'mac)
-               (bound-and-true-p mac-carbon-version-string))
-    (setq pixel-scroll-precision-use-momentum nil)
-    (pixel-scroll-precision-mode 1))
   :bind(("C-v" . my-scroll-window-halfway-down)
 	("M-v" . my-scroll-window-halfway-up)))
 
-(use-package treesit-textobj
-  :after (treesit)
-  :load-path "/home/adr/Developer/personal/treesit-textobj")
+(use-package walnut
+  :after treesit
+  :load-path "/home/adr/Developer/personal/walnut")
 
 (use-package delight
   :ensure t
@@ -261,6 +243,7 @@
   :ensure t
   :config
   (setq eat-term-name "ghostty")
+  (setq eat-kill-buffer-on-exit t)
   (eat-eshell-mode)
   (eat-eshell-visual-command-mode))
 
@@ -270,8 +253,8 @@
 
 (use-package multiple-cursors
   :ensure t
-  :bind (("C->" . mc/mark-next-like-this)
-	 ("C-<" . mc/mark-previous-like-this)))
+  :bind ( ("C->" . mc/mark-next-like-this)
+	  ("C-<" . mc/mark-previous-like-this)))
 
 (use-package expand-region
   :ensure t
@@ -341,8 +324,8 @@
   :init
   (ef-themes-take-over-modus-themes-mode 1)
   :config
-  (setq modus-themes-mixed-fonts t
-	modus-themes-italic-constructs t)
+  (setq modus-themes-mixed-fonts t)
+  (setq modus-themes-italic-constructs t)
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-melissa-light t))
 
@@ -383,18 +366,18 @@
   :config
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (fset #'jsonrpc--log-event #'ignore)
-  (setq eglot-events-buffer-config '( :size 0 :format lisp)
-	eglot-send-changes-idle-time 0.1
-	eglot-extend-to-xref t
-	eglot-ignored-server-capabilities '( :signatureHelpProvider
+  (setq eglot-events-buffer-config '( :size 0 :format lisp))
+  (setq eglot-send-changes-idle-time 0.1)
+  (setq eglot-extend-to-xref t)
+  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
 					     :documentHighlightProvider
 					     :codeLensProvider
 					     :documentRangeFormattingProvider
 					     :documentOnTypeFormattingProvider
 					     :documentLinkProvider
 					     :foldingRangeProvider
-					     :inlayHintProvider)
-	eglot-server-programs '((python-ts-mode . ("pyright-langserver" "--stdio"))
+					     :inlayHintProvider))
+  (setq eglot-server-programs '((python-ts-mode . ("pyright-langserver" "--stdio"))
 				(c-ts-mode . ("clangd"))
 				(go-ts-mode . ("gopls"))))
   (setq-default eglot-workspace-configuration
@@ -452,13 +435,13 @@
 (use-package orderless
   :ensure t
   :init
-  (setq completion-styles '(orderless basic)
-	completion-category-defaults nil
-	completion-category-overrides '( (file (styles partial-completion))
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-defaults nil)
+  (setq completion-category-overrides '( (file (styles partial-completion))
   					 (embark-keybinding (styles flex))
 					 (eglot (styles orderless))
-					 (eglot-capf (styles orderless)))
-	completion-pcm-leading-wildcard t))
+					 (eglot-capf (styles orderless))))
+  (setq completion-pcm-leading-wildcard t))
 
 (use-package cape
   :ensure t
@@ -491,8 +474,8 @@
 					 "~/Developer/personal"
 					 "~/Developer/personal/dotfiles"
 					 "~/.emacs.d"
-					 "~/.config/nvim")
-	projectile-cleanup-known-projects t)
+					 "~/.config/nvim"))
+  (setq projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map)
   :bind ( :map projectile-mode-map
 	  ("C-c j" . projectile-command-map)
@@ -505,14 +488,14 @@
 (use-package consult
   :ensure t
   :config
-  (setq consult-async-min-input 2
-	consult-narrow-key "<"
-	consult-fd-args "fd --type f --hidden --follow --exclude .git")
-  :bind (("C-c f f" . consult-projectile)
-	 ("C-c f o" . consult-outline)
-	 ("C-c f k" . consult-flymake)
-	 ("C-c f l" . consult-line)
-	 ("C-c f ." . consult-goto-line)))
+  (setq consult-async-min-input 2)
+  (setq consult-narrow-key "<")
+  (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
+  :bind ( ("C-c f f" . consult-projectile)
+	  ("C-c f o" . consult-outline)
+	  ("C-c f k" . consult-flymake)
+	  ("C-c f l" . consult-line)
+	  ("C-c f ." . consult-goto-line)))
 
 (use-package embark
   :ensure t
@@ -522,9 +505,9 @@
 	       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
 		 nil
 		 (window-parameters (mode-line-format . none))))
-  :bind (("C-." . embark-act)
-	 ("C-;" . embark-dwim)
-	 ("C-h B" . embark-bindings)))
+  :bind ( ("C-." . embark-act)
+	  ("C-;" . embark-dwim)
+	  ("C-h B" . embark-bindings)))
 
 (use-package embark-consult
   :ensure t
@@ -533,25 +516,22 @@
 
 (use-package rg
   :ensure t
-  :bind (("C-c f g" . rg-menu)))
+  :bind ("C-c f g" . rg-menu))
 
 (use-package exec-path-from-shell
   :ensure t
-  :demand t
-  :config
+  :init
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 
 (use-package undo-fu
-  :demand t
   :ensure t
-  :bind (("C-z" . undo-fu-only-undo)
-	 ("C-S-z" . undo-fu-only-redo)))
+  :bind ( ("C-z" . undo-fu-only-undo)
+	  ("C-S-z" . undo-fu-only-redo)))
 
 (use-package undo-fu-session
   :ensure t
-  :hook (elpaca-after-init . undo-fu-session-global-mode)
-  :commands (undo-fu-session-global-mode))
+  :hook (elpaca-after-init . undo-fu-session-global-mode))
 
 (use-package helpful
   :ensure t
@@ -563,31 +543,30 @@
 	     helpful-function)
   :config
   (setq helpful-max-buffers 3)
-  :bind (([remap describe-command] . helpful-command)
-	 ([remap describe-function] . helpful-callable)
-	 ([remap describe-key] . helpful-key)
-	 ([remap describe-symbol] . helpful-symbol)
-	 ([remap describe-variable] . helpful-variable)))
+  :bind ( ([remap describe-command] . helpful-command)
+	  ([remap describe-function] . helpful-callable)
+	  ([remap describe-key] . helpful-key)
+	  ([remap describe-symbol] . helpful-symbol)
+	  ([remap describe-variable] . helpful-variable)))
 
 (use-package crux
   :ensure t
-  :demand t
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
   (crux-with-region-or-point-to-eol kill-ring-save)
-  :bind (("<escape>" . keyboard-escape-quit)
-	 ("C-x ;" . comment-or-uncomment-region)
-	 ("C-S-j" . crux-top-join-line)
-	 ("C-S-d" . crux-duplicate-current-line-or-region)
-	 ("C-g" . crux-keyboard-quit-dwim)
-	 ([remap move-beginning-of-line] . crux-move-beginning-of-line)
-	 ([remap kill-whole-line] . crux-kill-whole-line)
-	 ([remap upcase-region] . crux-upcase-region)
-	 ([remap downcase-region] . crux-downcase-region)
-	 ([remap kill-line] . crux-smart-kill-line)
-	 ([(shift return)] . crux-smart-open-line)
-	 ([(control shift return)] . crux-smart-open-line-above)))
+  :bind ( ("<escape>" . keyboard-escape-quit)
+	  ("C-x ;" . comment-or-uncomment-region)
+	  ("C-S-j" . crux-top-join-line)
+	  ("C-S-d" . crux-duplicate-current-line-or-region)
+	  ("C-g" . crux-keyboard-quit-dwim)
+	  ([remap move-beginning-of-line] . crux-move-beginning-of-line)
+	  ([remap kill-whole-line] . crux-kill-whole-line)
+	  ([remap upcase-region] . crux-upcase-region)
+	  ([remap downcase-region] . crux-downcase-region)
+	  ([remap kill-line] . crux-smart-kill-line)
+	  ([(shift return)] . crux-smart-open-line)
+	  ([(control shift return)] . crux-smart-open-line-above)))
 
 ;; Local Variables:
 ;; no-byte-compile: t
