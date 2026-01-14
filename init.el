@@ -189,9 +189,11 @@
   :bind(("C-v" . my-scroll-window-halfway-down)
 	("M-v" . my-scroll-window-halfway-up)))
 
-(use-package walnut
-  :after treesit
-  :load-path "/home/adr/Developer/personal/walnut")
+;; (use-package walnut
+;;   :after treesit
+;;   :load-path "/home/adr/Developer/personal/walnut")
+
+;; (load "/home/adr/Developer/personal/walnut/walnut.el")
 
 (use-package delight
   :ensure t
@@ -243,9 +245,9 @@
   :ensure t
   :config
   (setq eat-term-name "ghostty")
-  (setq eat-kill-buffer-on-exit t)
-  (eat-eshell-mode)
-  (eat-eshell-visual-command-mode))
+  (setq eat-kill-buffer-on-exit t))
+;; (eat-eshell-mode)
+;; (eat-eshell-visual-command-mode))
 
 (use-package indent-bars
   :ensure t
