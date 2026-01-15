@@ -189,12 +189,6 @@
   :bind(("C-v" . my-scroll-window-halfway-down)
 	("M-v" . my-scroll-window-halfway-up)))
 
-;; (use-package walnut
-;;   :after treesit
-;;   :load-path "/home/adr/Developer/personal/walnut")
-
-;; (load "/home/adr/Developer/personal/walnut/walnut.el")
-
 (use-package delight
   :ensure t
   :config
@@ -207,6 +201,10 @@
 
 (use-package transient
   :ensure t)
+
+(use-package walnut
+  :after (treesit transient)
+  :load-path "/home/adr/Developer/personal/walnut")
 
 (use-package key-chord
   :ensure t
@@ -284,22 +282,10 @@
 	(message "`%s' parser was installed." lang)
 	(sit-for 0.75))))
   :config
+  (setq treesit-font-lock-level 4)
   (setq treesit-language-source-alist
-	'((bash . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1"))
-	  (c . ("https://github.com/tree-sitter/tree-sitter-c" "0.24.1"))
-	  (css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-          (dockerfile . ("https://github.com/camdencheek/tree-sitter-dockerfile" "v0.2.0"))
-          (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-          (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-          (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-          (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-          (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-          (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-          (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+	'((c . ("https://github.com/tree-sitter/tree-sitter-c" nil "src"))
+          (python . ("https://github.com/tree-sitter/tree-sitter-python" nil "src"))))
   (dolist (mapping
 	   '((c-mode . c-ts-mode)
 	     (conf-toml-mode . toml-ts-mode)
