@@ -111,6 +111,12 @@
 (pixel-scroll-precision-mode +1)
 (when (display-graphic-p) (context-menu-mode))
 
+(require 'ansi-color)
+(defun colorize-compilation ()
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region compilation-filter-start (point))))
+(add-hook 'compilation-filter-hook 'colorize-compilation)
+
 (use-package autorevert
   :ensure nil
   :hook (elpaca-after-init . global-auto-revert-mode)
@@ -175,10 +181,7 @@
 			  (message "Garbage collection values: %s, %s" gc-cons-threshold gc-cons-percentage)
 			  (setq gc-cons-threshold (* 256 1024 1024)
 				gc-cons-percentage 0.1)
-			  (message "Garbage collection thresholds reset after init: %s, %s" gc-cons-threshold gc-cons-percentage)))
-	  (compilation-filter . (lambda ()
-				  (ansi-color-apply-on-region
-				   compilation-filter-start (point-max)))))
+			  (message "Garbage collection thresholds reset after init: %s, %s" gc-cons-threshold gc-cons-percentage))))
   :config
   (dolist (el
 	   '( ("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
@@ -284,8 +287,18 @@
   :config
   (setq treesit-font-lock-level 4)
   (setq treesit-language-source-alist
-	'((c . ("https://github.com/tree-sitter/tree-sitter-c" nil "src"))
-          (python . ("https://github.com/tree-sitter/tree-sitter-python" nil "src"))))
+	'((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+          (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+          (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+          (json . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+          (markdown . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+          (python . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+          (rust . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+          (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+          (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+          (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
   (dolist (mapping
 	   '((c-mode . c-ts-mode)
 	     (conf-toml-mode . toml-ts-mode)
@@ -469,21 +482,19 @@
 	  ("C-c j" . projectile-command-map)
 	  ("C-c j ." . my-put-current-file-name-into-current-buffer)))
 
-(use-package consult-projectile
-  :ensure t
-  :after (consult projectile))
-
 (use-package consult
   :ensure t
   :config
   (setq consult-async-min-input 2)
   (setq consult-narrow-key "<")
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
-  :bind ( ("C-c f f" . consult-projectile)
-	  ("C-c f o" . consult-outline)
-	  ("C-c f k" . consult-flymake)
-	  ("C-c f l" . consult-line)
-	  ("C-c f ." . consult-goto-line)))
+  :bind (("C-c f f" . consult-projectile)
+	 ("C-c f F" . consult-fd)
+	 ("C-c f G" . consult-ripgrep)
+	 ("C-c f o" . consult-outline)
+	 ("C-c f k" . consult-flymake)
+	 ("C-c f l" . consult-line)
+	 ("C-c f ." . consult-goto-line)))
 
 (use-package embark
   :ensure t
