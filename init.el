@@ -523,8 +523,9 @@
   :hook (elpaca-after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
-  (key-chord-define-global "jj" 'avy-goto-char-2)
-  (key-chord-define-global "JJ" 'crux-switch-to-previous-buffer))
+  (key-chord-define-global "jj" 'avy-goto-char)
+  (key-chord-define-global "KK" 'backward-paragraph)
+  (key-chord-define-global "JJ" 'forward-paragraph))
 
 ;; -----------------------------------------------------------------------------
 ;; Multiple Cursors
