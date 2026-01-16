@@ -687,11 +687,11 @@
 
   ;; Workspace-specific settings
   (setq-default eglot-workspace-configuration
-                '(:pyright (:disableOrganizeImports t)
-                  :python.analysis (:autoSearchPaths t
-                                    :useLibraryCodeForTypes t
-                                    :diagnosticMode "openFilesOnly")
-                  :gopls (:gofumpt t))))
+                '( :pyright ( :disableOrganizeImports t)
+                   :python.analysis ( :autoSearchPaths t
+                                      :useLibraryCodeForTypes t
+                                      :diagnosticMode "openFilesOnly")
+                   :gopls ( :gofumpt t))))
 
 ;; -----------------------------------------------------------------------------
 ;; Apheleia (Code Formatting)
