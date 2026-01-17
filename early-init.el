@@ -8,10 +8,6 @@
 
 ;;; Code:
 
-;; ============================================================================
-;; Performance Optimization
-;; ============================================================================
-
 ;; Increase garbage collection threshold during startup for faster loading.
 ;; This will be reset to a reasonable value after init completes.
 (setq gc-cons-threshold most-positive-fixnum)
@@ -19,10 +15,6 @@
 
 ;; Increase read buffer size for better subprocess performance
 (setq read-process-output-max (* 4 1024 1024))
-
-;; ============================================================================
-;; Directory Configuration
-;; ============================================================================
 
 ;; Store the original emacs directory for reference
 (defvar my-user-directory user-emacs-directory
@@ -32,16 +24,8 @@
 (setq user-emacs-directory (expand-file-name "var/" my-user-directory))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
 
-;; ============================================================================
-;; Package System
-;; ============================================================================
-
 ;; Disable package.el at startup (using Elpaca instead)
 (setq package-enable-at-startup nil)
-
-;; ============================================================================
-;; Suppress Warnings
-;; ============================================================================
 
 ;; Suppress byte-compilation and native-compilation warnings
 (setq byte-compile-warnings '(not obsolete))
@@ -51,10 +35,6 @@
 
 ;; Suppress startup echo area message
 (setq inhibit-startup-echo-area-message (user-login-name))
-
-;; ============================================================================
-;; Frame Configuration (Applied Before GUI Creation)
-;; ============================================================================
 
 ;; Enable pixel-precise frame resizing
 (setq frame-resize-pixelwise t)
@@ -71,19 +51,11 @@
         (ns-appearance . light)
         (ns-transparent-titlebar . t)))
 
-;; ============================================================================
-;; Disable UI Elements Early
-;; ============================================================================
-
 ;; Disable these before frame creation to avoid momentary display
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 (blink-cursor-mode -1)
-
-;; ============================================================================
-;; Startup Behavior
-;; ============================================================================
 
 ;; Disable startup screen and splash
 (setq inhibit-splash-screen t)
