@@ -416,7 +416,6 @@
   :bind (("M-$"   . jinx-correct)
          ("C-M-$" . jinx-languages)))
 
-;; OK
 (use-package projectile
   :ensure t
   :hook (elpaca-after-init . projectile-mode)
@@ -425,16 +424,13 @@
   (setq projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map))
 
-;; OK
 (use-package consult-projectile
   :ensure t
   :after (consult projectile))
 
-;; OK
 (use-package magit
   :ensure t)
 
-;; OK
 (use-package transient
   :ensure t)
 
