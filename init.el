@@ -416,30 +416,32 @@
   :bind (("M-$"   . jinx-correct)
          ("C-M-$" . jinx-languages)))
 
+;; OK
 (use-package projectile
   :ensure t
   :hook (elpaca-after-init . projectile-mode)
   :config
-  (projectile-cleanup-known-projects t)
   (setq projectile-project-search-path '("~/Developer/work" "~/Developer/personal" "~/Developer/personal/dotfiles" "~/.emacs.d" "~/.config/nvim"))
-  :bind-keymap ("C-x p" . projectile-command-map)
-  :bind ( :map projectile-mode-map
-          ("C-c j"   . projectile-command-map)))
+  (setq projectile-cleanup-known-projects t)
+  :bind-keymap ("C-x p" . projectile-command-map))
 
+;; OK
 (use-package consult-projectile
   :ensure t
   :after (consult projectile))
 
+;; OK
 (use-package magit
   :ensure t)
 
+;; OK
 (use-package transient
   :ensure t)
 
 (use-package helpful
   :ensure t
   :config
-  (setq helpful-max-buffers 3)
+  (setq helpful-max-buffers 1)
   :bind (([remap describe-command]  . helpful-command)
          ([remap describe-function] . helpful-callable)
          ([remap describe-key]      . helpful-key)
