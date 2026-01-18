@@ -1,6 +1,5 @@
 ;;; init.el --- Personal Emacs Configuration -*- lexical-binding: t -*-
 
-;; https://github.com/progfolio/elpaca?tab=readme-ov-file#installer
 (defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -39,86 +38,49 @@
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
-;; Enable use-package integration with Elpaca
 (elpaca elpaca-use-package (elpaca-use-package-mode))
 
-;; Custom file location
 (setq custom-file (expand-file-name "custom.el" my-user-directory))
-;; Use y/n instead of yes/no
 (setq use-short-answers t)
-;; Confirm before exiting Emacs
 (setq confirm-kill-emacs 'y-or-n-p)
-;; Allow nested minibuffers
 (setq enable-recursive-minibuffers t)
-;; A period followed by a single space ends a sentence
 (setq sentence-end-double-space nil)
-;; Avoid creating backup files
 (setq make-backup-files nil)
-;; No visual bell
 (setq visible-bell nil)
-;; No audible bell
 (setq ring-bell-function #'ignore)
-;; Respect display-buffer rules
 (setq switch-to-buffer-obey-display-actions t)
-;; Don't automatically wrap long lines
 (setq-default truncate-lines t)
-;; Add a consistent line number width
 (setq-default display-line-numbers-width 3)
-;; Show buffer boundaries to the left
 (setq indicate-buffer-boundaries 'left)
-;; Better underline positioning
 (setq x-underline-at-descent-line nil)
-;; Don't show load average on the mode line
 (setq display-time-default-load-average nil)
-;; Vertical scroll margin
 (setq scroll-margin 0)
-;; Horizontal scroll margin
 (setq hscroll-margin 24)
-;; Preserve cursor position
 (setq scroll-preserve-screen-position t)
-;; Immediately stop scrolling
 (setq pixel-scroll-precision-use-momentum nil)
-;; Set default tab size
 (setq-default tab-width 4)
-;; Don't use tabs to indent
 (setq-default indent-tabs-mode nil)
-;; Use tab key both for identation and completion
 (setq tab-always-indent 'complete)
-;; Make completion case insensitive
 (setq completion-ignore-case t)
-;; Restore garbage collection to sensible values
 (add-hook 'elpaca-after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 64 1024 1024))  ; 64MB
             (setq gc-cons-percentage 0.1)))
 
-;; Show line numbers
 (global-display-line-numbers-mode 1)
-;; Don't highlight the current line
 (global-hl-line-mode -1)
-;; Show column number in the modeline
 (column-number-mode 1)
-;; Remember cursor position
 (save-place-mode 1)
-;; Remember minibuffer history
 (savehist-mode 1)
-;; Track recent visited files
 (recentf-mode 1)
-;; show time in the modeline
 (display-time-mode 1)
-;; Replace current selection when typing
 (delete-selection-mode 1)
-;; Window configuration tracker (allow undo/redo)
 (winner-mode 1)
-;; Show window dividers (allow resizing with the mouse)
 (window-divider-mode 1)
-;; Smooth scrolling
 (pixel-scroll-precision-mode 1)
-;; Right click context menu
 (when (display-graphic-p)
   (context-menu-mode 1))
 
-;; Define font configurations
 (let ((mono-font "HackNerdFontMono")
       (prop-font "HackNerdFontPropo"))
   (set-face-attribute 'default nil :family mono-font :height 110 :weight 'regular)
@@ -207,8 +169,7 @@
     "Apply ANSI color codes in compilation buffer."
     (let ((inhibit-read-only t))
       (ansi-color-apply-on-region compilation-filter-start (point))))
-  :hook (compilation-filter . my-colorize-compilation)
-  :bind ("C-c `" . compile))
+  :hook (compilation-filter . my-colorize-compilation))
 
 (use-package python
   :ensure nil
@@ -226,7 +187,6 @@
       (message "`%s' parser was installed." lang)
       (sit-for 0.75)))
   :config
-  ;; Decoration level to be used by tree-sitter fontifications.
   (setq treesit-font-lock-level 4)
   (setq treesit-language-source-alist
         '((css        . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
@@ -241,7 +201,6 @@
           (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
           (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
           (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-  ;; Remap traditional modes to tree-sitter modes
   (dolist (mapping '((c-mode          . c-ts-mode)
                      (conf-toml-mode  . toml-ts-mode)
                      (css-mode        . css-ts-mode)
@@ -253,7 +212,6 @@
                      (typescript-mode . typescript-ts-mode)
                      (bash-mode       . bash-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
-  ;; File associations for tree-sitter modes
   (dolist (mapping '(("\\.go\\'"     . go-ts-mode)
                      ("\\.jsonc?\\'" . json-ts-mode)
                      ("\\.m?jsx?\\'" . js-ts-mode)
@@ -325,12 +283,9 @@
   :ensure t
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :init
-  ;; Optionally configure the register formatting. This improves the register
   (setq register-preview-delay 0.5
         register-preview-function #'consult-register-format)
-  ;; Optionally tweak the register preview window.
   (advice-add #'register-preview :override #'consult-register-window)
-  ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   :config
@@ -407,13 +362,13 @@
 
 (use-package avy
   :ensure t
-  :custom
-  (avy-background t))
+  :config
+  (setq avy-background t))
 
 (use-package ace-window
   :ensure t
-  :custom
-  (aw-keys '(?h ?j ?k ?l))
+  :config
+  (setq aw-keys '(?h ?j ?k ?l))
   :bind (([remap other-window] . ace-window)
          ("M-o"                 . ace-window)))
 
@@ -423,40 +378,23 @@
 
 (use-package buffer-terminator
   :ensure t
-  :custom
-  ;; Enable/Disable verbose mode to log buffer cleanup events
-  (buffer-terminator-verbose nil)
-  ;; Set the inactivity timeout (in seconds) after which buffers are considered
-  ;; inactive (default is 30 minutes):
-  (buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
-  ;; Define how frequently the cleanup process should run (default is every 10
-  ;; minutes):
-  (buffer-terminator-interval (* 10 60)) ; 10 minutes
   :config
+  (setq buffer-terminator-verbose nil)
+  (setq buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
+  (setq buffer-terminator-interval (* 10 60)) ; 10 minutes
   (buffer-terminator-mode 1))
 
-;; Enables automatic indentation of code while typing
 (use-package aggressive-indent
   :ensure t
-  :commands aggressive-indent-mode
-  :hook
-  (emacs-lisp-mode . aggressive-indent-mode))
+  :hook (emacs-lisp-mode . aggressive-indent-mode))
 
-;; Highlights function and variable definitions in Emacs Lisp mode
 (use-package highlight-defined
   :ensure t
-  :commands highlight-defined-mode
-  :hook
-  (emacs-lisp-mode . highlight-defined-mode))
+  :hook (emacs-lisp-mode . highlight-defined-mode))
 
-;; Configure the built-in Emacs server to start after initialization,
-;; allowing the use of the emacsclient command to open files in the
-;; current session.
 (use-package server
   :ensure nil
-  :commands server-start
-  :hook
-  (after-init . server-start))
+  :hook (after-init . server-start))
 
 (use-package crux
   :ensure t
@@ -479,8 +417,8 @@
 
 (use-package zoom
   :ensure t
-  :custom
-  (zoom-size '(0.618 . 0.618)))
+  :config
+  (setq zoom-size '(0.618 . 0.618)))
 
 (use-package key-chord
   :ensure t
@@ -517,8 +455,8 @@
 
 (use-package jinx
   :ensure t
-  :custom
-  (jinx-languages "pt_BR en_US")
+  :config
+  (setq jinx-languages "pt_BR en_US")
   :bind (("M-$"   . jinx-correct)
          ("C-M-$" . jinx-languages)))
 
@@ -531,33 +469,32 @@
     (interactive)
     (when-let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
       (insert (file-relative-name fname (projectile-project-root)))))
-  :custom
-  (projectile-project-search-path '("~/Developer/work"
-                                    "~/Developer/personal"
-                                    "~/Developer/personal/dotfiles"
-                                    "~/.emacs.d"
-                                    "~/.config/nvim"))
+  :config
+  (setq projectile-project-search-path '("~/Developer/work"
+                                         "~/Developer/personal"
+                                         "~/Developer/personal/dotfiles"
+                                         "~/.emacs.d"
+                                         "~/.config/nvim"))
   (projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map)
-  :bind (:map projectile-mode-map
-              ("C-c j"   . projectile-command-map)
-              ("C-c j ." . my-insert-relative-file-name)))
+  :bind ( :map projectile-mode-map
+          ("C-c j"   . projectile-command-map)
+          ("C-c j ." . my-insert-relative-file-name)))
 
 (use-package consult-projectile
   :ensure t
   :after (consult projectile))
 
 (use-package magit
-  :ensure t
-  :defer t)
+  :ensure t)
 
 (use-package transient
   :ensure t)
 
 (use-package helpful
   :ensure t
-  :custom
-  (helpful-max-buffers 3)
+  :config
+  (setq helpful-max-buffers 3)
   :bind (([remap describe-command]  . helpful-command)
          ([remap describe-function] . helpful-callable)
          ([remap describe-key]      . helpful-key)
@@ -577,14 +514,11 @@
   :ensure nil
   :after cape
   :config
-  ;; Performance optimizations
   (fset #'jsonrpc--log-event #'ignore)
   (setq eglot-events-buffer-config '(:size 0 :format lisp))
   (setq eglot-send-changes-idle-time 0.1)
   (setq eglot-extend-to-xref t)
-  ;; Cape integration for better completion
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  ;; Disable noisy/unneeded capabilities
   (setq eglot-ignored-server-capabilities
         '(:signatureHelpProvider
           :documentHighlightProvider
@@ -594,13 +528,11 @@
           :documentLinkProvider
           :foldingRangeProvider
           :inlayHintProvider))
-  ;; Language server configuration
   (setq eglot-server-programs
         '((python-ts-mode . ("rass" "--" "pyright-langserver" "--stdio" "--" "ruff" "server"))
           ;; (python-ts-mode . ("pyright-langserver" "--stdio"))
           (c-ts-mode      . ("clangd"))
           (go-ts-mode     . ("gopls"))))
-  ;; Workspace-specific settings
   (setq-default eglot-workspace-configuration
                 '( :pyright ( :disableOrganizeImports t)
                    :python.analysis ( :autoSearchPaths t
@@ -612,7 +544,6 @@
   :ensure t
   :hook ((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode)
   :preface
-  ;; Load clang-format if available
   (let ((clang-format-file "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el"))
     (when (file-exists-p clang-format-file)
       (load clang-format-file)))
@@ -634,10 +565,8 @@
               (shell-command "clang-format -style=llvm -dump-config > .clang-format")
               (message ".clang-format created at %s" clang-format-path)))))))
   :config
-  ;; Custom formatters
   (push '(my-clang-format . (clang-format-buffer)) apheleia-formatters)
   (push '(my-gofumpt . ("gofumpt")) apheleia-formatters)
-  ;; Mode-specific formatter assignments
   (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)
         (alist-get 'go-ts-mode apheleia-mode-alist)     '(my-gofumpt)
         (alist-get 'c-ts-mode apheleia-mode-alist)      '(my-clang-format)))
