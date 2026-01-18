@@ -44,19 +44,13 @@
 (setq use-short-answers t)
 (setq confirm-kill-emacs 'y-or-n-p)
 (setq enable-recursive-minibuffers t)
-(setq sentence-end-double-space nil)
 (setq make-backup-files nil)
 (setq visible-bell nil)
 (setq ring-bell-function #'ignore)
-(setq switch-to-buffer-obey-display-actions t)
 (setq-default truncate-lines t)
 (setq-default display-line-numbers-width 3)
 (setq indicate-buffer-boundaries 'left)
 (setq x-underline-at-descent-line nil)
-(setq display-time-default-load-average nil)
-(setq scroll-margin 0)
-(setq hscroll-margin 24)
-(setq scroll-preserve-screen-position t)
 (setq pixel-scroll-precision-use-momentum nil)
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
@@ -67,8 +61,8 @@
             (setq gc-cons-threshold (* 64 1024 1024))  ; 64MB
             (setq gc-cons-percentage 0.1)))
 
-(global-display-line-numbers-mode 1)
 (global-hl-line-mode -1)
+(global-display-line-numbers-mode 1)
 (column-number-mode 1)
 (save-place-mode 1)
 (savehist-mode 1)
@@ -89,48 +83,12 @@
 
 (use-package emacs
   :ensure nil
-  :preface
-  (defun my-scroll-window-halfway-down ()
-    "Scroll window down by half of the total window height."
-    (interactive)
-    (scroll-up (/ (window-height) 2)))
-  (defun my-scroll-window-halfway-up ()
-    "Scroll window up by half of the total window height."
-    (interactive)
-    (scroll-down (/ (window-height) 2)))
-  (defun my-toggle-window-split ()
-    "Toggle between horizontal and vertical window split."
-    (interactive)
-    (when (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-                                         (car next-win-edges))
-                                     (<= (cadr this-win-edges)
-                                         (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-                     (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (when this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (when this-win-2nd (other-window 1))))))
   :hook (elpaca-after-init . minibuffer-depth-indicate-mode)
   :config
   (add-to-list 'display-buffer-alist
                '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
                  (display-buffer-no-window)
-                 (allow-no-window . t)))
-  :bind (("C-v" . my-scroll-window-halfway-down)
-         ("M-v" . my-scroll-window-halfway-up)))
+                 (allow-no-window . t))))
 
 (use-package uniquify
   :ensure nil
@@ -188,19 +146,18 @@
       (sit-for 0.75)))
   :config
   (setq treesit-font-lock-level 4)
-  (setq treesit-language-source-alist
-        '((css        . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-          (go         . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-          (html       . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
-          (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-          (json       . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-          (markdown   . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
-          (python     . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-          (rust       . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
-          (toml       . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
-          (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-          (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-          (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+  (setq treesit-language-source-alist '((css        . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+                                        (go         . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+                                        (html       . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+                                        (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+                                        (json       . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+                                        (markdown   . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
+                                        (python     . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+                                        (rust       . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
+                                        (toml       . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+                                        (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+                                        (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+                                        (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
   (dolist (mapping '((c-mode          . c-ts-mode)
                      (conf-toml-mode  . toml-ts-mode)
                      (css-mode        . css-ts-mode)
@@ -233,23 +190,24 @@
   (delight '((eldoc-mode nil "eldoc")
              (apheleia-mode nil "apheleia")
              (projectile-mode nil "projectile")
-             (global-anzu-mode nil "anzu")
+             (anzu-mode nil "anzu")
+             (buffer-terminator-mode " ~" "buffer-terminator")
              (whitespace-mode nil "whitespace")
-             (emacs-lisp-mode "Elisp" :major))))
+             (emacs-lisp-mode "Emacs Lisp" :major))))
 
 (use-package vertico
   :ensure t
   :hook (elpaca-after-init . vertico-mode)
   :config
-  (setq vertico-cycle t)
   (vertico-multiform-mode)
+  (setq vertico-cycle t)
   (dolist (category '((embark-keybinding grid)
                       (jinx grid (vertico-grid-annotate . 20) (vertico-count . 4))))
     (add-to-list 'vertico-multiform-categories category))
-  :bind (:map vertico-map
-              ("<backspace>" . vertico-directory-delete-char)
-              ("C-w"         . vertico-directory-delete-word)
-              ("RET"         . vertico-directory-enter)))
+  :bind ( :map vertico-map
+          ("<backspace>" . vertico-directory-delete-char)
+          ("C-w"         . vertico-directory-delete-word)
+          ("RET"         . vertico-directory-enter)))
 
 (use-package orderless
   :ensure t
@@ -283,22 +241,20 @@
   :ensure t
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :init
-  (setq register-preview-delay 0.5
-        register-preview-function #'consult-register-format)
   (advice-add #'register-preview :override #'consult-register-window)
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+  (setq register-preview-delay 0.5)
+  (setq register-preview-function #'consult-register-format)
+  (setq xref-show-xrefs-function #'consult-xref)
+  (setq xref-show-definitions-function #'consult-xref)
   :config
   (setq consult-async-min-input 2)
   (setq consult-narrow-key "<")
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
-  (consult-customize
-   consult-theme
-   consult-ripgrep
-   consult-git-grep
-   consult-grep
-   consult-xref
-   :preview-key "M-.")
+  (consult-customize consult-theme consult-ripgrep
+                     consult-git-grep
+                     consult-grep
+                     consult-xref
+                     :preview-key "M-.")
   :bind (("C-c M-x" . consult-mode-command)
          ("C-c h" . consult-history)
          ("C-c k" . consult-kmacro)
@@ -463,23 +419,12 @@
 (use-package projectile
   :ensure t
   :hook (elpaca-after-init . projectile-mode)
-  :preface
-  (defun my-insert-relative-file-name ()
-    "Insert the current file's path relative to the project root."
-    (interactive)
-    (when-let ((fname (buffer-file-name (window-buffer (minibuffer-selected-window)))))
-      (insert (file-relative-name fname (projectile-project-root)))))
   :config
-  (setq projectile-project-search-path '("~/Developer/work"
-                                         "~/Developer/personal"
-                                         "~/Developer/personal/dotfiles"
-                                         "~/.emacs.d"
-                                         "~/.config/nvim"))
   (projectile-cleanup-known-projects t)
+  (setq projectile-project-search-path '("~/Developer/work" "~/Developer/personal" "~/Developer/personal/dotfiles" "~/.emacs.d" "~/.config/nvim"))
   :bind-keymap ("C-x p" . projectile-command-map)
   :bind ( :map projectile-mode-map
-          ("C-c j"   . projectile-command-map)
-          ("C-c j ." . my-insert-relative-file-name)))
+          ("C-c j"   . projectile-command-map)))
 
 (use-package consult-projectile
   :ensure t
@@ -515,30 +460,26 @@
   :after cape
   :config
   (fset #'jsonrpc--log-event #'ignore)
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq eglot-events-buffer-config '(:size 0 :format lisp))
   (setq eglot-send-changes-idle-time 0.1)
   (setq eglot-extend-to-xref t)
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  (setq eglot-ignored-server-capabilities
-        '(:signatureHelpProvider
-          :documentHighlightProvider
-          :codeLensProvider
-          :documentRangeFormattingProvider
-          :documentOnTypeFormattingProvider
-          :documentLinkProvider
-          :foldingRangeProvider
-          :inlayHintProvider))
-  (setq eglot-server-programs
-        '((python-ts-mode . ("rass" "--" "pyright-langserver" "--stdio" "--" "ruff" "server"))
-          ;; (python-ts-mode . ("pyright-langserver" "--stdio"))
-          (c-ts-mode      . ("clangd"))
-          (go-ts-mode     . ("gopls"))))
-  (setq-default eglot-workspace-configuration
-                '( :pyright ( :disableOrganizeImports t)
-                   :python.analysis ( :autoSearchPaths t
-                                      :useLibraryCodeForTypes t
-                                      :diagnosticMode "openFilesOnly")
-                   :gopls ( :gofumpt t))))
+  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
+                                             :documentHighlightProvider
+                                             :codeLensProvider
+                                             :documentRangeFormattingProvider
+                                             :documentOnTypeFormattingProvider
+                                             :documentLinkProvider
+                                             :foldingRangeProvider
+                                             :inlayHintProvider))
+  (setq eglot-server-programs '((python-ts-mode . ("rass" "--" "pyright-langserver" "--stdio" "--" "ruff" "server"))
+                                (c-ts-mode      . ("clangd"))
+                                (go-ts-mode     . ("gopls"))))
+  (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
+                                                 :python.analysis ( :autoSearchPaths t
+                                                                    :useLibraryCodeForTypes t
+                                                                    :diagnosticMode "openFilesOnly")
+                                                 :gopls ( :gofumpt t))))
 
 (use-package apheleia
   :ensure t
