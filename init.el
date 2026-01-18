@@ -302,7 +302,8 @@
 
 (use-package embark
   :ensure t
-  :init (setq prefix-help-command #'embark-prefix-help-command)
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
   :config (add-to-list 'display-buffer-alist
                        '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                          nil
