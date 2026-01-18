@@ -1,5 +1,6 @@
 ;;; init.el --- Personal Emacs Configuration -*- lexical-binding: t -*-
 
+;; https://github.com/progfolio/elpaca?tab=readme-ov-file#installer
 (defvar elpaca-installer-version 0.11)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -41,48 +42,83 @@
 ;; Enable use-package integration with Elpaca
 (elpaca elpaca-use-package (elpaca-use-package-mode))
 
-;; Custom file location (keep init.el clean)
+;; Custom file location
 (setq custom-file (expand-file-name "custom.el" my-user-directory))
-(setq use-short-answers t)                      ; y/n instead of yes/no
-(setq confirm-kill-emacs 'y-or-n-p)             ; Confirm before exiting
-(setq enable-recursive-minibuffers t)           ; Allow nested minibuffers
-(setq sentence-end-double-space nil)            ; Single space after period
-(setq make-backup-files nil)                    ; Don't create backup files
-(setq visible-bell nil)                         ; No visual bell
-(setq ring-bell-function #'ignore)              ; No audible bell
-(setq switch-to-buffer-obey-display-actions t)  ; Respect display-buffer rules
-(setq-default truncate-lines t)                 ; Don't wrap long lines
-(setq-default display-line-numbers-width 3)     ; Consistent line number width
-(setq indicate-buffer-boundaries 'left)         ; Show buffer boundaries
-(setq x-underline-at-descent-line nil)          ; Better underline positioning
-(setq display-time-default-load-average nil)    ; Don't show load average
+;; Use y/n instead of yes/no
+(setq use-short-answers t)
+;; Confirm before exiting Emacs
+(setq confirm-kill-emacs 'y-or-n-p)
+;; Allow nested minibuffers
+(setq enable-recursive-minibuffers t)
+;; A period followed by a single space ends a sentence
+(setq sentence-end-double-space nil)
+;; Avoid creating backup files
+(setq make-backup-files nil)
+;; No visual bell
+(setq visible-bell nil)
+;; No audible bell
+(setq ring-bell-function #'ignore)
+;; Respect display-buffer rules
+(setq switch-to-buffer-obey-display-actions t)
+;; Don't automatically wrap long lines
+(setq-default truncate-lines t)
+;; Add a consistent line number width
+(setq-default display-line-numbers-width 3)
+;; Show buffer boundaries to the left
+(setq indicate-buffer-boundaries 'left)
+;; Better underline positioning
+(setq x-underline-at-descent-line nil)
+;; Don't show load average on the mode line
+(setq display-time-default-load-average nil)
+;; Vertical scroll margin
 (setq scroll-margin 0)
+;; Horizontal scroll margin
 (setq hscroll-margin 24)
+;; Preserve cursor position
 (setq scroll-preserve-screen-position t)
+;; Immediately stop scrolling
 (setq pixel-scroll-precision-use-momentum nil)
-(setq-default tab-width 4)                      ; Tab display width
-(setq-default indent-tabs-mode nil)             ; Use spaces, not tabs
-(setq tab-always-indent 'complete)              ; Tab indents or completes
-(setq completion-ignore-case t)                 ; Case-insensitive completion
+;; Set default tab size
+(setq-default tab-width 4)
+;; Don't use tabs to indent
+(setq-default indent-tabs-mode nil)
+;; Use tab key both for identation and completion
+(setq tab-always-indent 'complete)
+;; Make completion case insensitive
+(setq completion-ignore-case t)
+;; Restore garbage collection to sensible values
 (add-hook 'elpaca-after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 64 1024 1024))  ; 64MB
             (setq gc-cons-percentage 0.1)))
 
-(global-display-line-numbers-mode 1)  ; Show line numbers
-(global-hl-line-mode -1)              ; Highlight current line
-(column-number-mode 1)                ; Show column number in modeline
-(save-place-mode 1)                   ; Remember cursor position
-(savehist-mode 1)                     ; Remember minibuffer history
-(recentf-mode 1)                      ; Track recent files
-(display-time-mode 1)                 ; Show time in modeline
-(delete-selection-mode 1)             ; Replace selection when typing
-(winner-mode 1)                       ; Window configuration undo/redo
-(window-divider-mode 1)               ; Show window dividers
-(pixel-scroll-precision-mode 1)       ; Smooth scrolling
+;; Show line numbers
+(global-display-line-numbers-mode 1)
+;; Don't highlight the current line
+(global-hl-line-mode -1)
+;; Show column number in the modeline
+(column-number-mode 1)
+;; Remember cursor position
+(save-place-mode 1)
+;; Remember minibuffer history
+(savehist-mode 1)
+;; Track recent visited files
+(recentf-mode 1)
+;; show time in the modeline
+(display-time-mode 1)
+;; Replace current selection when typing
+(delete-selection-mode 1)
+;; Window configuration tracker (allow undo/redo)
+(winner-mode 1)
+;; Show window dividers (allow resizing with the mouse)
+(window-divider-mode 1)
+;; Smooth scrolling
+(pixel-scroll-precision-mode 1)
+;; Right click context menu
 (when (display-graphic-p)
-  (context-menu-mode 1))              ; Right-click context menu
+  (context-menu-mode 1))
 
+;; Define font configurations
 (let ((mono-font "HackNerdFontMono")
       (prop-font "HackNerdFontPropo"))
   (set-face-attribute 'default nil :family mono-font :height 110 :weight 'regular)
@@ -125,10 +161,8 @@
           (set-window-buffer (next-window) next-win-buffer)
           (select-window first-win)
           (when this-win-2nd (other-window 1))))))
-  :hook
-  (elpaca-after-init . minibuffer-depth-indicate-mode)
+  :hook (elpaca-after-init . minibuffer-depth-indicate-mode)
   :config
-  ;; Suppress certain buffers
   (add-to-list 'display-buffer-alist
                '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
                  (display-buffer-no-window)
@@ -146,30 +180,24 @@
 (use-package autorevert
   :ensure nil
   :hook (elpaca-after-init . global-auto-revert-mode)
-  :custom
-  (auto-revert-avoid-polling t)
-  (auto-revert-interval 2)
-  (auto-revert-check-vc-info t))
+  :config
+  (setq auto-revert-avoid-polling t)
+  (setq auto-revert-interval 2)
+  (setq auto-revert-check-vc-info t))
 
 (use-package whitespace
   :ensure nil
   :hook ((elpaca-after-init . global-whitespace-mode)
          (before-save . whitespace-cleanup))
-  :custom
-  (whitespace-style '(face tabs empty trailing)))
+  :config (setq whitespace-style '(face tabs empty trailing)))
 
 (use-package dired
   :ensure nil
-  :hook
-  ;; Dired buffers: Automatically hide file details (permissions, size,
-  ;; modification date, etc.) and all the files in the `dired-omit-files' regular
-  ;; expression for a cleaner display.
-  (dired-mode . dired-hide-details-mode)
+  :hook (dired-mode . dired-hide-details-mode)
   :config
-  ;; Constrain vertical cursor movement to lines within the buffer
   (setq dired-movement-style 'bounded-files)
-  :bind (:map dired-mode-map
-              ("-" . dired-up-directory)))
+  :bind ( :map dired-mode-map
+          ("-" . dired-up-directory)))
 
 (use-package compile
   :ensure nil
@@ -182,6 +210,11 @@
   :hook (compilation-filter . my-colorize-compilation)
   :bind ("C-c `" . compile))
 
+(use-package python
+  :ensure nil
+  :config
+  (setq python-indent-guess-indent-offset nil))
+
 (use-package treesit
   :ensure nil
   :preface
@@ -192,10 +225,9 @@
       (treesit-install-language-grammar lang)
       (message "`%s' parser was installed." lang)
       (sit-for 0.75)))
-  :custom
-  (treesit-font-lock-level 4)
   :config
-  ;; Language grammar sources
+  ;; Decoration level to be used by tree-sitter fontifications.
+  (setq treesit-font-lock-level 4)
   (setq treesit-language-source-alist
         '((css        . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
           (go         . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
@@ -231,10 +263,9 @@
 
 (use-package ef-themes
   :ensure t
-  :custom
-  (ef-themes-mixed-fonts t)
-  (ef-themes-variable-pitch-ui nil)
   :config
+  (setq ef-themes-mixed-fonts t)
+  (setq ef-themes-variable-pitch-ui nil)
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'ef-melissa-light t))
 
@@ -251,9 +282,8 @@
 (use-package vertico
   :ensure t
   :hook (elpaca-after-init . vertico-mode)
-  :custom
-  (vertico-cycle t)
   :config
+  (setq vertico-cycle t)
   (vertico-multiform-mode)
   (dolist (category '((embark-keybinding grid)
                       (jinx grid (vertico-grid-annotate . 20) (vertico-count . 4))))
@@ -265,14 +295,13 @@
 
 (use-package orderless
   :ensure t
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-defaults nil)
-  (completion-category-overrides '((file (styles partial-completion))
-                                   (embark-keybinding (styles flex))
-                                   (eglot (styles orderless))
-                                   (eglot-capf (styles orderless))))
-  (completion-pcm-leading-wildcard t))
+  :config
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-defaults nil)
+  (setq completion-category-overrides '((file (styles partial-completion))
+                                        (embark-keybinding (styles flex))
+                                        (eglot (styles orderless))
+                                        (eglot-capf (styles orderless)))))
 
 (use-package marginalia
   :ensure t
@@ -281,9 +310,8 @@
 (use-package corfu
   :ensure t
   :hook (elpaca-after-init . global-corfu-mode)
-  :custom
-  (corfu-cycle t)
   :config
+  (setq corfu-cycle t)
   (corfu-popupinfo-mode 1))
 
 (use-package cape
@@ -310,19 +338,18 @@
   (setq consult-narrow-key "<")
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
   (consult-customize
-   consult-theme consult-ripgrep consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-bookmark consult--source-file-register
-   consult--source-recent-file consult--source-project-recent-file
+   consult-theme
+   consult-ripgrep
+   consult-git-grep
+   consult-grep
+   consult-xref
    :preview-key "M-.")
-  :bind (;; C-c bindings in `mode-specific-map'
-         ("C-c M-x" . consult-mode-command)
+  :bind (("C-c M-x" . consult-mode-command)
          ("C-c h" . consult-history)
          ("C-c k" . consult-kmacro)
          ("C-c m" . consult-man)
          ("C-c i" . consult-info)
          ([remap Info-search] . consult-info)
-         ;; C-x bindings in `ctl-x-map'
          ("C-x M-:" . consult-complex-command)
          ("C-x b" . consult-buffer)
          ("C-x 4 b" . consult-buffer-other-window)
@@ -330,13 +357,10 @@
          ("C-x t b" . consult-buffer-other-tab)
          ("C-x r b" . consult-bookmark)
          ("C-x p b" . consult-project-buffer)
-         ;; Custom M-# bindings for fast register access
          ("M-#" . consult-register-load)
          ("M-'" . consult-register-store)
          ("C-M-#" . consult-register)
-         ;; Other custom bindings
          ("M-y" . consult-yank-pop)
-         ;; M-g bindings in `goto-map'
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)
          ("M-g g" . consult-goto-line)
@@ -346,7 +370,6 @@
          ("M-g k" . consult-global-mark)
          ("M-g i" . consult-imenu)
          ("M-g I" . consult-imenu-multi)
-         ;; M-s bindings in `search-map'
          ("M-s d" . consult-find)
          ("M-s c" . consult-locate)
          ("M-s g" . consult-grep)
@@ -356,27 +379,23 @@
          ("M-s L" . consult-line-multi)
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
-         ;; Isearch integration
          ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
          ("M-e" . consult-isearch-history)
          ("M-s e" . consult-isearch-history)
          ("M-s l" . consult-line)
          ("M-s L" . consult-line-multi)
-         ;; Minibuffer history
          :map minibuffer-local-map
          ("M-s" . consult-history)
          ("M-r" . consult-history)))
 
 (use-package embark
   :ensure t
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none))))
+  :init (setq prefix-help-command #'embark-prefix-help-command)
+  :config (add-to-list 'display-buffer-alist
+                       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                         nil
+                         (window-parameters (mode-line-format . none))))
   :bind (("C-."   . embark-act)
          ("C-;"   . embark-dwim)
          ("C-h B" . embark-bindings)))
@@ -468,7 +487,7 @@
   :hook (elpaca-after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
-  (key-chord-define-global "jj" 'avy-goto-char)
+  (key-chord-define-global "jj" 'avy-goto-char-timer)
   (key-chord-define-global "KK" 'backward-paragraph)
   (key-chord-define-global "JJ" 'forward-paragraph))
 
@@ -630,11 +649,6 @@
 (use-package indent-bars
   :ensure t
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
-
-(use-package python
-  :ensure nil
-  :custom
-  (python-indent-guess-indent-offset nil))
 
 (use-package pyvenv
   :ensure t
