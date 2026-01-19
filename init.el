@@ -471,7 +471,7 @@
                                              :documentLinkProvider
                                              :foldingRangeProvider
                                              :inlayHintProvider))
-  (setq eglot-server-programs '((python-ts-mode . ("rass" "--" "pyright-langserver" "--stdio" "--" "ruff" "server"))
+  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))
                                 (c-ts-mode      . ("clangd"))
                                 (go-ts-mode     . ("gopls"))))
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
