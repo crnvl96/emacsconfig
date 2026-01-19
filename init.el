@@ -401,6 +401,22 @@
   :bind (("M-%"   . anzu-query-replace)
          ("C-M-%" . anzu-query-replace-regexp)))
 
+(use-package undo-fu
+  :ensure t
+  :bind (("C-z"   . undo-fu-only-undo)
+         ("C-S-z" . undo-fu-only-redo)))
+
+(use-package undo-fu-session
+  :ensure t
+  :hook (elpaca-after-init . undo-fu-session-global-mode))
+
+(use-package jinx
+  :ensure t
+  :config
+  (setq jinx-languages "pt_BR en_US")
+  :bind (("M-$"   . jinx-correct)
+         ("C-M-$" . jinx-languages)))
+
 (use-package projectile
   :ensure t
   :hook (elpaca-after-init . projectile-mode)
