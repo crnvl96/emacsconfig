@@ -1,5 +1,17 @@
 ;;; init.el --- Personal Emacs Configuration -*- lexical-binding: t -*-
 
+(require 'package)
+(require 'use-package)
+(package-initialize)
+
+(setq package-archives '(("melpa"        . "https://melpa.org/packages/")
+                         ("gnu"          . "https://elpa.gnu.org/packages/")
+                         ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")))
+(setq package-archive-priorities '(("melpa"        . 90)
+                                   ("gnu"          . 70)
+                                   ("nongnu"       . 60)
+                                   ("melpa-stable" . 50)))
 (setq custom-file (expand-file-name "custom.el" my-user-directory))
 (setq use-short-answers t)
 (setq confirm-kill-emacs 'y-or-n-p)
@@ -151,7 +163,7 @@
                                              :documentLinkProvider
                                              :foldingRangeProvider
                                              :inlayHintProvider))
-  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))
+  (setq eglot-server-programs '((python-ts-mode . ("pyright-langserver" "--stdio"))
                                 (c-ts-mode      . ("clangd"))
                                 (go-ts-mode     . ("gopls"))))
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
@@ -162,7 +174,6 @@
 
 (use-package delight
   :ensure t
-  :vc (:url "https://savannah.nongnu.org/projects/delight" :rev :newest)
   :config
   (delight '((eldoc-mode nil "eldoc")
              (apheleia-mode nil "apheleia")
@@ -174,7 +185,6 @@
 
 (use-package ef-themes
   :ensure t
-  :vc (:url "https://github.com/protesilaos/ef-themes" :rev :newest)
   :config
   (setq ef-themes-mixed-fonts t)
   (setq ef-themes-variable-pitch-ui nil)
@@ -183,7 +193,6 @@
 
 (use-package vertico
   :ensure t
-  :vc (:url "https://github.com/minad/vertico" :rev :newest)
   :hook (after-init . vertico-mode)
   :config
   (vertico-multiform-mode)
@@ -198,7 +207,6 @@
 
 (use-package orderless
   :ensure t
-  :vc (:url "https://github.com/oantolin/orderless" :rev :newest)
   :config
   (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
@@ -209,12 +217,10 @@
 
 (use-package marginalia
   :ensure t
-  :vc (:url "https://github.com/minad/marginalia" :rev :newest)
   :hook (after-init . marginalia-mode))
 
 (use-package corfu
   :ensure t
-  :vc (:url "https://github.com/minad/corfu" :rev :newest)
   :hook (after-init . global-corfu-mode)
   :config
   (setq corfu-cycle t)
@@ -222,7 +228,6 @@
 
 (use-package cape
   :ensure t
-  :vc (:url "https://github.com/minad/cape" :rev :newest)
   :init
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
@@ -230,7 +235,6 @@
 
 (use-package consult
   :ensure t
-  :vc (:url "https://github.com/minad/consult" :rev :newest)
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :init
   (advice-add #'register-preview :override #'consult-register-window)
@@ -294,7 +298,6 @@
 
 (use-package embark
   :ensure t
-  :vc (:url "https://github.com/oantolin/embark" :rev :newest)
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   :config (add-to-list 'display-buffer-alist
@@ -307,23 +310,20 @@
 
 (use-package embark-consult
   :ensure t
-  :vc (:url "https://github.com/oantolin/embark" :rev :newest)
   :after (embark consult)
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package wgrep
-  :ensure t
-  :vc (:url "https://github.com/mhayashi1120/Emacs-wgrep" :rev :newest))
+  :ensure t)
+
 
 (use-package avy
   :ensure t
-  :vc (:url "https://github.com/abo-abo/avy" :rev :newest)
   :config
   (setq avy-background t))
 
 (use-package ace-window
   :ensure t
-  :vc (:url "https://github.com/abo-abo/ace-window" :rev :newest)
   :config
   (setq aw-keys '(?h ?j ?k ?l))
   :bind (([remap other-window] . ace-window)
@@ -331,7 +331,6 @@
 
 (use-package buffer-terminator
   :ensure t
-  :vc (:url "https://github.com/jamescherti/buffer-terminator.el" :rev :newest)
   :hook (after-init . buffer-terminator-mode)
   :config
   (setq buffer-terminator-verbose nil)
@@ -340,12 +339,10 @@
 
 (use-package aggressive-indent
   :ensure t
-  :vc (:url "https://github.com/Malabarba/aggressive-indent-mode" :rev :newest)
   :hook (emacs-lisp-mode . aggressive-indent-mode))
 
 (use-package crux
   :ensure t
-  :vc (:url "https://github.com/bbatsov/crux" :rev :newest)
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
@@ -365,12 +362,10 @@
 
 (use-package zoom
   :ensure t
-  :vc (:url "https://github.com/cyrus-and/zoom" :rev :newest)
   :config (setq zoom-size '(0.618 . 0.618)))
 
 (use-package key-chord
   :ensure t
-  :vc (:url "https://github.com/emacsorphanage/key-chord" :rev :newest)
   :hook (after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
@@ -380,36 +375,30 @@
 
 (use-package multiple-cursors
   :ensure t
-  :vc (:url "https://github.com/magnars/multiple-cursors.el" :rev :newest)
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
 
 (use-package expand-region
   :ensure t
-  :vc (:url "https://github.com/magnars/expand-region.el" :rev :newest)
   :bind ("C-=" . er/expand-region))
 
 (use-package anzu
   :ensure t
-  :vc (:url "https://github.com/emacsorphanage/anzu" :rev :newest)
   :hook (after-init . global-anzu-mode)
   :bind (("M-%"   . anzu-query-replace)
          ("C-M-%" . anzu-query-replace-regexp)))
 
 (use-package undo-fu
   :ensure t
-  :vc (:url "https://github.com/emacsmirror/undo-fu" :rev :newest)
   :bind (("C-z"   . undo-fu-only-undo)
          ("C-S-z" . undo-fu-only-redo)))
 
 (use-package undo-fu-session
   :ensure t
-  :vc (:url "https://github.com/emacsmirror/undo-fu-session" :rev :newest)
   :hook (after-init . undo-fu-session-global-mode))
 
 (use-package jinx
   :ensure t
-  :vc (:url "https://github.com/minad/jinx" :rev :newest)
   :config
   (setq jinx-languages "pt_BR en_US")
   :bind (("M-$"   . jinx-correct)
@@ -417,7 +406,6 @@
 
 (use-package projectile
   :ensure t
-  :vc (:url "https://github.com/bbatsov/projectile" :rev :newest)
   :hook (after-init . projectile-mode)
   :config
   (setq projectile-project-search-path '("~/Developer/work" "~/Developer/personal" "~/Developer/personal/dotfiles" "~/.emacs.d" "~/.config/nvim"))
@@ -425,16 +413,13 @@
   :bind-keymap ("C-x p" . projectile-command-map))
 
 (use-package magit
-  :vc (:url "https://github.com/magit/magit" :rev :newest)
   :ensure t)
 
 (use-package transient
-  :vc (:url "https://github.com/magit/transient" :rev :newest)
   :ensure t)
 
 (use-package helpful
   :ensure t
-  :vc (:url "https://github.com/Wilfred/helpful" :rev :newest)
   :config
   (setq helpful-max-buffers 1)
   :bind (([remap describe-command]  . helpful-command)
@@ -444,19 +429,16 @@
          ([remap describe-variable] . helpful-variable)))
 
 (use-package vterm
-  :ensure t
-  :vc (:url "https://github.com/akermu/emacs-libvterm" :rev :newest))
+  :ensure t)
 
 (use-package exec-path-from-shell
   :ensure t
-  :vc (:url "https://github.com/purcell/exec-path-from-shell" :rev :newest)
   :when (memq window-system '(mac ns x))
   :config
   (exec-path-from-shell-initialize))
 
 (use-package apheleia
   :ensure t
-  :vc (:url "https://github.com/radian-software/apheleia" :rev :newest)
   :hook ((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode)
   :preface
   (let ((clang-format-file "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el"))
@@ -488,17 +470,14 @@
 
 (use-package mise
   :ensure t
-  :vc (:url "https://github.com/eki3z/mise.el" :rev :newest)
   :hook (after-init . global-mise-mode))
 
 (use-package indent-bars
   :ensure t
-  :vc (:url "https://github.com/jdtsmith/indent-bars" :rev :newest)
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
 
 (use-package pyvenv
   :ensure t
-  :vc (:url "https://github.com/jorgenschaefer/pyvenv" :rev :newest)
   :preface
   (defun my-find-and-activate-venv ()
     "Find and activate .venv directory by scanning upward from current directory."
