@@ -16,11 +16,16 @@
 (setq read-process-output-max (* 4 1024 1024))
 (setq user-emacs-directory (expand-file-name "var/" my-user-directory))
 (setq package-user-dir (expand-file-name "elpa" user-emacs-directory))
-(setq package-enable-at-startup nil)
+
+;; List of warnings that the byte-compiler should issue.
 (setq byte-compile-warnings '(not obsolete))
+;; List of warning types that should not be logged.
 (setq warning-suppress-log-types '((comp) (bytecomp)))
+;; Whether to report warnings and errors from asynchronous native compilation.
 (setq native-comp-async-report-warnings-errors 'silent)
+;; Whether to query the user about killing async compilations when exiting.
 (setq native-comp-async-query-on-exit t)
+
 (setq inhibit-startup-echo-area-message (user-login-name))
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-screen t)
@@ -28,6 +33,7 @@
 (setq initial-major-mode 'fundamental-mode)
 (setq initial-scratch-message nil)
 (setq frame-resize-pixelwise t)
+
 (setq default-frame-alist '((fullscreen . maximized)
                             (vertical-scroll-bars . nil)
                             (horizontal-scroll-bars . nil)

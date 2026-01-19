@@ -1,45 +1,5 @@
 ;;; init.el --- Personal Emacs Configuration -*- lexical-binding: t -*-
 
-(defvar elpaca-installer-version 0.11)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (<= emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-(elpaca elpaca-use-package (elpaca-use-package-mode))
-
 (setq custom-file (expand-file-name "custom.el" my-user-directory))
 (setq use-short-answers t)
 (setq confirm-kill-emacs 'y-or-n-p)
@@ -83,12 +43,9 @@
 
 (use-package emacs
   :ensure nil
-  :hook (elpaca-after-init . minibuffer-depth-indicate-mode)
-  :config
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'"
-                 (display-buffer-no-window)
-                 (allow-no-window . t))))
+  :hook (after-init . minibuffer-depth-indicate-mode)
+  :config (add-to-list 'display-buffer-alist
+                       '("\\`\\*\\(Warnings\\|Compile-Log\\)\\*\\'" (display-buffer-no-window) (allow-no-window . t))))
 
 (use-package uniquify
   :ensure nil
@@ -99,7 +56,7 @@
 
 (use-package autorevert
   :ensure nil
-  :hook (elpaca-after-init . global-auto-revert-mode)
+  :hook (after-init . global-auto-revert-mode)
   :config
   (setq auto-revert-avoid-polling t)
   (setq auto-revert-interval 2)
@@ -107,17 +64,15 @@
 
 (use-package whitespace
   :ensure nil
-  :hook ((elpaca-after-init . global-whitespace-mode)
+  :hook ((after-init . global-whitespace-mode)
          (before-save . whitespace-cleanup))
   :config (setq whitespace-style '(face tabs empty trailing)))
 
 (use-package dired
   :ensure nil
   :hook (dired-mode . dired-hide-details-mode)
-  :config
-  (setq dired-movement-style 'bounded-files)
-  :bind ( :map dired-mode-map
-          ("-" . dired-up-directory)))
+  :config (setq dired-movement-style 'bounded-files)
+  :bind (:map dired-mode-map ("-" . dired-up-directory)))
 
 (use-package compile
   :ensure nil
@@ -131,8 +86,11 @@
 
 (use-package python
   :ensure nil
-  :config
-  (setq python-indent-guess-indent-offset nil))
+  :config (setq python-indent-guess-indent-offset nil))
+
+(use-package server
+  :ensure nil
+  :hook (after-init . server-start))
 
 (use-package treesit
   :ensure nil
@@ -176,16 +134,9 @@
                      ("\\.ya?ml\\'"  . yaml-ts-mode)))
     (add-to-list 'auto-mode-alist mapping)))
 
-(use-package ef-themes
-  :ensure t
-  :config
-  (setq ef-themes-mixed-fonts t)
-  (setq ef-themes-variable-pitch-ui nil)
-  (mapc #'disable-theme custom-enabled-themes)
-  (load-theme 'ef-melissa-light t))
-
 (use-package delight
   :ensure t
+  :vc (:url "https://savannah.nongnu.org/projects/delight" :rev :newest)
   :config
   (delight '((eldoc-mode nil "eldoc")
              (apheleia-mode nil "apheleia")
@@ -195,8 +146,18 @@
              (whitespace-mode nil "whitespace")
              (emacs-lisp-mode "Emacs Lisp" :major))))
 
+(use-package ef-themes
+  :ensure t
+  :vc (:url "https://github.com/protesilaos/ef-themes" :rev :newest)
+  :config
+  (setq ef-themes-mixed-fonts t)
+  (setq ef-themes-variable-pitch-ui nil)
+  (mapc #'disable-theme custom-enabled-themes)
+  (load-theme 'ef-melissa-light t))
+
 (use-package vertico
   :ensure t
+  :vc (:url "https://github.com/minad/vertico" :rev :newest)
   :hook (elpaca-after-init . vertico-mode)
   :config
   (vertico-multiform-mode)
@@ -211,6 +172,7 @@
 
 (use-package orderless
   :ensure t
+  :vc (:url "https://github.com/oantolin/orderless" :rev :newest)
   :config
   (setq completion-styles '(orderless basic))
   (setq completion-category-defaults nil)
@@ -221,10 +183,12 @@
 
 (use-package marginalia
   :ensure t
+  :vc (:url "https://github.com/minad/marginalia" :rev :newest)
   :hook (elpaca-after-init . marginalia-mode))
 
 (use-package corfu
   :ensure t
+  :vc (:url "https://github.com/minad/corfu" :rev :newest)
   :hook (elpaca-after-init . global-corfu-mode)
   :config
   (setq corfu-cycle t)
@@ -232,6 +196,7 @@
 
 (use-package cape
   :ensure t
+  :vc (:url "https://github.com/minad/cape" :rev :newest)
   :init
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
@@ -239,6 +204,7 @@
 
 (use-package consult
   :ensure t
+  :vc (:url "https://github.com/minad/consult" :rev :newest)
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :init
   (advice-add #'register-preview :override #'consult-register-window)
@@ -302,6 +268,7 @@
 
 (use-package embark
   :ensure t
+  :vc (:url "https://github.com/oantolin/embark" :rev :newest)
   :init
   (setq prefix-help-command #'embark-prefix-help-command)
   :config (add-to-list 'display-buffer-alist
@@ -314,44 +281,41 @@
 
 (use-package embark-consult
   :ensure t
+  :vc (:url "https://github.com/oantolin/embark" :rev :newest)
   :after (embark consult)
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
+(use-package wgrep
+  :ensure t
+  :vc (:url "https://github.com/mhayashi1120/Emacs-wgrep" :rev :newest))
+
 (use-package avy
   :ensure t
+  :vc (:url "https://github.com/abo-abo/avy" :rev :newest)
   :config
   (setq avy-background t))
 
 (use-package ace-window
   :ensure t
+  :vc (:url "https://github.com/abo-abo/ace-window" :rev :newest)
   :config
   (setq aw-keys '(?h ?j ?k ?l))
   :bind (([remap other-window] . ace-window)
          ("M-o"                 . ace-window)))
 
-(use-package rg
-  :ensure t
-  :bind ("C-c f g" . rg-menu))
-
 (use-package buffer-terminator
   :ensure t
+  :vc (:url "https://github.com/jamescherti/buffer-terminator.el" :rev :newest)
+  :hook (after-init . buffer-terminator-mode)
   :config
   (setq buffer-terminator-verbose nil)
-  (setq buffer-terminator-inactivity-timeout (* 30 60)) ; 30 minutes
-  (setq buffer-terminator-interval (* 10 60)) ; 10 minutes
-  (buffer-terminator-mode 1))
+  (setq buffer-terminator-inactivity-timeout (* 30 60))
+  (setq buffer-terminator-interval (* 10 60)))
 
 (use-package aggressive-indent
   :ensure t
+  :vc (:url "https://github.com/Malabarba/aggressive-indent-mode" :rev :newest)
   :hook (emacs-lisp-mode . aggressive-indent-mode))
-
-(use-package highlight-defined
-  :ensure t
-  :hook (emacs-lisp-mode . highlight-defined-mode))
-
-(use-package server
-  :ensure nil
-  :hook (after-init . server-start))
 
 (use-package crux
   :ensure t
