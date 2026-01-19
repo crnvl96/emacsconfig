@@ -134,6 +134,32 @@
                      ("\\.ya?ml\\'"  . yaml-ts-mode)))
     (add-to-list 'auto-mode-alist mapping)))
 
+(use-package eglot
+  :ensure nil
+  :after cape
+  :config
+  (fset #'jsonrpc--log-event #'ignore)
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
+  (setq eglot-events-buffer-config '(:size 0 :format lisp))
+  (setq eglot-send-changes-idle-time 0.1)
+  (setq eglot-extend-to-xref t)
+  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
+                                             :documentHighlightProvider
+                                             :codeLensProvider
+                                             :documentRangeFormattingProvider
+                                             :documentOnTypeFormattingProvider
+                                             :documentLinkProvider
+                                             :foldingRangeProvider
+                                             :inlayHintProvider))
+  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))
+                                (c-ts-mode      . ("clangd"))
+                                (go-ts-mode     . ("gopls"))))
+  (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
+                                                 :python.analysis ( :autoSearchPaths t
+                                                                    :useLibraryCodeForTypes t
+                                                                    :diagnosticMode "openFilesOnly")
+                                                 :gopls ( :gofumpt t))))
+
 (use-package delight
   :ensure t
   :vc (:url "https://savannah.nongnu.org/projects/delight" :rev :newest)
@@ -319,6 +345,7 @@
 
 (use-package crux
   :ensure t
+  :vc (:url "https://github.com/bbatsov/crux" :rev :newest)
   :config
   (crux-with-region-or-line comment-or-uncomment-region)
   (crux-with-region-or-sexp-or-line kill-region)
@@ -338,11 +365,12 @@
 
 (use-package zoom
   :ensure t
-  :config
-  (setq zoom-size '(0.618 . 0.618)))
+  :vc (:url "https://github.com/cyrus-and/zoom" :rev :newest)
+  :config (setq zoom-size '(0.618 . 0.618)))
 
 (use-package key-chord
   :ensure t
+  :vc (:url "https://github.com/emacsorphanage/key-chord" :rev :newest)
   :hook (after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
@@ -352,30 +380,36 @@
 
 (use-package multiple-cursors
   :ensure t
+  :vc (:url "https://github.com/magnars/multiple-cursors.el" :rev :newest)
   :bind (("C->" . mc/mark-next-like-this)
          ("C-<" . mc/mark-previous-like-this)))
 
 (use-package expand-region
   :ensure t
+  :vc (:url "https://github.com/magnars/expand-region.el" :rev :newest)
   :bind ("C-=" . er/expand-region))
 
 (use-package anzu
   :ensure t
+  :vc (:url "https://github.com/emacsorphanage/anzu" :rev :newest)
   :hook (after-init . global-anzu-mode)
   :bind (("M-%"   . anzu-query-replace)
          ("C-M-%" . anzu-query-replace-regexp)))
 
 (use-package undo-fu
   :ensure t
+  :vc (:url "https://github.com/emacsmirror/undo-fu" :rev :newest)
   :bind (("C-z"   . undo-fu-only-undo)
          ("C-S-z" . undo-fu-only-redo)))
 
 (use-package undo-fu-session
   :ensure t
+  :vc (:url "https://github.com/emacsmirror/undo-fu-session" :rev :newest)
   :hook (after-init . undo-fu-session-global-mode))
 
 (use-package jinx
   :ensure t
+  :vc (:url "https://github.com/minad/jinx" :rev :newest)
   :config
   (setq jinx-languages "pt_BR en_US")
   :bind (("M-$"   . jinx-correct)
@@ -383,24 +417,24 @@
 
 (use-package projectile
   :ensure t
+  :vc (:url "https://github.com/bbatsov/projectile" :rev :newest)
   :hook (after-init . projectile-mode)
   :config
   (setq projectile-project-search-path '("~/Developer/work" "~/Developer/personal" "~/Developer/personal/dotfiles" "~/.emacs.d" "~/.config/nvim"))
   (setq projectile-cleanup-known-projects t)
   :bind-keymap ("C-x p" . projectile-command-map))
 
-(use-package consult-projectile
-  :ensure t
-  :after (consult projectile))
-
 (use-package magit
+  :vc (:url "https://github.com/magit/magit" :rev :newest)
   :ensure t)
 
 (use-package transient
+  :vc (:url "https://github.com/magit/transient" :rev :newest)
   :ensure t)
 
 (use-package helpful
   :ensure t
+  :vc (:url "https://github.com/Wilfred/helpful" :rev :newest)
   :config
   (setq helpful-max-buffers 1)
   :bind (([remap describe-command]  . helpful-command)
@@ -410,42 +444,19 @@
          ([remap describe-variable] . helpful-variable)))
 
 (use-package vterm
-  :ensure t)
+  :ensure t
+  :vc (:url "https://github.com/akermu/emacs-libvterm" :rev :newest))
 
 (use-package exec-path-from-shell
   :ensure t
+  :vc (:url "https://github.com/purcell/exec-path-from-shell" :rev :newest)
   :when (memq window-system '(mac ns x))
   :config
   (exec-path-from-shell-initialize))
 
-(use-package eglot
-  :ensure nil
-  :after cape
-  :config
-  (fset #'jsonrpc--log-event #'ignore)
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  (setq eglot-events-buffer-config '(:size 0 :format lisp))
-  (setq eglot-send-changes-idle-time 0.1)
-  (setq eglot-extend-to-xref t)
-  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
-                                             :documentHighlightProvider
-                                             :codeLensProvider
-                                             :documentRangeFormattingProvider
-                                             :documentOnTypeFormattingProvider
-                                             :documentLinkProvider
-                                             :foldingRangeProvider
-                                             :inlayHintProvider))
-  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))
-                                (c-ts-mode      . ("clangd"))
-                                (go-ts-mode     . ("gopls"))))
-  (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
-                                                 :python.analysis ( :autoSearchPaths t
-                                                                    :useLibraryCodeForTypes t
-                                                                    :diagnosticMode "openFilesOnly")
-                                                 :gopls ( :gofumpt t))))
-
 (use-package apheleia
   :ensure t
+  :vc (:url "https://github.com/radian-software/apheleia" :rev :newest)
   :hook ((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode)
   :preface
   (let ((clang-format-file "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el"))
@@ -477,14 +488,17 @@
 
 (use-package mise
   :ensure t
+  :vc (:url "https://github.com/eki3z/mise.el" :rev :newest)
   :hook (after-init . global-mise-mode))
 
 (use-package indent-bars
   :ensure t
+  :vc (:url "https://github.com/jdtsmith/indent-bars" :rev :newest)
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
 
 (use-package pyvenv
   :ensure t
+  :vc (:url "https://github.com/jorgenschaefer/pyvenv" :rev :newest)
   :preface
   (defun my-find-and-activate-venv ()
     "Find and activate .venv directory by scanning upward from current directory."
