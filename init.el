@@ -16,7 +16,7 @@
 (setq-default indent-tabs-mode nil)
 (setq tab-always-indent 'complete)
 (setq completion-ignore-case t)
-(add-hook 'elpaca-after-init-hook
+(add-hook 'after-init-hook
           (lambda ()
             (setq gc-cons-threshold (* 64 1024 1024))  ; 64MB
             (setq gc-cons-percentage 0.1)))
@@ -158,7 +158,7 @@
 (use-package vertico
   :ensure t
   :vc (:url "https://github.com/minad/vertico" :rev :newest)
-  :hook (elpaca-after-init . vertico-mode)
+  :hook (after-init . vertico-mode)
   :config
   (vertico-multiform-mode)
   (setq vertico-cycle t)
@@ -184,12 +184,12 @@
 (use-package marginalia
   :ensure t
   :vc (:url "https://github.com/minad/marginalia" :rev :newest)
-  :hook (elpaca-after-init . marginalia-mode))
+  :hook (after-init . marginalia-mode))
 
 (use-package corfu
   :ensure t
   :vc (:url "https://github.com/minad/corfu" :rev :newest)
-  :hook (elpaca-after-init . global-corfu-mode)
+  :hook (after-init . global-corfu-mode)
   :config
   (setq corfu-cycle t)
   (corfu-popupinfo-mode 1))
@@ -343,7 +343,7 @@
 
 (use-package key-chord
   :ensure t
-  :hook (elpaca-after-init . key-chord-mode)
+  :hook (after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
   (key-chord-define-global "jj" 'avy-goto-char-timer)
@@ -361,7 +361,7 @@
 
 (use-package anzu
   :ensure t
-  :hook (elpaca-after-init . global-anzu-mode)
+  :hook (after-init . global-anzu-mode)
   :bind (("M-%"   . anzu-query-replace)
          ("C-M-%" . anzu-query-replace-regexp)))
 
@@ -372,7 +372,7 @@
 
 (use-package undo-fu-session
   :ensure t
-  :hook (elpaca-after-init . undo-fu-session-global-mode))
+  :hook (after-init . undo-fu-session-global-mode))
 
 (use-package jinx
   :ensure t
@@ -383,7 +383,7 @@
 
 (use-package projectile
   :ensure t
-  :hook (elpaca-after-init . projectile-mode)
+  :hook (after-init . projectile-mode)
   :config
   (setq projectile-project-search-path '("~/Developer/work" "~/Developer/personal" "~/Developer/personal/dotfiles" "~/.emacs.d" "~/.config/nvim"))
   (setq projectile-cleanup-known-projects t)
@@ -477,7 +477,7 @@
 
 (use-package mise
   :ensure t
-  :hook (elpaca-after-init . global-mise-mode))
+  :hook (after-init . global-mise-mode))
 
 (use-package indent-bars
   :ensure t
