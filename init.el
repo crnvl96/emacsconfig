@@ -70,8 +70,19 @@
   :ensure nil
   :hook (after-init . global-auto-revert-mode)
   :config
+  ;; When nil, buffers in Auto-Revert Mode will always be polled for
+  ;; changes to their files on disk every `auto-revert-interval'
+  ;; seconds, in addition to using notification for those files.
+  ;;
+  ;; Set this variable to a non-nil value to save power by avoiding
+  ;; polling when possible.
   (setq auto-revert-avoid-polling t)
+  ;; Time, in seconds, between Auto-Revert Mode file checks.
   (setq auto-revert-interval 2)
+  ;; If non-nil Auto-Revert Mode reliably updates version control info.
+  ;;
+  ;; Auto-Revert Mode updates version control info whenever the buffer
+  ;; needs reverting, regardless of the value of this variable.
   (setq auto-revert-check-vc-info t))
 
 (use-package whitespace
@@ -172,17 +183,16 @@
   (delight '((eldoc-mode nil "eldoc")
              (apheleia-mode nil "apheleia")
              (anzu-mode nil "anzu")
-             (buffer-terminator-mode " ~" "buffer-terminator")
+             (buffer-terminator-mode nil "buffer-terminator")
              (whitespace-mode nil "whitespace")
-             (emacs-lisp-mode "Emacs Lisp" :major))))
+             (emacs-lisp-mode "El;" :major)
+             (aggressive-indent-mode nil "aggressive-indent"))))
 
-(use-package ef-themes
+(use-package zenburn-theme
   :ensure t
   :config
-  (setq ef-themes-mixed-fonts t)
-  (setq ef-themes-variable-pitch-ui nil)
   (mapc #'disable-theme custom-enabled-themes)
-  (load-theme 'ef-melissa-light t))
+  (load-theme 'zenburn t))
 
 (use-package vertico
   :ensure t
