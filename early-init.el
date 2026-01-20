@@ -64,14 +64,21 @@
 ;; asynchronous native compilations if any are running.
 (setq native-comp-async-query-on-exit t)
 
-(setq inhibit-startup-echo-area-message (user-login-name))
+;; Declutter the screen
 (setq inhibit-splash-screen t)
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
 (setq initial-major-mode 'fundamental-mode)
 (setq initial-scratch-message nil)
+;; If this is non-nil, no rounding occurs, hence frame sizes can
+;; increase/decrease by one pixel.
 (setq frame-resize-pixelwise t)
+(tool-bar-mode -1)
+(menu-bar-mode -1)
+(scroll-bar-mode -1)
+(blink-cursor-mode -1)
 
+;; Define aspect of Emacs window
 (setq default-frame-alist '((fullscreen . maximized)
                             (vertical-scroll-bars . nil)
                             (horizontal-scroll-bars . nil)
@@ -79,11 +86,6 @@
                             (foreground-color . "#5f4400")
                             (ns-appearance . light)
                             (ns-transparent-titlebar . t)))
-
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-(blink-cursor-mode -1)
 
 ;; Local Variables:
 ;; no-byte-compile: t
