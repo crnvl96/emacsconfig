@@ -116,22 +116,19 @@
       (sit-for 0.75)))
   :config
   (setq treesit-font-lock-level 4)
-  (setq treesit-language-source-alist '((css        . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-                                        (go         . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+  (setq treesit-language-source-alist '((bash       . ("https://github.com/tree-sitter/tree-sitter-bash" "v0.25.1" "src"))
+                                        (css        . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
                                         (html       . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
                                         (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
                                         (json       . ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
                                         (markdown   . ("https://github.com/ikatyang/tree-sitter-markdown" "v0.7.1"))
                                         (python     . ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-                                        (rust       . ("https://github.com/tree-sitter/tree-sitter-rust" "v0.21.2"))
                                         (toml       . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
                                         (tsx        . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
                                         (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
                                         (yaml       . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
-  (dolist (mapping '((c-mode          . c-ts-mode)
-                     (conf-toml-mode  . toml-ts-mode)
+  (dolist (mapping '((conf-toml-mode  . toml-ts-mode)
                      (css-mode        . css-ts-mode)
-                     (go-mode         . go-ts-mode)
                      (js-json-mode    . json-ts-mode)
                      (js2-mode        . js-ts-mode)
                      (json-mode       . json-ts-mode)
@@ -159,9 +156,10 @@
                                              :documentLinkProvider
                                              :foldingRangeProvider
                                              :inlayHintProvider))
-  (setq eglot-server-programs '((python-ts-mode . ("pyright-langserver" "--stdio"))
+  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))
                                 (c-ts-mode      . ("clangd"))
                                 (go-ts-mode     . ("gopls"))))
+  ;; Some servers that are managed by rass have their configs in ~/.config/rassumfrassum/<preset>.py
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
                                                  :python.analysis ( :autoSearchPaths t
                                                                     :useLibraryCodeForTypes t
@@ -232,9 +230,13 @@
   :ensure t
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :init
+  ;; Tweak the register preview for `consult-register-load',
+  ;; `consult-register-store' and the built-in commands.  This improves the
+  ;; register formatting, adds thin separator lines, register sorting and hides
+  ;; the window mode line.
   (advice-add #'register-preview :override #'consult-register-window)
   (setq register-preview-delay 0.5)
-  (setq register-preview-function #'consult-register-format)
+  ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref)
   (setq xref-show-definitions-function #'consult-xref)
   :config
