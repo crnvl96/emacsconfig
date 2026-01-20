@@ -150,11 +150,7 @@
   :ensure nil
   :after cape
   :config
-  (fset #'jsonrpc--log-event #'ignore)
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  (setq eglot-events-buffer-config '(:size 0 :format lisp))
-  (setq eglot-send-changes-idle-time 0.1)
-  (setq eglot-extend-to-xref t)
   (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
                                              :documentHighlightProvider
                                              :codeLensProvider
@@ -177,7 +173,6 @@
   :config
   (delight '((eldoc-mode nil "eldoc")
              (apheleia-mode nil "apheleia")
-             (projectile-mode nil "projectile")
              (anzu-mode nil "anzu")
              (buffer-terminator-mode " ~" "buffer-terminator")
              (whitespace-mode nil "whitespace")
@@ -316,16 +311,11 @@
 (use-package wgrep
   :ensure t)
 
-
 (use-package avy
-  :ensure t
-  :config
-  (setq avy-background t))
+  :ensure t)
 
 (use-package ace-window
   :ensure t
-  :config
-  (setq aw-keys '(?h ?j ?k ?l))
   :bind (([remap other-window] . ace-window)
          ("M-o"                 . ace-window)))
 
@@ -404,18 +394,7 @@
   :bind (("M-$"   . jinx-correct)
          ("C-M-$" . jinx-languages)))
 
-(use-package projectile
-  :ensure t
-  :hook (after-init . projectile-mode)
-  :config
-  (setq projectile-project-search-path '("~/Developer/work" "~/Developer/personal" "~/Developer/personal/dotfiles" "~/.emacs.d" "~/.config/nvim"))
-  (setq projectile-cleanup-known-projects t)
-  :bind-keymap ("C-x p" . projectile-command-map))
-
 (use-package magit
-  :ensure t)
-
-(use-package transient
   :ensure t)
 
 (use-package helpful
@@ -439,34 +418,9 @@
 
 (use-package apheleia
   :ensure t
-  :hook ((c-ts-mode go-ts-mode python-ts-mode emacs-lisp-mode) . apheleia-mode)
-  :preface
-  (let ((clang-format-file "/home/linuxbrew/.linuxbrew/Cellar/llvm/21.1.8/share/emacs/site-lisp/llvm/clang-format.el"))
-    (when (file-exists-p clang-format-file)
-      (load clang-format-file)))
-  (defun my-create-clang-format ()
-    "Create .clang-format file at project root with LLVM style."
-    (interactive)
-    (let ((dir (expand-file-name default-directory))
-          (project-root nil))
-      (while (and dir (not (string= dir "/")) (not project-root))
-        (if (file-directory-p (expand-file-name ".git" dir))
-            (setq project-root dir)
-          (setq dir (file-name-directory (directory-file-name dir)))))
-      (if (not project-root)
-          (message "No git repository found.")
-        (let ((clang-format-path (expand-file-name ".clang-format" project-root)))
-          (if (file-exists-p clang-format-path)
-              (message ".clang-format already exists at %s" clang-format-path)
-            (let ((default-directory project-root))
-              (shell-command "clang-format -style=llvm -dump-config > .clang-format")
-              (message ".clang-format created at %s" clang-format-path)))))))
+  :hook ((python-ts-mode emacs-lisp-mode) . apheleia-mode)
   :config
-  (push '(my-clang-format . (clang-format-buffer)) apheleia-formatters)
-  (push '(my-gofumpt . ("gofumpt")) apheleia-formatters)
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)
-        (alist-get 'go-ts-mode apheleia-mode-alist)     '(my-gofumpt)
-        (alist-get 'c-ts-mode apheleia-mode-alist)      '(my-clang-format)))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 (use-package mise
   :ensure t
@@ -477,32 +431,7 @@
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
 
 (use-package pyvenv
-  :ensure t
-  :preface
-  (defun my-find-and-activate-venv ()
-    "Find and activate .venv directory by scanning upward from current directory."
-    (interactive)
-    (let ((dir (expand-file-name default-directory))
-          (venv-dir nil)
-          (stopped-dir nil))
-      (while (and dir (not (string= dir "/")) (not venv-dir))
-        (let ((candidate (expand-file-name ".venv" dir)))
-          (if (file-directory-p candidate)
-              (setq venv-dir candidate)
-            (if (or (file-exists-p (expand-file-name "pyproject.toml" dir))
-                    (file-directory-p (expand-file-name ".git" dir)))
-                (progn
-                  (setq stopped-dir dir)
-                  (setq dir nil))
-              (setq dir (file-name-directory (directory-file-name dir)))))))
-      (if venv-dir
-          (progn
-            (message "Venv found at %s, activating..." venv-dir)
-            (pyvenv-activate venv-dir)
-            (when pyvenv-virtual-env
-              (message "Venv activated at %s" venv-dir)))
-        (message "No venv found. Search started from %s and stopped at %s"
-                 default-directory (or stopped-dir "/"))))))
+  :ensure t)
 
 ;; Local Variables:
 ;; no-byte-compile: t
