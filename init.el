@@ -154,39 +154,49 @@
                      ("\\.ya?ml\\'"  . yaml-ts-mode)))
     (add-to-list 'auto-mode-alist mapping)))
 
+(use-package golden-ratio-scroll-screen
+  :ensure t
+  :bind (([remap scroll-down-command] . golden-ratio-scroll-screen-down)
+         ([remap scroll-up-command] . golden-ratio-scroll-screen-up)))
+
+(use-package exec-path-from-shell
+  :ensure t
+  ;; `memq' returns t when an item is part of a list
+  ;; `window-system' is the name of window system through which the selected frame is displayed.
+  :init (when (memq window-system '(mac ns x pgtk))
+          (exec-path-from-shell-initialize)))
+
+
 (use-package eglot
   :ensure nil
   :after cape
   :config
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  (setq eglot-ignored-server-capabilities '( :signatureHelpProvider
-                                             :documentHighlightProvider
-                                             :codeLensProvider
-                                             :documentRangeFormattingProvider
-                                             :documentOnTypeFormattingProvider
-                                             :documentLinkProvider
-                                             :foldingRangeProvider
-                                             :inlayHintProvider))
-  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))
-                                (c-ts-mode      . ("clangd"))
-                                (go-ts-mode     . ("gopls"))))
-  ;; Some servers that are managed by rass have their configs in ~/.config/rassumfrassum/<preset>.py
+  (setq eglot-server-programs '((python-ts-mode . ("rass" "python"))))
   (setq-default eglot-workspace-configuration '( :pyright ( :disableOrganizeImports t)
                                                  :python.analysis ( :autoSearchPaths t
                                                                     :useLibraryCodeForTypes t
-                                                                    :diagnosticMode "openFilesOnly")
-                                                 :gopls ( :gofumpt t))))
+                                                                    :diagnosticMode "openFilesOnly"))))
+
+(use-package apheleia
+  :ensure t
+  :hook (after-init . apheleia-global-mode)
+  :config
+  (setf (alist-get 'python-mode apheleia-mode-alist)
+        '(ruff-isort ruff))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+        '(ruff-isort ruff)))
 
 (use-package delight
   :ensure t
   :config
   (delight '((eldoc-mode nil "eldoc")
-             (apheleia-mode nil "apheleia")
              (anzu-mode nil "anzu")
              (buffer-terminator-mode nil "buffer-terminator")
              (whitespace-mode nil "whitespace")
-             (emacs-lisp-mode "El;" :major)
-             (aggressive-indent-mode nil "aggressive-indent"))))
+             (aggressive-indent-mode nil "aggressive-indent")
+             (apheleia-mode nil "apheleia")
+             (emacs-lisp-mode "Elisp" :major))))
 
 (use-package zenburn-theme
   :ensure t
@@ -200,8 +210,7 @@
   :config
   (vertico-multiform-mode)
   (setq vertico-cycle t)
-  (dolist (category '((embark-keybinding grid)
-                      (jinx grid (vertico-grid-annotate . 20) (vertico-count . 4))))
+  (dolist (category '((embark-keybinding grid)))
     (add-to-list 'vertico-multiform-categories category))
   :bind ( :map vertico-map
           ("<backspace>" . vertico-directory-delete-char)
@@ -258,50 +267,22 @@
                      consult-grep
                      consult-xref
                      :preview-key "M-.")
-  :bind (("C-c M-x" . consult-mode-command)
-         ("C-c h" . consult-history)
-         ("C-c k" . consult-kmacro)
-         ("C-c m" . consult-man)
-         ("C-c i" . consult-info)
-         ([remap Info-search] . consult-info)
-         ("C-x M-:" . consult-complex-command)
+  :bind (([remap Info-search] . consult-info)
          ("C-x b" . consult-buffer)
-         ("C-x 4 b" . consult-buffer-other-window)
-         ("C-x 5 b" . consult-buffer-other-frame)
-         ("C-x t b" . consult-buffer-other-tab)
-         ("C-x r b" . consult-bookmark)
-         ("C-x p b" . consult-project-buffer)
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)
-         ("C-M-#" . consult-register)
          ("M-y" . consult-yank-pop)
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)
          ("M-g g" . consult-goto-line)
-         ("M-g M-g" . consult-goto-line)
          ("M-g o" . consult-outline)
-         ("M-g m" . consult-mark)
-         ("M-g k" . consult-global-mark)
          ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
-         ("M-s d" . consult-find)
-         ("M-s c" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
+         ("M-s d" . consult-fd)
+         ("M-s g" . consult-ripgrep)
          ("M-s l" . consult-line)
-         ("M-s L" . consult-line-multi)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
-         ("M-s e" . consult-isearch-history)
          :map isearch-mode-map
          ("M-e" . consult-isearch-history)
-         ("M-s e" . consult-isearch-history)
-         ("M-s l" . consult-line)
-         ("M-s L" . consult-line-multi)
+         ("M-l" . consult-line)
          :map minibuffer-local-map
-         ("M-s" . consult-history)
-         ("M-r" . consult-history)))
+         ("M-s" . consult-history)))
 
 (use-package embark
   :ensure t
@@ -310,38 +291,10 @@
   :config (add-to-list 'display-buffer-alist
                        '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                          nil
-                         (window-parameters (mode-line-format . none))))
-  :bind (("C-."   . embark-act)
-         ("C-;"   . embark-dwim)
-         ("C-h B" . embark-bindings)))
-
-(use-package embark-consult
-  :ensure t
-  :after (embark consult)
-  :hook (embark-collect-mode . consult-preview-at-point-mode))
-
-(use-package wgrep
-  :ensure t)
+                         (window-parameters (mode-line-format . none)))))
 
 (use-package avy
   :ensure t)
-
-(use-package ace-window
-  :ensure t
-  :bind (([remap other-window] . ace-window)
-         ("M-o"                 . ace-window)))
-
-(use-package buffer-terminator
-  :ensure t
-  :hook (after-init . buffer-terminator-mode)
-  :config
-  (setq buffer-terminator-verbose nil)
-  (setq buffer-terminator-inactivity-timeout (* 30 60))
-  (setq buffer-terminator-interval (* 10 60)))
-
-(use-package aggressive-indent
-  :ensure t
-  :hook (emacs-lisp-mode . aggressive-indent-mode))
 
 (use-package crux
   :ensure t
@@ -354,6 +307,7 @@
          ("C-S-j"                   . crux-top-join-line)
          ("C-S-d"                   . crux-duplicate-current-line-or-region)
          ("C-g"                     . crux-keyboard-quit-dwim)
+         ("M-o"                     . crux-other-window-or-switch-buffer)
          ([remap move-beginning-of-line] . crux-move-beginning-of-line)
          ([remap kill-whole-line]   . crux-kill-whole-line)
          ([remap upcase-region]     . crux-upcase-region)
@@ -361,6 +315,18 @@
          ([remap kill-line]         . crux-smart-kill-line)
          ([(shift return)]          . crux-smart-open-line)
          ([(control shift return)]  . crux-smart-open-line-above)))
+
+(use-package projectile
+  :ensure t
+  :hook (after-init . projectile-mode)
+  :config
+  (setq projectile-project-search-path '("~/Developer/work"
+                                         "~/Developer/personal"
+                                         "~/Developer/personal/dotfiles"
+                                         "~/.emacs.d"
+                                         "~/.config/nvim"))
+  (setq projectile-cleanup-known-projects t)
+  :bind-keymap ("C-x p" . projectile-command-map))
 
 (use-package zoom
   :ensure t
@@ -371,9 +337,7 @@
   :hook (after-init . key-chord-mode)
   :config
   (setq key-chord-typing-detection t)
-  (key-chord-define-global "jj" 'avy-goto-char-timer)
-  (key-chord-define-global "KK" 'backward-paragraph)
-  (key-chord-define-global "JJ" 'forward-paragraph))
+  (key-chord-define-global "jj" 'avy-goto-char))
 
 (use-package multiple-cursors
   :ensure t
@@ -384,27 +348,10 @@
   :ensure t
   :bind ("C-=" . er/expand-region))
 
-(use-package anzu
-  :ensure t
-  :hook (after-init . global-anzu-mode)
-  :bind (("M-%"   . anzu-query-replace)
-         ("C-M-%" . anzu-query-replace-regexp)))
-
 (use-package undo-fu
   :ensure t
   :bind (("C-z"   . undo-fu-only-undo)
          ("C-S-z" . undo-fu-only-redo)))
-
-(use-package undo-fu-session
-  :ensure t
-  :hook (after-init . undo-fu-session-global-mode))
-
-(use-package jinx
-  :ensure t
-  :config
-  (setq jinx-languages "pt_BR en_US")
-  :bind (("M-$"   . jinx-correct)
-         ("C-M-$" . jinx-languages)))
 
 (use-package magit
   :ensure t)
@@ -422,18 +369,6 @@
 (use-package vterm
   :ensure t)
 
-(use-package exec-path-from-shell
-  :ensure t
-  :when (memq window-system '(mac ns x))
-  :config
-  (exec-path-from-shell-initialize))
-
-(use-package apheleia
-  :ensure t
-  :hook ((python-ts-mode emacs-lisp-mode) . apheleia-mode)
-  :config
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
-
 (use-package mise
   :ensure t
   :hook (after-init . global-mise-mode))
@@ -443,7 +378,9 @@
   :hook ((python-ts-mode yaml-ts-mode) . indent-bars-mode))
 
 (use-package pyvenv
-  :ensure t)
+  :ensure t
+  :config
+  (pyvenv-mode 1))
 
 ;; Local Variables:
 ;; no-byte-compile: t
