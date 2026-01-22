@@ -159,14 +159,6 @@
   :bind (([remap scroll-down-command] . golden-ratio-scroll-screen-down)
          ([remap scroll-up-command] . golden-ratio-scroll-screen-up)))
 
-(use-package exec-path-from-shell
-  :ensure t
-  ;; `memq' returns t when an item is part of a list
-  ;; `window-system' is the name of window system through which the selected frame is displayed.
-  :init (when (memq window-system '(mac ns x pgtk))
-          (exec-path-from-shell-initialize)))
-
-
 (use-package eglot
   :ensure nil
   :after cape
@@ -293,9 +285,6 @@
                          nil
                          (window-parameters (mode-line-format . none)))))
 
-(use-package avy
-  :ensure t)
-
 (use-package crux
   :ensure t
   :config
@@ -331,13 +320,6 @@
 (use-package zoom
   :ensure t
   :config (setq zoom-size '(0.618 . 0.618)))
-
-(use-package key-chord
-  :ensure t
-  :hook (after-init . key-chord-mode)
-  :config
-  (setq key-chord-typing-detection t)
-  (key-chord-define-global "jj" 'avy-goto-char))
 
 (use-package multiple-cursors
   :ensure t
