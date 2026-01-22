@@ -196,6 +196,17 @@
   (mapc #'disable-theme custom-enabled-themes)
   (load-theme 'gruvbox-light-medium t))
 
+(use-package buffer-terminator
+  :ensure t
+  :hook (after-init . buffer-terminator-mode)
+  :config
+  (setq buffer-terminator-verbose t)
+  ;; Set the inactivity timeout (in seconds) after which buffers are considered
+  ;; inactive
+  (setq buffer-terminator-inactivity-timeout (* 15 60)) ; 15 minutes
+  ;; Define how frequently the cleanup process should run
+  (setq buffer-terminator-interval (* 10 60))) ; 10 minutes
+
 (use-package vertico
   :ensure t
   :hook (after-init . vertico-mode)
