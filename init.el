@@ -172,12 +172,11 @@
 
 (use-package apheleia
   :ensure t
-  :hook (after-init . apheleia-global-mode)
+  :hook ((python-ts-mode . apheleia-mode)
+         (emacs-lisp-mode . apheleia-mode))
   :config
-  (setf (alist-get 'python-mode apheleia-mode-alist)
-        '(ruff-isort ruff))
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
-        '(ruff-isort ruff)))
+  (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 (use-package delight
   :ensure t
@@ -185,6 +184,7 @@
   (delight '((eldoc-mode nil "eldoc")
              (anzu-mode nil "anzu")
              (buffer-terminator-mode nil "buffer-terminator")
+             (projectile-mode nil "projectile")
              (whitespace-mode nil "whitespace")
              (aggressive-indent-mode nil "aggressive-indent")
              (apheleia-mode nil "apheleia")
