@@ -190,11 +190,11 @@
              (apheleia-mode nil "apheleia")
              (emacs-lisp-mode "Elisp" :major))))
 
-(use-package zenburn-theme
+(use-package gruvbox-theme
   :ensure t
   :config
   (mapc #'disable-theme custom-enabled-themes)
-  (load-theme 'zenburn t))
+  (load-theme 'gruvbox-light-medium t))
 
 (use-package vertico
   :ensure t
