@@ -190,24 +190,19 @@
              (apheleia-mode nil "apheleia")
              (emacs-lisp-mode "Elisp" :major))))
 
-(use-package gruvbox-theme
+(use-package ef-themes
   :ensure t
+  :init
+  (ef-themes-take-over-modus-themes-mode 1)
   :config
-  (mapc #'disable-theme custom-enabled-themes)
-  (load-theme 'gruvbox-light-medium t))
+  ;; All customisations here.
+  (setq modus-themes-mixed-fonts t)
+  (setq modus-themes-italic-constructs t)
 
-(use-package doom-themes
-  :ensure t
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold t)   ; if nil, bold is universally disabled
-  (setq doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;; load theme
-  (load-theme 'doom-gruvbox-light t)
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+  ;; Finally, load your theme of choice (or a random one with
+  ;; `modus-themes-load-random', `modus-themes-load-random-dark',
+  ;; `modus-themes-load-random-light').
+  (modus-themes-load-theme 'ef-melissa-light))
 
 (use-package buffer-terminator
   :ensure t
