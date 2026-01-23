@@ -159,6 +159,11 @@
   :bind (([remap scroll-down-command] . golden-ratio-scroll-screen-down)
          ([remap scroll-up-command] . golden-ratio-scroll-screen-up)))
 
+(use-package rg
+  :ensure t
+  :config
+  (rg-enable-default-bindings))
+
 (use-package eglot
   :ensure nil
   :after cape
