@@ -159,6 +159,16 @@
   :bind (([remap scroll-down-command] . golden-ratio-scroll-screen-down)
          ([remap scroll-up-command] . golden-ratio-scroll-screen-up)))
 
+(use-package exec-path-from-shell
+  :ensure t
+  :hook (after-init . (lambda ()
+                        (when (memq window-system '(mac ns x pgtk))
+                          (exec-path-from-shell-initialize)))))
+
+(use-package md-mermaid
+  :vc (:url "https://github.com/ahmetus/md-mermaid" :rev :newest)
+  :commands (md-mermaid-render-current md-mermaid-transient))
+
 (use-package rg
   :ensure t
   :config
