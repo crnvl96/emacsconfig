@@ -53,6 +53,12 @@
   (set-face-attribute 'fixed-pitch nil :family mono-font :height 1.0 :weight 'regular)
   (set-face-attribute 'variable-pitch nil :family prop-font :height 1.0 :weight 'regular))
 
+;; We want emacs to always look at a default NodeJS installations to find
+;; programs that were globally installed
+(let ((global-nodejs-path (concat (getenv "HOME") "/.local/share/mise/installs/node/24/bin")))
+  (setenv "PATH" (concat (getenv "PATH") ":" global-nodejs-path))
+  (add-to-list 'exec-path global-nodejs-path))
+
 (use-package emacs
   :ensure nil
   :hook (after-init . minibuffer-depth-indicate-mode)
@@ -159,15 +165,13 @@
   :bind (([remap scroll-down-command] . golden-ratio-scroll-screen-down)
          ([remap scroll-up-command] . golden-ratio-scroll-screen-up)))
 
-(use-package exec-path-from-shell
-  :ensure t
-  :hook (after-init . (lambda ()
-                        (when (memq window-system '(mac ns x pgtk))
-                          (exec-path-from-shell-initialize)))))
-
 (use-package md-mermaid
-  :vc (:url "https://github.com/ahmetus/md-mermaid" :rev :newest)
-  :commands (md-mermaid-render-current md-mermaid-transient))
+  :vc ( :url "https://github.com/ahmetus/md-mermaid"
+        :rev
+        :newest)
+  :commands (md-mermaid-render-current
+             md-mermaid-transient
+             md-mermaid-live-mode))
 
 (use-package rg
   :ensure t
@@ -288,25 +292,18 @@
   (setq consult-async-min-input 2)
   (setq consult-narrow-key "<")
   (setq consult-fd-args "fd --type f --hidden --follow --exclude .git")
-  (consult-customize consult-theme consult-ripgrep
-                     consult-git-grep
-                     consult-grep
-                     consult-xref
-                     :preview-key "M-.")
   :bind (([remap Info-search] . consult-info)
          ("C-x b" . consult-buffer)
          ("M-y" . consult-yank-pop)
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)
+         ("M-g l" . consult-line)
          ("M-g g" . consult-goto-line)
+         ("M-g M-g" . consult-goto-line)
          ("M-g o" . consult-outline)
          ("M-g i" . consult-imenu)
-         ("M-s d" . consult-fd)
+         ("M-s f" . consult-fd)
          ("M-s g" . consult-ripgrep)
-         ("M-s l" . consult-line)
-         :map isearch-mode-map
-         ("M-e" . consult-isearch-history)
-         ("M-l" . consult-line)
          :map minibuffer-local-map
          ("M-s" . consult-history)))
 
@@ -338,6 +335,10 @@
          ([remap kill-line]         . crux-smart-kill-line)
          ([(shift return)]          . crux-smart-open-line)
          ([(control shift return)]  . crux-smart-open-line-above)))
+
+;; (use-package mason
+;;   :ensure t
+;;   :config (mason-setup))
 
 (use-package projectile
   :ensure t
