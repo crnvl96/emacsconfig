@@ -2,22 +2,41 @@
 
 (require 'package)
 (require 'use-package)
+
+;; Load Emacs Lisp packages, and activate them.
 (package-initialize)
 
+;; An alist of archives from which to fetch.
 (setq package-archives '(("melpa"        . "https://melpa.org/packages/")
                          ("gnu"          . "https://elpa.gnu.org/packages/")
                          ("nongnu"       . "https://elpa.nongnu.org/nongnu/")
                          ("melpa-stable" . "https://stable.melpa.org/packages/")))
+
+;; When installing packages, the package with the highest version
+;; number from the archive with the highest priority is
+;; selected.
 (setq package-archive-priorities '(("melpa"        . 90)
                                    ("gnu"          . 70)
                                    ("nongnu"       . 60)
                                    ("melpa-stable" . 50)))
+
+;; File used for storing customization information.
+;;
+;; The default is nil, which means to use your init file
+;; as specified by user-init-file.  If the value is not nil,
+;; it should be an absolute file name.
 (setq custom-file (expand-file-name "custom.el" my-user-directory))
+;; Non-nil means yes-or-no-p uses shorter answers "y" or "n".
 (setq use-short-answers t)
+;; How to ask for confirmation when leaving Emacs.
 (setq confirm-kill-emacs 'y-or-n-p)
+;; Non-nil means to allow minibuffer commands while in the minibuffer.
 (setq enable-recursive-minibuffers t)
+;; Non-nil means make a backup of a file the first time it is saved.
 (setq make-backup-files nil)
+;; Non-nil means try to flash the frame to represent a bell.
 (setq visible-bell nil)
+;; Non-nil means call this function to ring the bell.
 (setq ring-bell-function #'ignore)
 (setq-default truncate-lines t)
 (setq-default display-line-numbers-width 3)
